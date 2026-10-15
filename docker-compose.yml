@@ -1,0 +1,83 @@
+# Local stack: Postgres + pgvector, Redis, API, worker and scheduler.
+# Start with `make dev` (or `./dev.ps1 dev` on Windows). The Expo app runs on the host.
+#
+# Settings come from the repo-root .env (read by the app itself, since the repo is
+# mounted at /repo). The values below override it for container networking.
+
+name: curo
+
+x-python: &python
+  build:
+    context: .
+    dockerfile: api/Dockerfile
+  image: curo-python:dev
+  volumes:
+    - .:/repo
+  environment:
+    DATABASE_URL: postgresql://postgres:postgres@db:5432/curo
+    REDIS_URL: redis://redis:6379/0
+    # File events don't cross from a Windows/macOS host into containers; poll instead.
+    WATCHFILES_FORCE_POLLING: "true"
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: curo
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d curo"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  api:
+    <<: *python
+    # Migrations run first (idempotent, advisory-locked), then the API with live reload.
+    command: >
+      sh -c "python -m curo.db.migrate &&
+             uvicorn curo.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /repo/api/curo"
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  worker:
+    <<: *python
+    command: python -m curo_worker worker
+    depends_on:
+      api:
+        condition: service_healthy
+
+  scheduler:
+    <<: *python
+    command: python -m curo_worker scheduler
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  db-data:

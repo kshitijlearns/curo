@@ -1,0 +1,22 @@
+# Secrets and local state
+.env
+app/.env
+.data/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+
+# Node / Expo (app/.gitignore covers the rest)
+node_modules/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
