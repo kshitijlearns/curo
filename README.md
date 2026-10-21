@@ -28,6 +28,11 @@ The web app calls only `/api/v1/*`; in development Next.js forwards that to the 
 `API_ORIGIN` (default `http://127.0.0.1:8000`). Copy `web/.env.example` to `web/.env.local`
 to set it, or the public Supabase values for real email sign-in.
 
+**Deployed without a backend** (Vercel, Root Directory `web`), the web app runs in demo mode:
+it plays back a recorded journey of the demo creator, so every screen can be seen (D211). Set
+`API_ORIGIN` to a hosted API to switch it off. Re-record with `python tools/record_web_demo.py`
+while `./dev.ps1 local --seed` runs; try it locally with `cd web && npm run dev:demo`.
+
 If Windows blocks the script: `powershell -ExecutionPolicy Bypass -File dev.ps1 local`.
 
 ### Signing in and the demo data

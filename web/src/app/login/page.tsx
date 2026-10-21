@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { DEMO } from '@/lib/demo';
 import { sendCode, usesSupabase, verifyCode } from '@/lib/session';
 
 export default function Login() {
@@ -51,6 +52,11 @@ export default function Login() {
         <p className="section-sub">
           We’ll email you a 6-digit code. Curo never asks for your Instagram password.
         </p>
+        {DEMO ? (
+          <p className="label-sim" style={{ background: 'var(--lavender)' }}>
+            This is a demo with sample data for @curo.demo. Sign in with any email.
+          </p>
+        ) : null}
         {!sent ? (
           <form onSubmit={send} className="stack">
             <label htmlFor="email" className="sr-only">
@@ -76,7 +82,7 @@ export default function Login() {
             <p className="light">Code sent to {email}.</p>
             {devCode && !usesSupabase ? (
               <p className="label-sim" style={{ background: 'var(--lavender)' }}>
-                Development sign-in: your code is {devCode}
+                {DEMO ? 'Demo with sample data' : 'Development sign-in'}: your code is {devCode}
               </p>
             ) : null}
             <label htmlFor="code" className="sr-only">
