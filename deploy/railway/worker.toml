@@ -1,0 +1,8 @@
+# Railway service: CURO job worker (RQ). Same image as the API.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "api/Dockerfile"
+
+[deploy]
+startCommand = "python -m curo_worker worker"
+restartPolicyType = "ALWAYS"

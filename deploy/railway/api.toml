@@ -1,0 +1,12 @@
+# Railway service: CURO API. Point the service's "Config as code" path at this file.
+# Not used locally. Migrations run against Supabase without the local shim.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "api/Dockerfile"
+
+[deploy]
+startCommand = "sh -c 'python -m curo.db.migrate --no-shim && uvicorn curo.main:app --host 0.0.0.0 --port $PORT'"
+healthcheckPath = "/health"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

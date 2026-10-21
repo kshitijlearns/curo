@@ -1,0 +1,32 @@
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;600&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box; font-family: 'Proxima Nova', 'proxima-nova', 'Figtree', ui-sans-serif, system-ui, sans-serif; color: #242424">
+  <sc-if value="{{hasHint}}" hint-placeholder-val="{{true}}">
+    <p style="margin: 0 4px; font-size: 13.5px; line-height: 1.45; color: rgba(36,36,36,.72)">{{hint}}</p>
+  </sc-if>
+  <div style="display: flex; align-items: center; gap: 4px; height: 56px; padding: 0 5px 0 20px; border-radius: 28px; background: #E4E4EC; box-sizing: border-box">
+    <sc-if value="{{notListening}}" hint-placeholder-val="{{true}}">
+      <input aria-label="Message Curo" value="{{text}}" onChange="{{onText}}" onKeyDown="{{onKey}}" placeholder="{{placeholder}}" style="flex: 1 1 auto; min-width: 0; height: 44px; border: none; background: transparent; outline: none; font-size: 15px; font-weight: 400; color: #242424; font-family: inherit">
+    </sc-if>
+    <sc-if value="{{listening}}" hint-placeholder-val="{{false}}">
+      <div style="flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 10px">
+        <div style="display: flex; align-items: center; gap: 3px; height: 26px">
+          <sc-for list="{{bars}}" as="b" hint-placeholder-count="14">
+            <span style="display: block; width: 3px; height: 22px; border-radius: 2px; background: {{b.c}}; transform-origin: center; animation: curoWave .9s ease-in-out {{b.d}}ms infinite"></span>
+          </sc-for>
+        </div>
+        <span style="font-size: 13px; font-weight: 400">Listening…</span>
+      </div>
+    </sc-if>
+    <button type="button" onClick="{{toggleMic}}" aria-label="{{micLabel}}" aria-pressed="{{listening}}" style="flex: 0 0 44px; width: 44px; height: 44px; border-radius: 50%; border: none; background: {{micBg}}; color: {{micFg}}; display: grid; place-items: center; cursor: pointer; transition: all .38s cubic-bezier(.2,.8,.3,1.25); transform: scale({{micScale}}); animation: {{micAnim}}">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"></path></svg>
+    </button>
+    <button type="button" onClick="{{send}}" aria-label="Send" disabled="{{cantSend}}" style="flex: 0 0 46px; width: 46px; height: 46px; border-radius: 50%; border: none; background: #5B73F2; color: #FFFFFF; display: grid; place-items: center; cursor: pointer; opacity: {{sendOpacity}}; transform: scale({{sendScale}}); transition: all .38s cubic-bezier(.2,.8,.3,1.25)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+    </button>
+  </div>
+</div>

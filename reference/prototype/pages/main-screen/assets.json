@@ -1,0 +1,72 @@
+[
+  {
+    "id": "94fbfd91-3566-43b8-b7d5-f8d1cf26f211",
+    "mime": "text/javascript",
+    "name": "https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js",
+    "bytes": 131835,
+    "file": "assets/94fbfd91-3566-43b8-b7d5-f8d1cf26f211.js"
+  },
+  {
+    "id": "69c38188-1124-4533-9c44-a5712021f8e0",
+    "mime": "text/css",
+    "name": "https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;600&display=swap",
+    "bytes": 124002,
+    "file": "assets/69c38188-1124-4533-9c44-a5712021f8e0.css"
+  },
+  {
+    "id": "e733e191-8c08-4037-b642-4939d96b19e6",
+    "mime": "text/javascript",
+    "name": "",
+    "bytes": 45305,
+    "file": "assets/e733e191-8c08-4037-b642-4939d96b19e6.js"
+  },
+  {
+    "id": "2c8b91a3-b6d6-45d0-9953-264444f7bb9f",
+    "mime": "font/woff2",
+    "name": "",
+    "bytes": 20156,
+    "file": "assets/2c8b91a3-b6d6-45d0-9953-264444f7bb9f.woff2"
+  },
+  {
+    "id": "5f68d01c-7fbe-4fed-b408-88e5c50a1a80",
+    "mime": "text/html",
+    "name": "./Sketch.dc.html",
+    "bytes": 18924,
+    "file": "components/Sketch.html"
+  },
+  {
+    "id": "7e128e3f-9cca-449e-b297-267ce095f0b7",
+    "mime": "text/javascript",
+    "name": "https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js",
+    "bytes": 10751,
+    "file": "assets/7e128e3f-9cca-449e-b297-267ce095f0b7.js"
+  },
+  {
+    "id": "3aabe23a-6c45-4a7f-88a9-5e3f84ed87af",
+    "mime": "font/woff2",
+    "name": "",
+    "bytes": 10280,
+    "file": "assets/3aabe23a-6c45-4a7f-88a9-5e3f84ed87af.woff2"
+  },
+  {
+    "id": "0aa9fcac-83fa-428f-a023-df7b8c4c9362",
+    "mime": "text/html",
+    "name": "./Composer.dc.html",
+    "bytes": 5516,
+    "file": "components/Composer.html"
+  },
+  {
+    "id": "04c2368e-ea81-4199-b6b5-3b8cd4e6c744",
+    "mime": "text/html",
+    "name": "./Nav.dc.html",
+    "bytes": 3810,
+    "file": "components/Nav.html"
+  },
+  {
+    "id": "c6672642-1065-4c4c-a0ab-6de8d2aafc2f",
+    "mime": "text/html",
+    "name": "./ReelThumb.dc.html",
+    "bytes": 3721,
+    "file": "components/ReelThumb.html"
+  }
+]

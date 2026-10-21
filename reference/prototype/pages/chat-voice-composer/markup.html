@@ -1,0 +1,86 @@
+<helmet>
+<style>/* latin-ext */
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("41d6224d-35fb-4f74-be16-a84af894595e") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("1fe9c915-6e93-4af5-92b7-eb1b0c069d6d") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("41d6224d-35fb-4f74-be16-a84af894595e") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("1fe9c915-6e93-4af5-92b7-eb1b0c069d6d") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("41d6224d-35fb-4f74-be16-a84af894595e") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("1fe9c915-6e93-4af5-92b7-eb1b0c069d6d") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+</style>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box; font-family: 'Proxima Nova', 'proxima-nova', 'Figtree', ui-sans-serif, system-ui, sans-serif; color: #242424">
+  <sc-if value="{{hasHint}}" hint-placeholder-val="{{true}}">
+    <p style="margin: 0 4px; font-size: 13.5px; line-height: 1.45; color: rgba(36,36,36,.72)">{{hint}}</p>
+  </sc-if>
+  <div style="display: flex; align-items: center; gap: 4px; height: 56px; padding: 0 5px 0 20px; border-radius: 28px; background: #E4E4EC; box-sizing: border-box">
+    <sc-if value="{{notListening}}" hint-placeholder-val="{{true}}">
+      <input aria-label="Message Curo" value="{{text}}" sc-camel-on-change="{{onText}}" sc-camel-on-key-down="{{onKey}}" placeholder="{{placeholder}}" style="flex: 1 1 auto; min-width: 0; height: 44px; border: none; background: transparent; outline: none; font-size: 15px; font-weight: 400; color: #242424; font-family: inherit">
+    </sc-if>
+    <sc-if value="{{listening}}" hint-placeholder-val="{{false}}">
+      <div style="flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 10px">
+        <div style="display: flex; align-items: center; gap: 3px; height: 26px">
+          <sc-for list="{{bars}}" as="b" hint-placeholder-count="14">
+            <span style="display: block; width: 3px; height: 22px; border-radius: 2px; background: {{b.c}}; transform-origin: center; animation: curoWave .9s ease-in-out {{b.d}}ms infinite"></span>
+          </sc-for>
+        </div>
+        <span style="font-size: 13px; font-weight: 400">Listening…</span>
+      </div>
+    </sc-if>
+    <button type="button" sc-camel-on-click="{{toggleMic}}" aria-label="{{micLabel}}" aria-pressed="{{listening}}" style="flex: 0 0 44px; width: 44px; height: 44px; border-radius: 50%; border: none; background: {{micBg}}; color: {{micFg}}; display: grid; place-items: center; cursor: pointer; transition: all .38s cubic-bezier(.2,.8,.3,1.25); transform: scale({{micScale}}); animation: {{micAnim}}">
+      <svg width="21" height="21" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"></path></svg>
+    </button>
+    <button type="button" sc-camel-on-click="{{send}}" aria-label="Send" disabled="{{cantSend}}" style="flex: 0 0 46px; width: 46px; height: 46px; border-radius: 50%; border: none; background: #5B73F2; color: #FFFFFF; display: grid; place-items: center; cursor: pointer; opacity: {{sendOpacity}}; transform: scale({{sendScale}}); transition: all .38s cubic-bezier(.2,.8,.3,1.25)">
+      <svg width="20" height="20" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+    </button>
+  </div>
+</div>
