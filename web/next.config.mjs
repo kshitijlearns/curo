@@ -3,6 +3,10 @@
  * to CURO's FastAPI backend at API_ORIGIN. On Vercel later, the API runs as its own service on
  * the same domain under /api (docs/DEPLOY_VERCEL.md); this rewrite is then unused.
  */
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const APP_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const API_ORIGIN = process.env.API_ORIGIN || 'http://127.0.0.1:8000';
 
 // Demo mode (D211): deployed on Vercel with no backend to call, play back the recorded demo.
@@ -19,7 +23,7 @@ const DIST = process.env.npm_lifecycle_event === 'dev:demo' ? '.next-demo' : '.n
 const nextConfig = {
   // Keep preview resolution anchored to this app when the repository is opened as a monorepo.
   turbopack: {
-    root: process.cwd(),
+    root: APP_ROOT,
   },
   distDir: DIST,
   reactStrictMode: true,
