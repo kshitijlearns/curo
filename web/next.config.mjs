@@ -17,6 +17,10 @@ const DIST = process.env.npm_lifecycle_event === 'dev:demo' ? '.next-demo' : '.n
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Keep preview resolution anchored to this app when the repository is opened as a monorepo.
+  turbopack: {
+    root: process.cwd(),
+  },
   distDir: DIST,
   reactStrictMode: true,
   env: { NEXT_PUBLIC_DEMO_MODE: DEMO_MODE },
