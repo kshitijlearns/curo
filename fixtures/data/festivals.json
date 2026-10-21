@@ -1,0 +1,370 @@
+[
+ {
+  "id": "diwali-2026",
+  "name": "Diwali",
+  "starts_on": "2026-11-08",
+  "ends_on": "2026-11-08",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle",
+   "food"
+  ],
+  "keywords": [
+   "diwali",
+   "deepavali",
+   "festive"
+  ],
+  "verified": false
+ },
+ {
+  "id": "christmas-2026",
+  "name": "Christmas",
+  "starts_on": "2026-12-25",
+  "ends_on": "2026-12-25",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle"
+  ],
+  "keywords": [
+   "christmas",
+   "party"
+  ],
+  "verified": true
+ },
+ {
+  "id": "wedding-2026",
+  "name": "Wedding season",
+  "starts_on": "2026-11-15",
+  "ends_on": "2027-02-28",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle"
+  ],
+  "keywords": [
+   "wedding",
+   "sangeet",
+   "mehendi",
+   "haldi"
+  ],
+  "verified": false
+ },
+ {
+  "id": "eid-al-fitr-2027",
+  "name": "Eid al-Fitr",
+  "starts_on": "2027-03-10",
+  "ends_on": "2027-03-10",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle"
+  ],
+  "keywords": [
+   "eid",
+   "eid outfit"
+  ],
+  "verified": false
+ },
+ {
+  "id": "holi-2027",
+  "name": "Holi",
+  "starts_on": "2027-03-22",
+  "ends_on": "2027-03-22",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle"
+  ],
+  "keywords": [
+   "holi",
+   "whites"
+  ],
+  "verified": false
+ },
+ {
+  "id": "raksha-bandhan-2027",
+  "name": "Raksha Bandhan",
+  "starts_on": "2027-08-17",
+  "ends_on": "2027-08-17",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle"
+  ],
+  "keywords": [
+   "rakhi",
+   "raksha bandhan"
+  ],
+  "verified": false
+ },
+ {
+  "id": "ganesh-chaturthi-2027",
+  "name": "Ganesh Chaturthi",
+  "starts_on": "2027-09-04",
+  "ends_on": "2027-09-14",
+  "regions": [
+   "IN",
+   "IN-MH"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle",
+   "food"
+  ],
+  "keywords": [
+   "ganpati",
+   "ganesh chaturthi",
+   "ganeshotsav",
+   "ganpati outfit",
+   "pandal",
+   "visarjan",
+   "modak"
+  ],
+  "verified": true
+ },
+ {
+  "id": "navratri-2027",
+  "name": "Navratri",
+  "starts_on": "2027-09-30",
+  "ends_on": "2027-10-08",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle"
+  ],
+  "keywords": [
+   "navratri",
+   "garba",
+   "dandiya",
+   "chaniya choli"
+  ],
+  "verified": false
+ },
+ {
+  "id": "dussehra-2027",
+  "name": "Dussehra",
+  "starts_on": "2027-10-09",
+  "ends_on": "2027-10-09",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle"
+  ],
+  "keywords": [
+   "dussehra"
+  ],
+  "verified": false
+ },
+ {
+  "id": "karva-chauth-2027",
+  "name": "Karva Chauth",
+  "starts_on": "2027-10-18",
+  "ends_on": "2027-10-18",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle"
+  ],
+  "keywords": [
+   "karva chauth",
+   "red"
+  ],
+  "verified": true
+ },
+ {
+  "id": "diwali-2027",
+  "name": "Diwali",
+  "starts_on": "2027-10-29",
+  "ends_on": "2027-10-29",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle",
+   "food"
+  ],
+  "keywords": [
+   "diwali",
+   "deepavali",
+   "festive"
+  ],
+  "verified": true
+ },
+ {
+  "id": "wedding-2027",
+  "name": "Wedding season",
+  "starts_on": "2027-11-15",
+  "ends_on": "2028-02-28",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle"
+  ],
+  "keywords": [
+   "wedding",
+   "sangeet",
+   "mehendi",
+   "haldi"
+  ],
+  "verified": false
+ },
+ {
+  "id": "christmas-2027",
+  "name": "Christmas",
+  "starts_on": "2027-12-25",
+  "ends_on": "2027-12-25",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle"
+  ],
+  "keywords": [
+   "christmas",
+   "party"
+  ],
+  "verified": true
+ },
+ {
+  "id": "eid-al-fitr-2028",
+  "name": "Eid al-Fitr",
+  "starts_on": "2028-02-27",
+  "ends_on": "2028-02-27",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle"
+  ],
+  "keywords": [
+   "eid",
+   "eid outfit"
+  ],
+  "verified": false
+ },
+ {
+  "id": "holi-2028",
+  "name": "Holi",
+  "starts_on": "2028-03-11",
+  "ends_on": "2028-03-11",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle"
+  ],
+  "keywords": [
+   "holi",
+   "whites"
+  ],
+  "verified": true
+ },
+ {
+  "id": "ganesh-chaturthi-2028",
+  "name": "Ganesh Chaturthi",
+  "starts_on": "2028-08-23",
+  "ends_on": "2028-09-02",
+  "regions": [
+   "IN",
+   "IN-MH"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle",
+   "food"
+  ],
+  "keywords": [
+   "ganpati",
+   "ganesh chaturthi",
+   "ganeshotsav",
+   "ganpati outfit",
+   "pandal",
+   "visarjan",
+   "modak"
+  ],
+  "verified": true
+ },
+ {
+  "id": "navratri-2028",
+  "name": "Navratri",
+  "starts_on": "2028-09-19",
+  "ends_on": "2028-09-27",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle"
+  ],
+  "keywords": [
+   "navratri",
+   "garba",
+   "dandiya"
+  ],
+  "verified": false
+ },
+ {
+  "id": "diwali-2028",
+  "name": "Diwali",
+  "starts_on": "2028-10-17",
+  "ends_on": "2028-10-17",
+  "regions": [
+   "IN"
+  ],
+  "niches": [
+   "fashion",
+   "beauty",
+   "lifestyle",
+   "food"
+  ],
+  "keywords": [
+   "diwali",
+   "deepavali",
+   "festive"
+  ],
+  "verified": true
+ }
+]

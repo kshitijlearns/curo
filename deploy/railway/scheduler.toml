@@ -1,0 +1,9 @@
+# Railway service: CURO scheduler (exactly one replica). Same image as the API.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "api/Dockerfile"
+
+[deploy]
+startCommand = "python -m curo_worker scheduler"
+numReplicas = 1
+restartPolicyType = "ALWAYS"

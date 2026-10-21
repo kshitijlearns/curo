@@ -1,0 +1,1698 @@
+[
+ {
+  "ig_media_id": "3961876015314085904",
+  "shortcode": "CKyvurgJjsm",
+  "posted_h": -49.45,
+  "duration_s": 31,
+  "caption": "Thrift flip: old dupatta, new look #oneoutfitmanyways #styletips",
+  "hashtags": [
+   "oneoutfitmanyways",
+   "styletips"
+  ],
+  "mentions": [],
+  "audio_name": "Original audio",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": true,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 24001,
+   "tau_h": 52.26,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.0505,
+   "comment": 0.00279,
+   "share": 0.00692
+  },
+  "meta": {
+   "title": "Thrift flip: old dupatta, new look",
+   "topic": "multilook",
+   "oi_target": 0.63,
+   "ending": "choice_question",
+   "payoff_s": 1.3,
+   "cta_type": "comment_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "multi_look",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "choice_question",
+    "cta_type": "comment_prompt",
+    "pov": "first_person",
+    "camera": "tripod",
+    "audio": "original_speech",
+    "visual_style": "warm_light",
+    "setting": "bedroom",
+    "core_tension": "choice_dilemma",
+    "cuts": 2.5,
+    "onscreen": 0.6,
+    "hook_type": "number_list",
+    "context": "everyday",
+    "payoff_s": 1.3,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3734394306247824939",
+  "shortcode": "D4YqEcEamR5",
+  "posted_h": -139.63,
+  "duration_s": 47,
+  "caption": "Festive look under ₹2,000 #festivelook #ethnicstyling",
+  "hashtags": [
+   "festivelook",
+   "ethnicstyling"
+  ],
+  "mentions": [],
+  "audio_name": "Original audio",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 47832,
+   "tau_h": 66.16,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.03224,
+   "comment": 0.0017,
+   "share": 0.0061
+  },
+  "meta": {
+   "title": "Festive look under ₹2,000",
+   "topic": "festive",
+   "oi_target": 1.25,
+   "ending": "final_look",
+   "payoff_s": 4.6,
+   "cta_type": "share_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "lookbook",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "final_look",
+    "cta_type": "share_prompt",
+    "pov": "first_person",
+    "camera": "tripod",
+    "audio": "original_speech",
+    "visual_style": "warm_light",
+    "setting": "outdoors",
+    "core_tension": "budget_limit",
+    "cuts": 1.9,
+    "onscreen": 0.6,
+    "hook_type": "bold_claim",
+    "context": "festive",
+    "payoff_s": 4.6,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3655406038451537079",
+  "shortcode": "D8E7Rexv_Z4",
+  "posted_h": -200,
+  "duration_s": 46,
+  "caption": "Ganpati saree drapes in 60 seconds #ganpatioutfit #ganeshchaturthi #festivelook",
+  "hashtags": [
+   "ganpatioutfit",
+   "ganeshchaturthi",
+   "festivelook"
+  ],
+  "mentions": [],
+  "audio_name": "Aesthetic piano loop",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 84210,
+   "tau_h": 53.87,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.04866,
+   "comment": 0.00178,
+   "share": 0.00963
+  },
+  "meta": {
+   "title": "Ganpati saree drapes in 60 seconds",
+   "topic": "ganpati",
+   "oi_target": 2.2,
+   "ending": "final_look",
+   "payoff_s": 3.1,
+   "cta_type": "share_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "lookbook",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "final_look",
+    "cta_type": "share_prompt",
+    "pov": "first_person",
+    "camera": "tripod",
+    "audio": "original_speech",
+    "visual_style": "warm_light",
+    "setting": "bedroom",
+    "core_tension": "none",
+    "cuts": 2.7,
+    "onscreen": 0.6,
+    "hook_type": "number_list",
+    "context": "festive",
+    "payoff_s": 3.1,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3489341653250851758",
+  "shortcode": "D2rcotVE1Wi",
+  "posted_h": -294.11,
+  "duration_s": 32,
+  "caption": "Jewellery haul from the local market #haul",
+  "hashtags": [
+   "haul"
+  ],
+  "mentions": [],
+  "audio_name": "Original audio",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 55431,
+   "tau_h": 62.28,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.03805,
+   "comment": 0.00225,
+   "share": 0.01071
+  },
+  "meta": {
+   "title": "Jewellery haul from the local market",
+   "topic": "haul",
+   "oi_target": 1.45,
+   "ending": "abrupt",
+   "payoff_s": 4.5,
+   "cta_type": "none",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "haul",
+    "opening_style": "product_closeup",
+    "narrative": "list",
+    "ending": "abrupt",
+    "cta_type": "none",
+    "pov": "first_person",
+    "camera": "handheld",
+    "audio": "original_speech",
+    "visual_style": "bright_even",
+    "setting": "living_room",
+    "core_tension": "budget_limit",
+    "cuts": 3.7,
+    "onscreen": 0.6,
+    "hook_type": "budget",
+    "context": "everyday",
+    "payoff_s": 4.5,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3132705564135470756",
+  "shortcode": "C-vMhiYOWL0",
+  "posted_h": -380,
+  "duration_s": 39,
+  "caption": "Reveal first: the drape, then how I did it #revealfirst #festivelook",
+  "hashtags": [
+   "revealfirst",
+   "festivelook"
+  ],
+  "mentions": [],
+  "audio_name": "Dhol tasha intro",
+  "is_paid_partnership": true,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 76554,
+   "tau_h": 53.05,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.04959,
+   "comment": 0.00425,
+   "share": 0.00675
+  },
+  "meta": {
+   "title": "Reveal first: the drape, then how I did it",
+   "topic": "reveal",
+   "oi_target": 2.0,
+   "ending": "choice_question",
+   "payoff_s": 4.5,
+   "cta_type": "comment_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "lookbook",
+    "opening_style": "final_look_first",
+    "narrative": "reveal_then_explain",
+    "ending": "choice_question",
+    "cta_type": "comment_prompt",
+    "pov": "observational",
+    "camera": "tripod",
+    "audio": "trending_audio",
+    "visual_style": "bright_even",
+    "setting": "outdoors",
+    "core_tension": "choice_dilemma",
+    "cuts": 3.8,
+    "onscreen": 0.6,
+    "hook_type": "reveal",
+    "context": "festive",
+    "payoff_s": 4.5,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3830851541511297398",
+  "shortcode": "DHigJyZkd77",
+  "posted_h": -436.24,
+  "duration_s": 26,
+  "caption": "Colour combinations for ethnic wear #styletips",
+  "hashtags": [
+   "styletips"
+  ],
+  "mentions": [],
+  "audio_name": "Original audio",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 28626,
+   "tau_h": 59.18,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.04262,
+   "comment": 0.00289,
+   "share": 0.00443
+  },
+  "meta": {
+   "title": "Colour combinations for ethnic wear",
+   "topic": "tips",
+   "oi_target": 0.75,
+   "ending": "recap",
+   "payoff_s": 1.8,
+   "cta_type": "save_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "tutorial",
+    "opening_style": "face_to_camera",
+    "narrative": "step_by_step",
+    "ending": "recap",
+    "cta_type": "save_prompt",
+    "pov": "second_person",
+    "camera": "tripod",
+    "audio": "original_speech",
+    "visual_style": "natural_light",
+    "setting": "bedroom",
+    "core_tension": "insider_tip",
+    "cuts": 3.3,
+    "onscreen": 0.6,
+    "hook_type": "how_to",
+    "context": "everyday",
+    "payoff_s": 1.8,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3951516648415783658",
+  "shortcode": "Dzo_g6C0GM-",
+  "posted_h": -485.74,
+  "duration_s": 27,
+  "caption": "Wedding guest looks #festivelook #ethnicstyling",
+  "hashtags": [
+   "festivelook",
+   "ethnicstyling"
+  ],
+  "mentions": [],
+  "audio_name": "Soft acoustic vlog",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 33445,
+   "tau_h": 68.55,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.03091,
+   "comment": 0.00411,
+   "share": 0.00757
+  },
+  "meta": {
+   "title": "Wedding guest looks",
+   "topic": "festive",
+   "oi_target": 0.87,
+   "ending": "choice_question",
+   "payoff_s": 4.9,
+   "cta_type": "comment_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "lookbook",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "choice_question",
+    "cta_type": "comment_prompt",
+    "pov": "first_person",
+    "camera": "handheld",
+    "audio": "original_speech",
+    "visual_style": "warm_light",
+    "setting": "bedroom",
+    "core_tension": "choice_dilemma",
+    "cuts": 2.2,
+    "onscreen": 0.6,
+    "hook_type": "bold_claim",
+    "context": "wedding",
+    "payoff_s": 4.9,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3746286691458453627",
+  "shortcode": "CpqmTAMO-aS",
+  "posted_h": -567.31,
+  "duration_s": 24,
+  "caption": "GRWM for a family function #grwm",
+  "hashtags": [
+   "grwm"
+  ],
+  "mentions": [],
+  "audio_name": "Kesariya (lofi) · Arijit Singh",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 34920,
+   "tau_h": 56.33,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.0417,
+   "comment": 0.0014,
+   "share": 0.0169
+  },
+  "meta": {
+   "title": "GRWM for a family function",
+   "topic": "grwm",
+   "oi_target": 0.91,
+   "ending": "final_look",
+   "payoff_s": 2.9,
+   "cta_type": "share_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "grwm",
+    "opening_style": "mirror_shot",
+    "narrative": "step_by_step",
+    "ending": "final_look",
+    "cta_type": "share_prompt",
+    "pov": "first_person",
+    "camera": "mirror_selfie",
+    "audio": "original_speech",
+    "visual_style": "natural_light",
+    "setting": "living_room",
+    "core_tension": "relatable_struggle",
+    "cuts": 2.7,
+    "onscreen": 0.6,
+    "hook_type": "relatable",
+    "context": "everyday",
+    "payoff_s": 2.9,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3277411376605801931",
+  "shortcode": "C865QOvuFmw",
+  "posted_h": -617.6,
+  "duration_s": 41,
+  "caption": "Wedding guest looks #festivelook #ethnicstyling",
+  "hashtags": [
+   "festivelook",
+   "ethnicstyling"
+  ],
+  "mentions": [],
+  "audio_name": "Kesariya (lofi) · Arijit Singh",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": true,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 44165,
+   "tau_h": 78.55,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.05266,
+   "comment": 0.00174,
+   "share": 0.00478
+  },
+  "meta": {
+   "title": "Wedding guest looks",
+   "topic": "festive",
+   "oi_target": 1.15,
+   "ending": "final_look",
+   "payoff_s": 1.6,
+   "cta_type": "comment_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "lookbook",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "final_look",
+    "cta_type": "comment_prompt",
+    "pov": "first_person",
+    "camera": "handheld",
+    "audio": "original_speech",
+    "visual_style": "warm_light",
+    "setting": "bedroom",
+    "core_tension": "none",
+    "cuts": 3.5,
+    "onscreen": 0.6,
+    "hook_type": "bold_claim",
+    "context": "wedding",
+    "payoff_s": 1.6,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3054303144541791466",
+  "shortcode": "DrNYzgqpEmQ",
+  "posted_h": -735.34,
+  "duration_s": 21,
+  "caption": "Mehendi outfit ideas #festivelook #ethnicstyling",
+  "hashtags": [
+   "festivelook",
+   "ethnicstyling"
+  ],
+  "mentions": [],
+  "audio_name": "Original audio",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 42112,
+   "tau_h": 64.3,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.0384,
+   "comment": 0.00425,
+   "share": 0.00488
+  },
+  "meta": {
+   "title": "Mehendi outfit ideas",
+   "topic": "festive",
+   "oi_target": 1.1,
+   "ending": "choice_question",
+   "payoff_s": 4.8,
+   "cta_type": "comment_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "lookbook",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "choice_question",
+    "cta_type": "comment_prompt",
+    "pov": "first_person",
+    "camera": "handheld",
+    "audio": "original_speech",
+    "visual_style": "warm_light",
+    "setting": "living_room",
+    "core_tension": "choice_dilemma",
+    "cuts": 3.0,
+    "onscreen": 0.6,
+    "hook_type": "bold_claim",
+    "context": "wedding",
+    "payoff_s": 4.8,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3606464540409766320",
+  "shortcode": "Do5Nol_E16w",
+  "posted_h": -805.98,
+  "duration_s": 55,
+  "caption": "Monsoon outfit ideas #ootd",
+  "hashtags": [
+   "ootd"
+  ],
+  "mentions": [],
+  "audio_name": "Original audio",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 41115,
+   "tau_h": 70.58,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.04598,
+   "comment": 0.00271,
+   "share": 0.00364
+  },
+  "meta": {
+   "title": "Monsoon outfit ideas",
+   "topic": "everyday",
+   "oi_target": 1.07,
+   "ending": "final_look",
+   "payoff_s": 4.8,
+   "cta_type": "comment_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "lookbook",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "final_look",
+    "cta_type": "comment_prompt",
+    "pov": "first_person",
+    "camera": "tripod",
+    "audio": "original_speech",
+    "visual_style": "natural_light",
+    "setting": "bedroom",
+    "core_tension": "none",
+    "cuts": 3.0,
+    "onscreen": 0.6,
+    "hook_type": "bold_claim",
+    "context": "seasonal",
+    "payoff_s": 4.8,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3905909733179942584",
+  "shortcode": "DCzfgXGX4Dw",
+  "posted_h": -897.15,
+  "duration_s": 35,
+  "caption": "How to style a plain saree #styletips",
+  "hashtags": [
+   "styletips"
+  ],
+  "mentions": [],
+  "audio_name": "Aesthetic piano loop",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 36620,
+   "tau_h": 54.46,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.04434,
+   "comment": 0.00258,
+   "share": 0.00818
+  },
+  "meta": {
+   "title": "How to style a plain saree",
+   "topic": "tips",
+   "oi_target": 0.96,
+   "ending": "choice_question",
+   "payoff_s": 0.9,
+   "cta_type": "save_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "tutorial",
+    "opening_style": "face_to_camera",
+    "narrative": "step_by_step",
+    "ending": "choice_question",
+    "cta_type": "save_prompt",
+    "pov": "observational",
+    "camera": "tripod",
+    "audio": "trending_audio",
+    "visual_style": "natural_light",
+    "setting": "bedroom",
+    "core_tension": "choice_dilemma",
+    "cuts": 4.1,
+    "onscreen": 0.6,
+    "hook_type": "how_to",
+    "context": "everyday",
+    "payoff_s": 0.9,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3324752862841780228",
+  "shortcode": "Dee9QR4Pbyq",
+  "posted_h": -981.56,
+  "duration_s": 18,
+  "caption": "Colour combinations for ethnic wear #styletips",
+  "hashtags": [
+   "styletips"
+  ],
+  "mentions": [],
+  "audio_name": "Dhol tasha intro",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 19137,
+   "tau_h": 61.91,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.0405,
+   "comment": 0.0015,
+   "share": 0.00909
+  },
+  "meta": {
+   "title": "Colour combinations for ethnic wear",
+   "topic": "tips",
+   "oi_target": 0.5,
+   "ending": "recap",
+   "payoff_s": 2.6,
+   "cta_type": "share_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "tutorial",
+    "opening_style": "face_to_camera",
+    "narrative": "step_by_step",
+    "ending": "recap",
+    "cta_type": "share_prompt",
+    "pov": "observational",
+    "camera": "tripod",
+    "audio": "trending_audio",
+    "visual_style": "natural_light",
+    "setting": "bedroom",
+    "core_tension": "none",
+    "cuts": 3.3,
+    "onscreen": 0.6,
+    "hook_type": "trend_audio",
+    "context": "everyday",
+    "payoff_s": 2.6,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3074320103892077136",
+  "shortcode": "DBI8J7zbRHr",
+  "posted_h": -1086.06,
+  "duration_s": 26,
+  "caption": "Colour combinations for ethnic wear #styletips",
+  "hashtags": [
+   "styletips"
+  ],
+  "mentions": [],
+  "audio_name": "Kesariya (lofi) · Arijit Singh",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 45911,
+   "tau_h": 66.53,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.04666,
+   "comment": 0.00191,
+   "share": 0.00491
+  },
+  "meta": {
+   "title": "Colour combinations for ethnic wear",
+   "topic": "tips",
+   "oi_target": 1.2,
+   "ending": "recap",
+   "payoff_s": 1.5,
+   "cta_type": "save_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "tutorial",
+    "opening_style": "face_to_camera",
+    "narrative": "step_by_step",
+    "ending": "recap",
+    "cta_type": "save_prompt",
+    "pov": "second_person",
+    "camera": "handheld",
+    "audio": "original_speech",
+    "visual_style": "warm_light",
+    "setting": "bedroom",
+    "core_tension": "insider_tip",
+    "cuts": 3.0,
+    "onscreen": 0.6,
+    "hook_type": "how_to",
+    "context": "everyday",
+    "payoff_s": 1.5,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3067480072519731302",
+  "shortcode": "Cz7OXtWPMzA",
+  "posted_h": -1167.66,
+  "duration_s": 34,
+  "caption": "Jewellery haul from the local market #haul",
+  "hashtags": [
+   "haul"
+  ],
+  "mentions": [],
+  "audio_name": "Original audio",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 27220,
+   "tau_h": 65.93,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.05335,
+   "comment": 0.00388,
+   "share": 0.00727
+  },
+  "meta": {
+   "title": "Jewellery haul from the local market",
+   "topic": "haul",
+   "oi_target": 0.71,
+   "ending": "choice_question",
+   "payoff_s": 1.5,
+   "cta_type": "comment_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "haul",
+    "opening_style": "product_closeup",
+    "narrative": "list",
+    "ending": "choice_question",
+    "cta_type": "comment_prompt",
+    "pov": "first_person",
+    "camera": "handheld",
+    "audio": "original_speech",
+    "visual_style": "warm_light",
+    "setting": "living_room",
+    "core_tension": "budget_limit",
+    "cuts": 3.0,
+    "onscreen": 0.6,
+    "hook_type": "budget",
+    "context": "everyday",
+    "payoff_s": 1.5,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3899809476995806748",
+  "shortcode": "DU7jnLmf8Ol",
+  "posted_h": -1213.53,
+  "duration_s": 55,
+  "caption": "College fit check #ootd",
+  "hashtags": [
+   "ootd"
+  ],
+  "mentions": [],
+  "audio_name": "Soft acoustic vlog",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": true,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 43888,
+   "tau_h": 63.56,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.06099,
+   "comment": 0.00191,
+   "share": 0.00853
+  },
+  "meta": {
+   "title": "College fit check",
+   "topic": "everyday",
+   "oi_target": 1.15,
+   "ending": "final_look",
+   "payoff_s": 4.9,
+   "cta_type": "share_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "lookbook",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "final_look",
+    "cta_type": "share_prompt",
+    "pov": "observational",
+    "camera": "handheld",
+    "audio": "trending_audio",
+    "visual_style": "warm_light",
+    "setting": "bedroom",
+    "core_tension": "none",
+    "cuts": 3.2,
+    "onscreen": 0.6,
+    "hook_type": "trend_audio",
+    "context": "everyday",
+    "payoff_s": 4.9,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3491195726532607603",
+  "shortcode": "DzYR7ZqCDNb",
+  "posted_h": -1257.38,
+  "duration_s": 53,
+  "caption": "How to style a plain saree #styletips",
+  "hashtags": [
+   "styletips"
+  ],
+  "mentions": [],
+  "audio_name": "Original audio",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": true,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 27618,
+   "tau_h": 59.79,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.04833,
+   "comment": 0.00319,
+   "share": 0.00462
+  },
+  "meta": {
+   "title": "How to style a plain saree",
+   "topic": "tips",
+   "oi_target": 0.72,
+   "ending": "recap",
+   "payoff_s": 2.6,
+   "cta_type": "save_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "tutorial",
+    "opening_style": "face_to_camera",
+    "narrative": "step_by_step",
+    "ending": "recap",
+    "cta_type": "save_prompt",
+    "pov": "second_person",
+    "camera": "tripod",
+    "audio": "original_speech",
+    "visual_style": "natural_light",
+    "setting": "outdoors",
+    "core_tension": "insider_tip",
+    "cuts": 3.5,
+    "onscreen": 0.6,
+    "hook_type": "how_to",
+    "context": "everyday",
+    "payoff_s": 2.6,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3868914404996974653",
+  "shortcode": "C6nA9rjwrmV",
+  "posted_h": -1311.67,
+  "duration_s": 52,
+  "caption": "One kurta, three ways #oneoutfitmanyways #styletips",
+  "hashtags": [
+   "oneoutfitmanyways",
+   "styletips"
+  ],
+  "mentions": [],
+  "audio_name": "Kesariya (lofi) · Arijit Singh",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": true,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 45672,
+   "tau_h": 79.19,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.03969,
+   "comment": 0.00452,
+   "share": 0.01027
+  },
+  "meta": {
+   "title": "One kurta, three ways",
+   "topic": "multilook",
+   "oi_target": 1.19,
+   "ending": "choice_question",
+   "payoff_s": 3.7,
+   "cta_type": "share_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "multi_look",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "choice_question",
+    "cta_type": "share_prompt",
+    "pov": "first_person",
+    "camera": "tripod",
+    "audio": "original_speech",
+    "visual_style": "natural_light",
+    "setting": "living_room",
+    "core_tension": "choice_dilemma",
+    "cuts": 2.9,
+    "onscreen": 0.6,
+    "hook_type": "number_list",
+    "context": "everyday",
+    "payoff_s": 3.7,
+    "characters": "creator_with_friend"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3008864692866466447",
+  "shortcode": "CZqWNGpa_2n",
+  "posted_h": -1400.18,
+  "duration_s": 29,
+  "caption": "Jewellery haul from the local market #haul",
+  "hashtags": [
+   "haul"
+  ],
+  "mentions": [],
+  "audio_name": "Original audio",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 34474,
+   "tau_h": 63.57,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.0433,
+   "comment": 0.00227,
+   "share": 0.0059
+  },
+  "meta": {
+   "title": "Jewellery haul from the local market",
+   "topic": "haul",
+   "oi_target": 0.9,
+   "ending": "abrupt",
+   "payoff_s": 3.9,
+   "cta_type": "none",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "haul",
+    "opening_style": "product_closeup",
+    "narrative": "list",
+    "ending": "abrupt",
+    "cta_type": "none",
+    "pov": "first_person",
+    "camera": "handheld",
+    "audio": "original_speech",
+    "visual_style": "bright_even",
+    "setting": "living_room",
+    "core_tension": "budget_limit",
+    "cuts": 3.7,
+    "onscreen": 0.6,
+    "hook_type": "budget",
+    "context": "everyday",
+    "payoff_s": 3.9,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3357420716577046386",
+  "shortcode": "ChXMKoUTLZV",
+  "posted_h": -1480.93,
+  "duration_s": 48,
+  "caption": "Festive look under ₹2,000 #festivelook #ethnicstyling",
+  "hashtags": [
+   "festivelook",
+   "ethnicstyling"
+  ],
+  "mentions": [],
+  "audio_name": "Aesthetic piano loop",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 35384,
+   "tau_h": 59.28,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.04073,
+   "comment": 0.002,
+   "share": 0.00686
+  },
+  "meta": {
+   "title": "Festive look under ₹2,000",
+   "topic": "festive",
+   "oi_target": 0.92,
+   "ending": "final_look",
+   "payoff_s": 1.2,
+   "cta_type": "comment_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "lookbook",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "final_look",
+    "cta_type": "comment_prompt",
+    "pov": "observational",
+    "camera": "tripod",
+    "audio": "trending_audio",
+    "visual_style": "bright_even",
+    "setting": "outdoors",
+    "core_tension": "budget_limit",
+    "cuts": 3.2,
+    "onscreen": 0.6,
+    "hook_type": "budget",
+    "context": "festive",
+    "payoff_s": 1.2,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3439180975027189756",
+  "shortcode": "DADA8XizM7e",
+  "posted_h": -1550.66,
+  "duration_s": 44,
+  "caption": "Monsoon outfit ideas #ootd",
+  "hashtags": [
+   "ootd"
+  ],
+  "mentions": [],
+  "audio_name": "Original audio",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 38246,
+   "tau_h": 68.16,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.05397,
+   "comment": 0.00209,
+   "share": 0.00687
+  },
+  "meta": {
+   "title": "Monsoon outfit ideas",
+   "topic": "everyday",
+   "oi_target": 1.0,
+   "ending": "final_look",
+   "payoff_s": 1.2,
+   "cta_type": "comment_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "lookbook",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "final_look",
+    "cta_type": "comment_prompt",
+    "pov": "first_person",
+    "camera": "tripod",
+    "audio": "original_speech",
+    "visual_style": "warm_light",
+    "setting": "living_room",
+    "core_tension": "none",
+    "cuts": 2.8,
+    "onscreen": 0.6,
+    "hook_type": "bold_claim",
+    "context": "seasonal",
+    "payoff_s": 1.2,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3355197435497126507",
+  "shortcode": "CVck7dWEl7y",
+  "posted_h": -1604.61,
+  "duration_s": 18,
+  "caption": "How to style a plain saree #styletips",
+  "hashtags": [
+   "styletips"
+  ],
+  "mentions": [],
+  "audio_name": "Kesariya (lofi) · Arijit Singh",
+  "is_paid_partnership": false,
+  "likes_hidden": true,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 26758,
+   "tau_h": 57.87,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.08433,
+   "comment": 0.00316,
+   "share": 0.00704
+  },
+  "meta": {
+   "title": "How to style a plain saree",
+   "topic": "tips",
+   "oi_target": 0.7,
+   "ending": "choice_question",
+   "payoff_s": 1.2,
+   "cta_type": "save_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "tutorial",
+    "opening_style": "face_to_camera",
+    "narrative": "step_by_step",
+    "ending": "choice_question",
+    "cta_type": "save_prompt",
+    "pov": "observational",
+    "camera": "tripod",
+    "audio": "trending_audio",
+    "visual_style": "bright_even",
+    "setting": "bedroom",
+    "core_tension": "choice_dilemma",
+    "cuts": 3.6,
+    "onscreen": 0.6,
+    "hook_type": "how_to",
+    "context": "everyday",
+    "payoff_s": 1.2,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3715551860629647323",
+  "shortcode": "DIJ9OAtzs-m",
+  "posted_h": -1672.89,
+  "duration_s": 29,
+  "caption": "One kurta, three ways #oneoutfitmanyways #styletips",
+  "hashtags": [
+   "oneoutfitmanyways",
+   "styletips"
+  ],
+  "mentions": [],
+  "audio_name": "Aesthetic piano loop",
+  "is_paid_partnership": true,
+  "likes_hidden": false,
+  "shares_hidden": true,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 38679,
+   "tau_h": 64.54,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.04504,
+   "comment": 0.00367,
+   "share": 0.0052
+  },
+  "meta": {
+   "title": "One kurta, three ways",
+   "topic": "multilook",
+   "oi_target": 1.01,
+   "ending": "choice_question",
+   "payoff_s": 1.6,
+   "cta_type": "comment_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "multi_look",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "choice_question",
+    "cta_type": "comment_prompt",
+    "pov": "first_person",
+    "camera": "tripod",
+    "audio": "original_speech",
+    "visual_style": "warm_light",
+    "setting": "bedroom",
+    "core_tension": "choice_dilemma",
+    "cuts": 2.7,
+    "onscreen": 0.6,
+    "hook_type": "number_list",
+    "context": "everyday",
+    "payoff_s": 1.6,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3988941691162693532",
+  "shortcode": "DI2aFkJP6j_",
+  "posted_h": -1729.38,
+  "duration_s": 19,
+  "caption": "Thrift flip: old dupatta, new look #oneoutfitmanyways #styletips",
+  "hashtags": [
+   "oneoutfitmanyways",
+   "styletips"
+  ],
+  "mentions": [],
+  "audio_name": "Trending festive beat · DJ Remix",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": true,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 72868,
+   "tau_h": 62.69,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.05106,
+   "comment": 0.00519,
+   "share": 0.00638
+  },
+  "meta": {
+   "title": "Thrift flip: old dupatta, new look",
+   "topic": "multilook",
+   "oi_target": 1.9,
+   "ending": "choice_question",
+   "payoff_s": 4.6,
+   "cta_type": "comment_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "multi_look",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "choice_question",
+    "cta_type": "comment_prompt",
+    "pov": "observational",
+    "camera": "handheld",
+    "audio": "trending_audio",
+    "visual_style": "bright_even",
+    "setting": "outdoors",
+    "core_tension": "choice_dilemma",
+    "cuts": 4.0,
+    "onscreen": 0.6,
+    "hook_type": "trend_audio",
+    "context": "everyday",
+    "payoff_s": 4.6,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3238626403864189769",
+  "shortcode": "CBLZ_erSSGK",
+  "posted_h": -1809.71,
+  "duration_s": 29,
+  "caption": "Mehendi outfit ideas #festivelook #ethnicstyling",
+  "hashtags": [
+   "festivelook",
+   "ethnicstyling"
+  ],
+  "mentions": [],
+  "audio_name": "Dhol tasha intro",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 36467,
+   "tau_h": 83.91,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.0369,
+   "comment": 0.00142,
+   "share": 0.00512
+  },
+  "meta": {
+   "title": "Mehendi outfit ideas",
+   "topic": "festive",
+   "oi_target": 0.95,
+   "ending": "final_look",
+   "payoff_s": 4.0,
+   "cta_type": "comment_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "lookbook",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "final_look",
+    "cta_type": "comment_prompt",
+    "pov": "observational",
+    "camera": "tripod",
+    "audio": "trending_audio",
+    "visual_style": "bright_even",
+    "setting": "outdoors",
+    "core_tension": "none",
+    "cuts": 3.4,
+    "onscreen": 0.6,
+    "hook_type": "trend_audio",
+    "context": "wedding",
+    "payoff_s": 4.0,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3719659703824900715",
+  "shortcode": "DYaiDlsinoY",
+  "posted_h": -1880.9,
+  "duration_s": 48,
+  "caption": "Office to evening in one outfit #oneoutfitmanyways #styletips",
+  "hashtags": [
+   "oneoutfitmanyways",
+   "styletips"
+  ],
+  "mentions": [],
+  "audio_name": "Trending festive beat · DJ Remix",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": true,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 29911,
+   "tau_h": 62.98,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.04503,
+   "comment": 0.00364,
+   "share": 0.00427
+  },
+  "meta": {
+   "title": "Office to evening in one outfit",
+   "topic": "multilook",
+   "oi_target": 0.78,
+   "ending": "choice_question",
+   "payoff_s": 2.5,
+   "cta_type": "comment_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "multi_look",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "choice_question",
+    "cta_type": "comment_prompt",
+    "pov": "observational",
+    "camera": "tripod",
+    "audio": "trending_audio",
+    "visual_style": "warm_light",
+    "setting": "outdoors",
+    "core_tension": "choice_dilemma",
+    "cuts": 3.4,
+    "onscreen": 0.6,
+    "hook_type": "trend_audio",
+    "context": "work",
+    "payoff_s": 2.5,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3806907155532982017",
+  "shortcode": "DwpgTI5LkQu",
+  "posted_h": -1930.57,
+  "duration_s": 36,
+  "caption": "Mehendi outfit ideas #festivelook #ethnicstyling",
+  "hashtags": [
+   "festivelook",
+   "ethnicstyling"
+  ],
+  "mentions": [],
+  "audio_name": "Kesariya (lofi) · Arijit Singh",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 31715,
+   "tau_h": 66.78,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.04694,
+   "comment": 0.004,
+   "share": 0.01021
+  },
+  "meta": {
+   "title": "Mehendi outfit ideas",
+   "topic": "festive",
+   "oi_target": 0.83,
+   "ending": "choice_question",
+   "payoff_s": 4.9,
+   "cta_type": "share_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "lookbook",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "choice_question",
+    "cta_type": "share_prompt",
+    "pov": "first_person",
+    "camera": "handheld",
+    "audio": "original_speech",
+    "visual_style": "bright_even",
+    "setting": "outdoors",
+    "core_tension": "choice_dilemma",
+    "cuts": 3.6,
+    "onscreen": 0.6,
+    "hook_type": "bold_claim",
+    "context": "wedding",
+    "payoff_s": 4.9,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3499930986941336628",
+  "shortcode": "CpyBbGCIAYT",
+  "posted_h": -1979.12,
+  "duration_s": 33,
+  "caption": "Jewellery haul from the local market #haul",
+  "hashtags": [
+   "haul"
+  ],
+  "mentions": [],
+  "audio_name": "Original audio",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 31625,
+   "tau_h": 54.91,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.03629,
+   "comment": 0.00338,
+   "share": 0.01475
+  },
+  "meta": {
+   "title": "Jewellery haul from the local market",
+   "topic": "haul",
+   "oi_target": 0.83,
+   "ending": "abrupt",
+   "payoff_s": 2.5,
+   "cta_type": "share_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "haul",
+    "opening_style": "product_closeup",
+    "narrative": "list",
+    "ending": "abrupt",
+    "cta_type": "share_prompt",
+    "pov": "first_person",
+    "camera": "handheld",
+    "audio": "original_speech",
+    "visual_style": "natural_light",
+    "setting": "living_room",
+    "core_tension": "budget_limit",
+    "cuts": 2.2,
+    "onscreen": 0.6,
+    "hook_type": "budget",
+    "context": "everyday",
+    "payoff_s": 2.5,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3388622493702922779",
+  "shortcode": "D12uNHNU2LZ",
+  "posted_h": -2024.15,
+  "duration_s": 16,
+  "caption": "Office to evening in one outfit #oneoutfitmanyways #styletips",
+  "hashtags": [
+   "oneoutfitmanyways",
+   "styletips"
+  ],
+  "mentions": [],
+  "audio_name": "Kesariya (lofi) · Arijit Singh",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": true,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 41137,
+   "tau_h": 77.79,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.05061,
+   "comment": 0.00262,
+   "share": 0.0061
+  },
+  "meta": {
+   "title": "Office to evening in one outfit",
+   "topic": "multilook",
+   "oi_target": 1.07,
+   "ending": "choice_question",
+   "payoff_s": 3.1,
+   "cta_type": "comment_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "multi_look",
+    "opening_style": "face_to_camera",
+    "narrative": "list",
+    "ending": "choice_question",
+    "cta_type": "comment_prompt",
+    "pov": "first_person",
+    "camera": "tripod",
+    "audio": "original_speech",
+    "visual_style": "warm_light",
+    "setting": "living_room",
+    "core_tension": "choice_dilemma",
+    "cuts": 2.8,
+    "onscreen": 0.6,
+    "hook_type": "number_list",
+    "context": "work",
+    "payoff_s": 3.1,
+    "characters": "creator_solo"
+   }
+  }
+ },
+ {
+  "ig_media_id": "3415131669174032305",
+  "shortcode": "DvnvIe_qxgg",
+  "posted_h": -2127.99,
+  "duration_s": 37,
+  "caption": "Colour combinations for ethnic wear #styletips",
+  "hashtags": [
+   "styletips"
+  ],
+  "mentions": [],
+  "audio_name": "Kesariya (lofi) · Arijit Singh",
+  "is_paid_partnership": false,
+  "likes_hidden": false,
+  "shares_hidden": false,
+  "comments_disabled": false,
+  "deleted_h": null,
+  "glitch": null,
+  "curve": {
+   "v_total": 29292,
+   "tau_h": 61.29,
+   "beta": 1.6
+  },
+  "rates": {
+   "like": 0.04151,
+   "comment": 0.00308,
+   "share": 0.00828
+  },
+  "meta": {
+   "title": "Colour combinations for ethnic wear",
+   "topic": "tips",
+   "oi_target": 0.77,
+   "ending": "recap",
+   "payoff_s": 1.6,
+   "cta_type": "save_prompt",
+   "dna": {
+    "niche": "fashion_styling",
+    "format": "tutorial",
+    "opening_style": "face_to_camera",
+    "narrative": "step_by_step",
+    "ending": "recap",
+    "cta_type": "save_prompt",
+    "pov": "observational",
+    "camera": "handheld",
+    "audio": "trending_audio",
+    "visual_style": "warm_light",
+    "setting": "living_room",
+    "core_tension": "insider_tip",
+    "cuts": 3.2,
+    "onscreen": 0.6,
+    "hook_type": "trend_audio",
+    "context": "everyday",
+    "payoff_s": 1.6,
+    "characters": "creator_solo"
+   }
+  }
+ }
+]

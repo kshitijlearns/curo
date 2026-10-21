@@ -1,0 +1,37 @@
+[
+  {
+    "id": "06dcaff9-8522-4b1b-b9b6-368001530e5e",
+    "mime": "text/javascript",
+    "name": "https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js",
+    "bytes": 131835,
+    "file": "assets/06dcaff9-8522-4b1b-b9b6-368001530e5e.js"
+  },
+  {
+    "id": "45976074-049a-498a-a8d1-91df7378d080",
+    "mime": "text/javascript",
+    "name": "",
+    "bytes": 45305,
+    "file": "assets/45976074-049a-498a-a8d1-91df7378d080.js"
+  },
+  {
+    "id": "1fe9c915-6e93-4af5-92b7-eb1b0c069d6d",
+    "mime": "font/woff2",
+    "name": "",
+    "bytes": 20156,
+    "file": "assets/1fe9c915-6e93-4af5-92b7-eb1b0c069d6d.woff2"
+  },
+  {
+    "id": "79afa872-36ad-49c2-bba7-81488a146f52",
+    "mime": "text/javascript",
+    "name": "https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js",
+    "bytes": 10751,
+    "file": "assets/79afa872-36ad-49c2-bba7-81488a146f52.js"
+  },
+  {
+    "id": "41d6224d-35fb-4f74-be16-a84af894595e",
+    "mime": "font/woff2",
+    "name": "",
+    "bytes": 10280,
+    "file": "assets/41d6224d-35fb-4f74-be16-a84af894595e.woff2"
+  }
+]

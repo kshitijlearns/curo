@@ -1,0 +1,37 @@
+[
+  {
+    "id": "339f03ae-eb34-4248-a39d-1b16a7affa47",
+    "mime": "text/javascript",
+    "name": "https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js",
+    "bytes": 131835,
+    "file": "assets/339f03ae-eb34-4248-a39d-1b16a7affa47.js"
+  },
+  {
+    "id": "23ae65a0-b282-46b0-aeca-4132acb66c22",
+    "mime": "text/javascript",
+    "name": "",
+    "bytes": 45305,
+    "file": "assets/23ae65a0-b282-46b0-aeca-4132acb66c22.js"
+  },
+  {
+    "id": "f8240dfd-3bd2-4efa-b1ac-39d086149db0",
+    "mime": "font/woff2",
+    "name": "",
+    "bytes": 20156,
+    "file": "assets/f8240dfd-3bd2-4efa-b1ac-39d086149db0.woff2"
+  },
+  {
+    "id": "158c4ae5-2809-43a8-9235-e49f925b5835",
+    "mime": "text/javascript",
+    "name": "https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js",
+    "bytes": 10751,
+    "file": "assets/158c4ae5-2809-43a8-9235-e49f925b5835.js"
+  },
+  {
+    "id": "6ef2f213-e94a-4679-ba6e-ed64b54ca632",
+    "mime": "font/woff2",
+    "name": "",
+    "bytes": 10280,
+    "file": "assets/6ef2f213-e94a-4679-ba6e-ed64b54ca632.woff2"
+  }
+]

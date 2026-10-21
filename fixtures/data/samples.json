@@ -1,0 +1,22 @@
+[
+ {
+  "name": "take1",
+  "title": "First take",
+  "description": "One outfit, three Ganpati looks \u00b7 0:41",
+  "shortcode": "sample-take1",
+  "caption": "Same outfit, three looks for Ganpati #ganpatioutfit #festivestyling",
+  "duration_s": 41,
+  "width": 1080,
+  "height": 1920
+ },
+ {
+  "name": "take2",
+  "title": "Re-recorded with the edits",
+  "description": "Final look first \u00b7 a send-to-a-friend ending \u00b7 0:32",
+  "shortcode": "sample-take2",
+  "caption": "Same outfit, three looks for Ganpati #ganpatioutfit #festivestyling",
+  "duration_s": 32,
+  "width": 1080,
+  "height": 1920
+ }
+]

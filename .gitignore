@@ -1,7 +1,10 @@
-# Secrets and local state
+# Secrets and local state — never committed
 .env
-app/.env
+.env.*
+!.env.example
+*.local
 .data/
+.vercel/
 
 # Python
 .venv/
@@ -12,8 +15,22 @@ __pycache__/
 .ruff_cache/
 .coverage
 
-# Node / Expo (app/.gitignore covers the rest)
+# Node / Next.js / Expo
 node_modules/
+.next/
+.expo/
+next-env.d.ts.bak
+*.tsbuildinfo
+
+# Large binaries (screenshots over 5 MB stay local)
+reference/**/*.mp4
+reference/**/*.mov
+
+# The nested clone of the GitHub repo used for reference
+/curo/
+
+# Claude Code local settings
+.claude/settings.local.json
 
 # OS / editors
 .DS_Store

@@ -24,17 +24,17 @@ setup: env ## install local tooling: Python venv (+ embedded test Postgres) and 
 	$(SYS_PY) -m venv .venv
 	$(PY) -m pip install --upgrade pip
 	$(PY) -m pip install -c api/constraints.txt -e "api[dev,localdb,tools]" -e worker
-	cd app && npm install
+	cd web && npm install
 
 up: env ## start db, redis, api, worker, scheduler in Docker and wait for /health
 	$(COMPOSE) up -d --build
 	$(SYS_PY) tools/wait_for_api.py
 
 dev: up ## everything: Docker stack + Expo (scan the QR code with Expo Go)
-	cd app && npx expo start
+	cd web && npm run dev
 
-app: ## Expo only (stack already running)
-	cd app && npx expo start
+app: ## the web app only (API already running), http://localhost:3000
+	cd web && npm run dev
 
 down: ## stop the stack (data is kept)
 	$(COMPOSE) down
@@ -56,7 +56,7 @@ learning: ## what CURO has learned about an account, e.g. make learning ARGS=cur
 
 api-types: ## regenerate the app's typed API client from the FastAPI schema
 	$(PY) tools/gen_openapi.py
-	cd app && npm run gen:api
+	cd web && npm run gen:api
 
 time: ## move the clock, e.g. make time ARGS="advance 6h"
 	$(COMPOSE) exec api python /repo/tools/timetravel.py $(ARGS)
@@ -67,17 +67,16 @@ test-api: ## Python tests (needs Docker's db or the embedded Postgres from `make
 	cd api && ../$(PY) -m pytest
 
 test-app: ## app type-check, lint and tests
-	cd app && npm run typecheck && npm run lint && npm test
+	cd web && npm run typecheck
 
 lint: ## lint + format check, Python and app
 	$(PY) -m ruff check api worker tools
 	$(PY) -m ruff format --check api worker tools
-	cd app && npm run lint && npm run format:check
+	cd web && npm run typecheck
 
 format: ## auto-format Python and app code
 	$(PY) -m ruff check --fix api worker tools
 	$(PY) -m ruff format api worker tools
-	cd app && npm run format
 
 extract: ## unpack the prototype into reference/prototype
 	$(PY) tools/extract_prototype.py

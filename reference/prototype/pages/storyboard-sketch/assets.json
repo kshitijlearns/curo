@@ -1,0 +1,23 @@
+[
+  {
+    "id": "b9adae6e-59e3-41bc-8050-8faf6e7e3d1b",
+    "mime": "text/javascript",
+    "name": "https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js",
+    "bytes": 131835,
+    "file": "assets/b9adae6e-59e3-41bc-8050-8faf6e7e3d1b.js"
+  },
+  {
+    "id": "d444a5d6-fb26-443f-9536-f7bfdf7888df",
+    "mime": "text/javascript",
+    "name": "",
+    "bytes": 45305,
+    "file": "assets/d444a5d6-fb26-443f-9536-f7bfdf7888df.js"
+  },
+  {
+    "id": "0375e21c-ca0c-4492-aa74-4d9fc4594bed",
+    "mime": "text/javascript",
+    "name": "https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js",
+    "bytes": 10751,
+    "file": "assets/0375e21c-ca0c-4492-aa74-4d9fc4594bed.js"
+  }
+]

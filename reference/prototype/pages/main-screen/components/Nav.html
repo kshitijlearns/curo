@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CURO bottom navigation</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;600&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 100%; box-sizing: border-box; padding: 0 16px 14px; font-family: 'Proxima Nova', 'proxima-nova', 'Figtree', ui-sans-serif, system-ui, sans-serif; color: #242424">
+  <nav aria-label="Primary" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); height: 68px; align-items: end; padding: 0 10px 9px; background: #FFFFFF; border: 1px solid #E4E4EC; border-radius: 34px">
+    <sc-for list="{{items}}" as="it" hint-placeholder-count="3">
+      <button type="button" onClick="{{it.go}}" aria-current="{{it.current}}" aria-label="{{it.label}}" style="border: none; background: none; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; cursor: pointer; color: #242424; font-family: inherit">
+        <span style="width: {{it.size}}px; height: {{it.size}}px; margin-top: {{it.lift}}px; border-radius: 50%; background: {{it.bg}}; color: {{it.fg}}; display: grid; place-items: center; box-shadow: {{it.ring}}; transition: all .38s cubic-bezier(.2,.8,.3,1.25)">
+          <sc-if value="{{it.isHome}}" hint-placeholder-val="{{true}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3.5 10.2L12 3.5l8.5 6.7V20a1 1 0 0 1-1 1H15v-6h-6v6H4.5a1 1 0 0 1-1-1z"></path></svg></sc-if>
+          <sc-if value="{{it.isStudio}}" hint-placeholder-val="{{false}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-1.8A7 7 0 0 0 12 2.5z"></path><path d="M9.5 20.5h5"></path></svg></sc-if>
+          <sc-if value="{{it.isSim}}" hint-placeholder-val="{{false}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12h4l2.5-6 4.5 12 2.5-6h5.5"></path></svg></sc-if>
+        </span>
+        <span style="font-size: 12px; font-weight: {{it.weight}}; color: {{it.labelColor}}; letter-spacing: .01em; transition: color .25s ease">{{it.label}}</span>
+      </button>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"active":{"editor":"enum","options":["home","studio","sim"],"default":"home"},"navHandler":{"editor":null},"$preview":{"width":390,"height":100}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { local: null }; }
+  go(tab) {
+    if (typeof this.props.navHandler === 'function') this.props.navHandler(tab);
+    else this.setState({ local: tab });
+  }
+  renderVals() {
+    const active = (this.state.local && typeof this.props.navHandler !== 'function') ? this.state.local : (this.props.active ?? 'home');
+    const items = [['home', 'Home'], ['studio', 'Studio'], ['sim', 'Simulator']].map(([id, label]) => {
+      const on = active === id;
+      return {
+        label, current: on ? 'page' : 'false',
+        isHome: id === 'home', isStudio: id === 'studio', isSim: id === 'sim',
+        size: on ? 52 : 32, lift: on ? -30 : 0,
+        bg: on ? '#5B73F2' : 'transparent', fg: on ? '#FFFFFF' : 'rgba(36,36,36,.72)',
+        ring: on ? '0 0 0 6px #FFFFFF, 0 0 0 7px #E4E4EC' : 'none',
+        weight: on ? 600 : 400, labelColor: on ? '#242424' : 'rgba(36,36,36,.72)',
+        go: () => this.go(id)
+      };
+    });
+    return { items };
+  }
+}
+</script>
+</body>
+</html>

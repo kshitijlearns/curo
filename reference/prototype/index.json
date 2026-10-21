@@ -1,0 +1,42 @@
+[
+  {
+    "id": "7c298fdb-0605-4565-8e5e-4e0b83bc33f1",
+    "title": "CURO — interactive prototype",
+    "slug": "main-screen",
+    "markup_chars": 105580,
+    "logic_chars": 78626,
+    "assets": 10
+  },
+  {
+    "id": "ffcd1721-144a-4bfc-87f4-de10844ab42d",
+    "title": "Component · Chat + voice composer",
+    "slug": "chat-voice-composer",
+    "markup_chars": 5326,
+    "logic_chars": 1873,
+    "assets": 5
+  },
+  {
+    "id": "3947fd63-0a30-4eac-b228-db893d0f6eef",
+    "title": "Component · Bottom navigation",
+    "slug": "bottom-navigation",
+    "markup_chars": 4652,
+    "logic_chars": 1031,
+    "assets": 5
+  },
+  {
+    "id": "75f35bdd-1e8c-4732-8428-e863587e461a",
+    "title": "Component · Reel thumbnail",
+    "slug": "reel-thumbnail",
+    "markup_chars": 4358,
+    "logic_chars": 996,
+    "assets": 5
+  },
+  {
+    "id": "f6b862e4-05a2-48a4-94c0-9315c390f772",
+    "title": "Component · Storyboard sketch",
+    "slug": "storyboard-sketch",
+    "markup_chars": 18326,
+    "logic_chars": 361,
+    "assets": 3
+  }
+]

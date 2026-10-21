@@ -1,0 +1,162 @@
+[
+ {
+  "username": "curo.demo",
+  "full_name": "Curo Demo",
+  "bio": "Mumbai · festive styling, GRWMs & reel-making tips ✨ (CURO demo account)",
+  "category": "Fashion",
+  "followers": {
+   "base": 48200,
+   "per_day": 45,
+   "jumps": [
+    {
+     "at_h": -48,
+     "add": 650
+    }
+   ]
+  },
+  "following": 612,
+  "posts_at_anchor": 412,
+  "region": "Mumbai",
+  "role": "creator"
+ },
+ {
+  "username": "theoutfitdiaries",
+  "full_name": "The Outfit Diaries",
+  "bio": "The Outfit Diaries · fashion & styling",
+  "category": "Fashion",
+  "followers": {
+   "base": 92000,
+   "per_day": 74
+  },
+  "following": 1082,
+  "posts_at_anchor": 312,
+  "region": "Delhi",
+  "role": "peer"
+ },
+ {
+  "username": "stylewithrhea",
+  "full_name": "Style with Rhea",
+  "bio": "Style with Rhea · fashion & styling",
+  "category": "Fashion",
+  "followers": {
+   "base": 135000,
+   "per_day": 108
+  },
+  "following": 781,
+  "posts_at_anchor": 530,
+  "region": "Mumbai",
+  "role": "peer"
+ },
+ {
+  "username": "mumbaiwardrobe",
+  "full_name": "Mumbai Wardrobe",
+  "bio": "Mumbai Wardrobe · fashion & styling",
+  "category": "Fashion",
+  "followers": {
+   "base": 61000,
+   "per_day": 49
+  },
+  "following": 942,
+  "posts_at_anchor": 517,
+  "region": "Pune",
+  "role": "peer"
+ },
+ {
+  "username": "thedrapestory",
+  "full_name": "The Drape Story",
+  "bio": "The Drape Story · fashion & styling",
+  "category": "Fashion",
+  "followers": {
+   "base": 38000,
+   "per_day": 30
+  },
+  "following": 1121,
+  "posts_at_anchor": 192,
+  "region": "Pune",
+  "role": "peer"
+ },
+ {
+  "username": "kavyawears",
+  "full_name": "Kavya Wears",
+  "bio": "Kavya Wears · fashion & styling",
+  "category": "Fashion",
+  "followers": {
+   "base": 27000,
+   "per_day": 22
+  },
+  "following": 1148,
+  "posts_at_anchor": 853,
+  "region": "Mumbai",
+  "role": "peer"
+ },
+ {
+  "username": "styledbysana",
+  "full_name": "Styled by Sana",
+  "bio": "Styled by Sana · fashion & styling",
+  "category": "Fashion",
+  "followers": {
+   "base": 74000,
+   "per_day": 59
+  },
+  "following": 361,
+  "posts_at_anchor": 372,
+  "region": "Pune",
+  "role": "peer"
+ },
+ {
+  "username": "everydayethnic",
+  "full_name": "Everyday Ethnic",
+  "bio": "Everyday Ethnic · fashion & styling",
+  "category": "Fashion",
+  "followers": {
+   "base": 19000,
+   "per_day": 15
+  },
+  "following": 429,
+  "posts_at_anchor": 405,
+  "region": "Mumbai",
+  "role": "peer"
+ },
+ {
+  "username": "sareeandsneakers",
+  "full_name": "Saree & Sneakers",
+  "bio": "Saree & Sneakers · fashion & styling",
+  "category": "Fashion",
+  "followers": {
+   "base": 44000,
+   "per_day": 35
+  },
+  "following": 1159,
+  "posts_at_anchor": 294,
+  "region": "Pune",
+  "role": "peer"
+ },
+ {
+  "username": "dupatta.diaries",
+  "full_name": "Dupatta Diaries",
+  "bio": "Dupatta Diaries · fashion & styling",
+  "category": "Fashion",
+  "followers": {
+   "base": 23000,
+   "per_day": 18
+  },
+  "following": 647,
+  "posts_at_anchor": 335,
+  "region": "Mumbai",
+  "role": "peer"
+ },
+ {
+  "username": "festive.fits.daily",
+  "full_name": "Festive Fits Daily",
+  "bio": "Festive Fits Daily · fashion & styling",
+  "category": "Fashion",
+  "followers": {
+   "base": 52000,
+   "per_day": 42
+  },
+  "following": 1009,
+  "posts_at_anchor": 318,
+  "region": "Bengaluru",
+  "role": "peer"
+ }
+]

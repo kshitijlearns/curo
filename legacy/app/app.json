@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "CURO",
+    "slug": "curo",
+    "scheme": "curo",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "app.curo.mobile"
+    },
+    "android": {
+      "package": "app.curo.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#C3BFF2",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "experiments": {
+      "typedRoutes": true
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#C3BFF2",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 120
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Curo uses the microphone so you can speak your ideas and edits instead of typing.",
+          "speechRecognitionPermission": "Curo turns what you say into text, on your phone where it can."
+        }
+      ],
+      "expo-asset",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Curo opens the video you pick so you can simulate a reel before you post it.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
+    ]
+  }
+}

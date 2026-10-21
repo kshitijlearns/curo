@@ -1,101 +1,91 @@
 # CURO
 
-A mobile app for Instagram creators: insights from public data, content opportunities,
-a guided Studio (idea → script → storyboard → caption) and a pre-posting Simulator.
+A web app for Instagram creators: what to make next (opportunity areas and trends in your
+niche), a guided Studio (idea → script → storyboard → caption) and a pre-posting Simulator
+where an AI audience built from your own comments watches your reel before you post it.
 
-Everything outside CURO (Apify, Gemini, Claude, Supabase Storage, Sentry/PostHog) sits behind
-an interface with a working mock, so the whole app runs on realistic fake data until keys
-arrive. See [PLAN.md](PLAN.md), [docs/DECISIONS.md](docs/DECISIONS.md) and
-[docs/INTEGRATION.md](docs/INTEGRATION.md).
+Everything outside CURO (Apify, Gemini, Claude, Supabase, payments, Sentry/PostHog) sits
+behind an interface with a working mock, so the whole app runs on realistic fake data until
+keys arrive. See [PLAN_V2.md](PLAN_V2.md), [docs/DECISIONS.md](docs/DECISIONS.md) (v2:
+D200–D210) and [docs/INTEGRATION.md](docs/INTEGRATION.md).
 
 ## Run it
 
-You need **Docker Desktop**, **Python 3.12**, **Node.js 20+** and the **Expo Go** app on your phone.
+You need **Python 3.12** and **Node.js 20+**. Docker is optional.
 
 ```bash
-make setup     # once: Python venv + app packages     (Windows: ./dev.ps1 setup)
-make dev       # Docker stack + Expo                  (Windows: ./dev.ps1 dev)
+./dev.ps1 setup          # once: Python venv + web packages        (make setup)
+./dev.ps1 local --seed   # API + worker + scheduler on :8000, demo data loaded   (make local ARGS=--seed)
+./dev.ps1 web            # in a second terminal: the web app on http://localhost:3000   (make app)
 ```
 
-`make dev` starts Postgres + pgvector, Redis, the API, the worker and the scheduler, waits
-until `http://localhost:8000/health` is OK, then starts Expo. Scan the QR code with Expo Go
-(Android) or the Camera app (iOS). The phone must be on the same Wi-Fi as your computer.
+`local` runs the backend in one process with Postgres embedded (`.data/pgserver-dev`) and the
+worker as a thread (D115). Later starts are just `./dev.ps1 local`; `./dev.ps1 local-seed`
+reloads the demo and `./dev.ps1 local-time advance 36h` moves its clock. With Docker,
+`./dev.ps1 dev` starts the Docker stack and then the web app.
 
-If Windows blocks the script: `powershell -ExecutionPolicy Bypass -File dev.ps1 dev`.
+The web app calls only `/api/v1/*`; in development Next.js forwards that to the API at
+`API_ORIGIN` (default `http://127.0.0.1:8000`). Copy `web/.env.example` to `web/.env.local`
+to set it, or the public Supabase values for real email sign-in.
 
-### Without Docker
-
-No Docker Desktop? Run the same backend in one process, with Postgres embedded and the
-worker as a background thread (DECISIONS D115):
-
-```bash
-./dev.ps1 local --seed   # first time: loads the demo, then serves on :8000   (make local ARGS=--seed)
-./dev.ps1 app            # in a second terminal: Expo                       (make app)
-```
-
-Later starts are just `./dev.ps1 local`. `./dev.ps1 local-seed` reloads the demo while it
-runs, and `./dev.ps1 local-time advance 36h` moves its clock. Data is kept in
-`.data/pgserver-dev`.
+If Windows blocks the script: `powershell -ExecutionPolicy Bypass -File dev.ps1 local`.
 
 ### Signing in and the demo data
 
 Sign in with any email: in development there's no email service, so the 6-digit code is
-filled in for you. Then enter **@curo.demo** as your Instagram username: CURO collects its
-(synthetic) public reels through the mock provider, exactly as it would a real account, and
-then suggests creators to track (peers), which you confirm in the last onboarding step or
-later in Settings.
+shown on screen. For the demo creator with two weeks of history, sign in as
+**demo@curo.local** after `--seed`. Or enter **@curo.demo** as your Instagram username on a
+new email: CURO collects its (synthetic) public reels through the mock provider exactly as
+it would a real account.
 
-For the demo creator with two weeks of history, run `make seed` (`./dev.ps1 seed`) once
-and sign in as **demo@curo.local**. It tracks 10 peers, and Home shows the opportunities
-built from them. "Open in Studio" on any of them runs the Studio (ideas, script,
-storyboard, caption) on your data, and saved drafts appear under Saved. In the Simulator,
-upload a recorded reel (MP4 or MOV, up to 90 seconds) or use one of the two sample takes:
-the first take scores lower, its edits are written back to your Studio draft, and the
-re-recorded take shows the score change. Every chat box is Ask Curo: ask why a line is in
-your script, which reels did best, or "what if I end with a send prompt?" on a simulation.
-Answers come from your own records, cite them, and carry only numbers those records give;
-tell it "never suggest dance trends" and it remembers (see and delete memories in Settings).
-After you post: simulate the first sample take, then move the clock forward a day and a half
-(`./dev.ps1 local-time advance 36h`, or `make time ARGS="advance 36h"`). The Ganpati reel
-posted after the demo's moment appears, and Home asks whether it's the reel you simulated;
-say yes and its arrows compare it with the simulation, and the weekly accuracy record counts
-it once it's a week old. Settings also deletes the account and everything Curo holds about
-it. The seed takes about two minutes. The data is entirely synthetic
-(`fixtures/`), and `FAKE_NOW` in `.env` pins CURO's clock to the dataset's moment,
-23 Aug 2027.
+- **Home**: Opportunity areas (scored 10 × (0.35 fit + 0.25 audience demand + 0.25 timing +
+  0.15 room left)) and **Trending for you**, a shared daily trend feed per niche ranked for
+  your reels. Tap an angle to start a project from it.
+- **Studio**: ideas (proven / a trend made yours / worth exploring), script, storyboard,
+  caption with at most five hashtags. The Composer is Ask Curo: type or tap the mic to
+  change any step in your words.
+- **Simulator**: upload a recorded reel (MP4 or MOV, up to 90 seconds) or a sample take.
+  1,000 AI followers watch it: you get an engagement score, predicted ranges (saves are
+  always "simulated"), a skip curve, the best time to post, what's working and what to
+  change with timestamps, and simulated comments — tap one to talk to that agent. Re-run
+  with a new take to see the score change.
+- **Settings**: your plan and credits (Free: 2 projects, 2 simulations, 10 Ask Curo
+  messages a month; Pro $30: 10, 10, 100; top-ups never expire), what Curo remembers, and
+  deleting your account. Admins (`ADMIN_EMAILS`) also see `/admin/costs`.
+
+The data is entirely synthetic (`fixtures/`), and `FAKE_NOW` in `.env` pins CURO's clock to
+the dataset's moment, 23 Aug 2027.
 
 | Command | What it does |
 | --- | --- |
-| `make up` / `make down` | start / stop the Docker stack |
-| `make seed` | (re)load the demo creator with 14 days of replayed collection |
-| `make learning ARGS=curo.demo` | print what CURO learned: DNA, baselines, sub-clusters, pattern cards, comment themes |
-| `make logs` | follow API, worker and scheduler logs |
-| `make test` | Python tests + app typecheck, lint and tests |
-| `make lint` / `make format` | checks / auto-format |
-| `make time ARGS="advance 6h"` | move CURO's clock for every process |
-| `make api-types` | regenerate the app's typed API client after changing API schemas |
-| `make extract` / `make screenshots` | unpack the prototype / re-take reference screenshots |
-| `make compare` | screenshot the app's journey next to the prototype (`reference/compare.html`) |
-| `make local` / `make local-seed` | the backend without Docker / reload its demo (`./dev.ps1 local`, `local-seed`) |
-| `python tools/record_contracts.py …` | record real vendor and model answers for the contract tests (once keys exist; `docs/INTEGRATION.md`) |
+| `./dev.ps1 local [--seed]` | the backend without Docker (optionally loading the demo) |
+| `./dev.ps1 web` | the web app on :3000 |
+| `./dev.ps1 test` | Python tests + web type-check |
+| `./dev.ps1 lint` / `format` | checks / auto-format |
+| `./dev.ps1 api-types` | regenerate the web app's typed API client after changing API schemas |
+| `./dev.ps1 local-time advance 6h` | move CURO's clock |
+| `./dev.ps1 learning curo.demo` | print what CURO learned about an account |
+| `python tools/reembed.py [--apply]` | re-embed every reel after changing the embedding model (D210) |
+| `python tools/record_contracts.py …` | record real vendor and model answers for the contract tests (`docs/INTEGRATION.md`) |
 
 ## Layout
 
 ```
-app/        Expo React Native app (TypeScript, Expo Router)
-api/        FastAPI backend: routes, services (logic), providers, schemas, jobs, prompts
-worker/     RQ worker + scheduler (share the api package)
-db/         SQL migrations; db/local = Supabase shim for local Postgres only
-fixtures/   deterministic demo dataset + generator
-tools/      prototype extractor + screenshots, time travel, wait-for-API
-reference/  unpacked prototype + screenshots of every screen
-docs/       the source docs, DECISIONS.md, INTEGRATION.md
-deploy/     Railway configs (not used locally)
+web/         Next.js web app (App Router, TypeScript); types generated from the API's OpenAPI
+api/         FastAPI backend: routes, services (logic), providers, schemas, jobs, prompts
+worker/      RQ worker + scheduler (share the api package)
+db/          SQL migrations; db/local = Supabase shim for local Postgres only
+fixtures/    deterministic demo dataset + generator
+tools/       local stack, time travel, re-embedding, contract recorder, prototype tools
+legacy/app/  the v1 Expo app, frozen
+reference/   unpacked prototype + screenshots of every screen
+docs/        the source docs, DECISIONS.md, INTEGRATION.md, DEPLOY_VERCEL.md
 ```
 
 ## Rules the code enforces
 
-Public data only (no Instagram API or login). Missing counts are unknown, never zero. Every
-number is relative to the creator's own baseline. Predictions are ranges labelled
-"estimate based on your history". AI text may only contain numbers from its input facts.
-At most five hashtags.
+Public data only (no Instagram API, no Instagram login, never an Instagram password).
+Missing counts are unknown, never zero. Every number is relative to the creator's own
+reels. Predictions are ranges. AI text may only contain numbers from its input facts.
+Simulated audience output is always labelled simulated. At most five hashtags, in the web
+app, the API and the database. Every plan limit is enforced on the server.

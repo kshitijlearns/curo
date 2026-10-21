@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "curo"
+version = "0.1.0"
+description = "CURO backend: API, product logic, providers and jobs"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "pydantic>=2.8",
+  "pydantic-settings>=2.4",
+  "psycopg[binary,pool]>=3.2",
+  "redis>=5.0",
+  "rq>=1.16",
+  "numpy>=1.26",
+  "scikit-learn>=1.5",  # HDBSCAN sub-clusters
+  "scipy>=1.11",  # Mann–Whitney test for pattern cards
+  "PyJWT>=2.9",
+  "python-multipart>=0.0.9",
+  "httpx>=0.27",
+  "tzdata>=2024.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "ruff>=0.6",
+  "fakeredis>=2.23",
+]
+# Embedded Postgres + pgvector, used by the test suite when no DATABASE_URL is reachable
+# (e.g. on a laptop without Docker). CI and Docker use a real Postgres service instead.
+localdb = ["pgserver>=0.1.4"]
+# Tooling for /tools (prototype screenshots).
+tools = ["playwright>=1.47"]
+# The real providers' SDKs, once keys arrive (docs/INTEGRATION.md); the recorder uses them too.
+live = ["anthropic>=1.14,<2"]
+
+[tool.setuptools.packages.find]
+include = ["curo*"]
+
+# Ruff is configured once for the whole repo in /ruff.toml.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = ["db: needs Postgres + pgvector (Docker, CI or embedded pgserver)"]

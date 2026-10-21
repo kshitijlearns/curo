@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CURO reel thumbnail</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;600&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="position: relative; width: 100%; height: {{hcss}}; min-height: 40px; overflow: hidden; background: {{bg}}; font-family: 'Proxima Nova', 'proxima-nova', 'Figtree', ui-sans-serif, system-ui, sans-serif; color: {{fg}}">
+  <svg viewBox="0 0 180 280" preserveAspectRatio="xMidYMid slice" style="position: absolute; inset: 0; width: 100%; height: 100%" aria-hidden="true">
+    <polygon points="70,0 112,0 40,280 -2,280" fill="{{beam}}" opacity=".5"></polygon>
+    <polygon points="132,0 152,0 96,280 76,280" fill="{{beam}}" opacity=".35"></polygon>
+    <rect x="0" y="214" width="180" height="66" fill="{{floor}}"></rect>
+    <g transform="translate(96 96)">
+      <path d="M50 120 C 48 90, 44 64, 36 40" stroke="{{leaf}}" stroke-width="2.5" fill="none" stroke-linecap="round"></path>
+      <path d="M36 40 C 22 30, 12 34, 8 46 C 20 50, 30 48, 36 40 Z" fill="{{leaf}}"></path>
+      <path d="M40 56 C 54 42, 66 46, 72 54 C 60 64, 50 64, 40 56 Z" fill="{{leaf}}"></path>
+      <path d="M44 76 C 28 66, 16 72, 12 84 C 26 88, 38 86, 44 76 Z" fill="{{leaf}}"></path>
+      <path d="M36 40 C 38 24, 46 14, 58 12 C 56 26, 48 36, 36 40 Z" fill="{{leaf}}"></path>
+      <rect x="36" y="108" width="28" height="24" rx="4" fill="{{pot}}"></rect>
+    </g>
+  </svg>
+  <sc-if value="{{showText}}" hint-placeholder-val="{{true}}">
+    <div style="position: absolute; top: 16px; left: 14px; right: 14px; font-size: {{titleSize}}px; font-weight: 600; line-height: 1.18; letter-spacing: -0.005em">{{title}}</div>
+    <div style="position: absolute; left: 12px; bottom: 12px; height: 34px; padding: 0 13px 0 10px; border-radius: 17px; background: #FFFFFF; color: #242424; display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="#5B73F2" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"></path></svg>
+      <span>{{duration}}</span>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"title":{"editor":"text","default":"3 mistakes ruining your aesthetic reel"},"duration":{"editor":"text","default":"0:32"},"tone":{"editor":"int","min":0,"max":3,"default":0},"titleSize":{"editor":"int","min":10,"max":32,"default":18},"compact":{"editor":"boolean","default":false},"height":{"editor":"int","min":40,"max":600,"default":280},"$preview":{"width":180,"height":280}}'>
+const THUMB_TONES = [
+  { bg: '#5B73F2', fg: '#FFFFFF', beam: '#C3BFF2', leaf: '#242424', floor: '#C3BFF2', pot: '#F2D4E2' },
+  { bg: '#F2D4E2', fg: '#242424', beam: '#FFFFFF', leaf: '#242424', floor: '#FFFFFF', pot: '#5B73F2' },
+  { bg: '#C3BFF2', fg: '#242424', beam: '#FFFFFF', leaf: '#5B73F2', floor: '#E4E4EC', pot: '#242424' },
+  { bg: '#242424', fg: '#FFFFFF', beam: '#5B73F2', leaf: '#C3BFF2', floor: '#5B73F2', pot: '#F2D4E2' }
+];
+class Component extends DCLogic {
+  renderVals() {
+    const n = THUMB_TONES.length;
+    const t = THUMB_TONES[((Number(this.props.tone ?? 0) % n) + n) % n];
+    return {
+      bg: t.bg, fg: t.fg, beam: t.beam, leaf: t.leaf, floor: t.floor, pot: t.pot,
+      title: this.props.title ?? '3 mistakes ruining your aesthetic reel',
+      duration: this.props.duration ?? '0:32',
+      titleSize: this.props.titleSize ?? 18,
+      showText: !(this.props.compact ?? false),
+      hcss: (this.props.height ?? null) ? this.props.height + 'px' : '100%'
+    };
+  }
+}
+</script>
+</body>
+</html>

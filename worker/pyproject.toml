@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "curo-worker"
+version = "0.1.0"
+description = "CURO job worker and scheduler"
+requires-python = ">=3.12"
+# Uses the local `curo` package from /api. It is deliberately NOT listed as a
+# dependency, so pip never fetches an unrelated "curo" from PyPI.
+# Install /api first:  pip install -e api -e worker
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["curo_worker*"]
