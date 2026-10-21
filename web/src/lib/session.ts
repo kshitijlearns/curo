@@ -8,11 +8,13 @@
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import { DEMO } from './demo';
+
 const KEY = 'curo.session';
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const SUPABASE_ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-export const usesSupabase = Boolean(SUPABASE_URL && SUPABASE_ANON);
+export const usesSupabase = !DEMO && Boolean(SUPABASE_URL && SUPABASE_ANON);
 
 let client: SupabaseClient | null = null;
 async function supabase(): Promise<SupabaseClient> {
@@ -61,6 +63,7 @@ export async function sendCode(email: string): Promise<string | null> {
     if (error) throw new Error(error.message);
     return null;
   }
+  if (DEMO) return '123456'; // the demo signs anyone in as the demo creator
   const res = await fetch('/api/v1/auth/otp', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -74,6 +77,10 @@ export async function verifyCode(email: string, code: string): Promise<void> {
   if (usesSupabase) {
     const { error } = await (await supabase()).auth.verifyOtp({ email, token: code, type: 'email' });
     if (error) throw new Error('That code didn’t work. Check it, or send a new one.');
+    return;
+  }
+  if (DEMO) {
+    window.localStorage.setItem(KEY, JSON.stringify({ token: 'demo', email, expires: Date.now() + 86_400_000 }));
     return;
   }
   const res = await fetch('/api/v1/auth/verify', {

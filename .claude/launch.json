@@ -4,14 +4,35 @@
     {
       "name": "api-local",
       "runtimeExecutable": ".venv/Scripts/python.exe",
-      "runtimeArgs": ["tools/local_stack.py", "up", "--port", "8000"],
+      "runtimeArgs": [
+        "tools/local_stack.py",
+        "up",
+        "--port",
+        "8000"
+      ],
       "port": 8000
     },
     {
       "name": "web",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "web", "run", "dev"],
+      "runtimeArgs": [
+        "--prefix",
+        "web",
+        "run",
+        "dev"
+      ],
       "port": 3000
+    },
+    {
+      "name": "web-demo",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "web",
+        "run",
+        "dev:demo"
+      ],
+      "port": 3001
     }
   ]
 }

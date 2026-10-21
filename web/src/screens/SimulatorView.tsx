@@ -22,7 +22,7 @@ export const SIM_LABEL = 'Simulated by CURO’s AI audience. Not real comments.'
 
 export function SimulatorView() {
   const s = useApp();
-  return s.simId ? <SimResult id={s.simId} /> : <SimStart />;
+  return s.simId ? <SimResult key={s.simId} id={s.simId} /> : <SimStart />;
 }
 
 // ---------------------------------------------------------------------- start

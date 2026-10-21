@@ -37,3 +37,4 @@ reference/**/*.mov
 Thumbs.db
 .vscode/
 .idea/
+.next-demo/

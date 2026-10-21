@@ -1333,6 +1333,16 @@ Web Speech API. Next.js 16.4 and React 19.2 (the latest patched releases when bu
 embedding provider in batches, recording the model in each row, and refuses to run when the
 configured dimension isn't 768.
 
+### D211 · Demo mode for a backend-less deploy — settled
+Deployed on Vercel before the backend is (D200), the web app would show nothing past sign-in.
+So when `VERCEL` is set and `API_ORIGIN` isn't (or `NEXT_PUBLIC_DEMO_MODE=true`), it plays back
+the demo creator's journey recorded from the real local API (`tools/record_web_demo.py` →
+`web/public/demo/fixtures.json`): Home, an opportunity, the four Studio steps, both Simulator
+takes with their AI audience, agent chats, Saved and Settings. Sign-in accepts any email and
+the screen says it's a demo with sample data; Ask Curo answers that it needs the server. Set
+`API_ORIGIN` on Vercel once the API is hosted and demo mode switches off. Locally:
+`npm run dev:demo` (port 3001).
+
 ## Schema additions (beyond the MVP doc's key columns; built in Phase 2, in `db/migrations/`)
 
 | Column | Why |

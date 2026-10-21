@@ -4,6 +4,7 @@
  * (`npm run gen:api`), so the web app and the API can't drift.
  */
 import type { components } from '@/api/schema';
+import { DEMO, DemoError, demoApi, demoChat } from './demo';
 import { getToken, signOut } from './session';
 
 export type S = components['schemas'];
@@ -39,6 +40,19 @@ export async function api<T>(
   path: string,
   init: { method?: string; body?: unknown; signal?: AbortSignal } = {},
 ): Promise<T> {
+  if (DEMO) {
+    try {
+      return (await demoApi(init.method ?? (init.body === undefined ? 'GET' : 'POST'), path, init.body)) as T;
+    } catch (e) {
+      if (e instanceof DemoError) {
+        if (e.status === 402 && e.detail && typeof e.detail === 'object') {
+          window.dispatchEvent(new CustomEvent<Limit>('curo:limit', { detail: e.detail as Limit }));
+        }
+        throw new ApiError(e.status, e.detail);
+      }
+      throw e;
+    }
+  }
   const token = await getToken();
   const res = await fetch(`${BASE}${path}`, {
     method: init.method ?? (init.body === undefined ? 'GET' : 'POST'),
@@ -83,6 +97,10 @@ export async function waitForJob(jobId: string, onProgress?: (p: Record<string, 
 
 /** Ask Curo: a streamed reply (server-sent events over a POST). */
 export async function* chatStream(body: S['ChatIn']): AsyncGenerator<{ event: string; data: any }> {
+  if (DEMO) {
+    yield* demoChat();
+    return;
+  }
   const token = await getToken();
   const res = await fetch(`${BASE}/chat`, {
     method: 'POST',
@@ -128,6 +146,7 @@ export async function* chatStream(body: S['ChatIn']): AsyncGenerator<{ event: st
 export async function uploadVideo(file: File): Promise<string> {
   const type = file.type === 'video/quicktime' ? 'video/quicktime' : 'video/mp4';
   const signed = await api<S['UploadSigned']>('/uploads/sign', { body: { content_type: type } });
+  if (DEMO) return signed.path; // the demo has nowhere to store a video
   // Local storage signs a URL on this API (/v1/…); Supabase signs its own.
   const url = signed.url.startsWith('/v1/') ? `/api${signed.url}` : signed.url;
   const put = await fetch(url, {
