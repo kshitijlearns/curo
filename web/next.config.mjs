@@ -17,6 +17,11 @@ const DIST = process.env.npm_lifecycle_event === 'dev:demo' ? '.next-demo' : '.n
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Keep Turbopack anchored to the web app in the repository's multi-app layout.
+  // This prevents dependency resolution from escaping to the Expo app's lockfile.
+  turbopack: {
+    root: process.cwd(),
+  },
   distDir: DIST,
   reactStrictMode: true,
   env: { NEXT_PUBLIC_DEMO_MODE: DEMO_MODE },
