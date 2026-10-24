@@ -100,3 +100,67 @@ export async function signOut(): Promise<void> {
   if (usesSupabase) await (await supabase()).auth.signOut();
   if (typeof window !== 'undefined') window.localStorage.removeItem(KEY);
 }
+
+// ---------------------------------------------------------------- v2.1 first run
+
+function storeLocal(s: { access_token: string; email: string | null; expires_in: number }) {
+  window.localStorage.setItem(
+    KEY,
+    JSON.stringify({ token: s.access_token, email: s.email, expires: Date.now() + s.expires_in * 1000 }),
+  );
+}
+
+/** A session before any email: Supabase anonymous sign-in, or the local stub. */
+export async function startAnonymous(): Promise<void> {
+  if (await getToken()) return;
+  if (usesSupabase) {
+    const { error } = await (await supabase()).auth.signInAnonymously();
+    if (error) throw new Error('Couldn’t start a session. Try again.');
+    return;
+  }
+  if (DEMO) {
+    window.localStorage.setItem(KEY, JSON.stringify({ token: 'demo', email: null, expires: Date.now() + 86_400_000 }));
+    return;
+  }
+  const res = await fetch('/api/v1/auth/anonymous', { method: 'POST' });
+  if (!res.ok) throw new Error('Couldn’t start a session. Try again.');
+  storeLocal(await res.json());
+}
+
+/** Step 5, part 1: email a code to save this account. Returns the code in development. */
+export async function sendSaveCode(email: string): Promise<string | null> {
+  if (usesSupabase) {
+    const { error } = await (await supabase()).auth.updateUser({ email });
+    if (error) throw new Error(error.message);
+    return null;
+  }
+  return sendCode(email);
+}
+
+/** Step 5, part 2: verify the code and turn the anonymous session into this account. */
+export async function saveAccount(email: string, code: string): Promise<void> {
+  if (usesSupabase) {
+    const { error } = await (await supabase()).auth.verifyOtp({ email, token: code, type: 'email_change' });
+    if (error) throw new Error('That code didn’t work. Check it, or send a new one.');
+    return;
+  }
+  if (DEMO) {
+    window.localStorage.setItem(KEY, JSON.stringify({ token: 'demo', email, expires: Date.now() + 86_400_000 }));
+    window.sessionStorage.setItem('curo.demo.saved', '1');
+    return;
+  }
+  const token = await getToken();
+  const res = await fetch('/api/v1/auth/convert', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: JSON.stringify({ email, code }),
+  });
+  if (res.status === 409) {
+    throw new Error('That email already has a CURO account. Sign in with it instead.');
+  }
+  if (!res.ok) throw new Error('That code didn’t work. Check it, or send a new one.');
+  storeLocal(await res.json());
+}
+
+/** Set when the creator chose "Maybe later" on Save your account (Home reminds them next visit). */
+export const LATER_KEY = 'curo.save.later';

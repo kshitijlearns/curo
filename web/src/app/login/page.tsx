@@ -111,6 +111,9 @@ export default function Login() {
             {error}
           </p>
         ) : null}
+        <p className="small muted" style={{ textAlign: 'center', marginTop: 28 }}>
+          New to CURO? <a href="/start">Start with your Instagram username</a>
+        </p>
       </main>
     </div>
   );

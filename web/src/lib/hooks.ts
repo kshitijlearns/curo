@@ -61,3 +61,34 @@ export function useSaveOpportunity() {
     },
   });
 }
+
+// ---------------------------------------------------------------- v2.1
+
+export const useLatestRecap = () =>
+  useQuery({
+    queryKey: ['recap', 'latest'],
+    queryFn: () => api<S['Recap'] | null>('/recaps/latest'),
+    refetchInterval: (q) => (q.state.data?.status === 'building' ? 2000 : false),
+  });
+
+export const useRecaps = () =>
+  useQuery({ queryKey: ['recaps'], queryFn: () => api<S['RecapSummary'][]>('/recaps') });
+
+export const useRecap = (id: string | null) =>
+  useQuery({
+    queryKey: ['recap', id],
+    queryFn: () => api<S['Recap']>(`/recaps/${id}`),
+    enabled: !!id,
+  });
+
+export const useFollowerIdeas = () =>
+  useQuery({ queryKey: ['follower-ideas'], queryFn: () => api<S['FollowerIdeaOut'][]>('/follower-ideas') });
+
+export const useOnboardingStatus = (enabled = true) =>
+  useQuery({
+    queryKey: ['onboarding'],
+    queryFn: () => api<S['OnboardingStatus']>('/onboarding/status'),
+    enabled,
+    refetchInterval: (q) =>
+      q.state.data?.step === 'recap_ready' || q.state.data?.status === 'failed' ? false : 1500,
+  });

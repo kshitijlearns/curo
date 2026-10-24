@@ -15,6 +15,7 @@ from curo import clock, providers
 from curo.db import service_connection
 from curo.jobs import JobContext, job
 from curo.jobs.understand import vector_literal
+from curo.queue import enqueue
 from curo.schemas.tasks import T4, T4Input
 from curo.services import dna as dna_svc
 from curo.services import patterns, voice
@@ -240,6 +241,26 @@ def recompute_learning(ctx: JobContext) -> dict[str, Any]:
             "select id from public.creators where account_id = %s", (account_id,)
         ).fetchone()
         learned = memory.save_learned(conn, creator["id"]) if creator else []
+    from curo.jobs.follower_ideas import queue_follower_ideas
+
+    queue_follower_ideas(account_id, f"learning:{ctx.job_id}")
+    # A new creator shouldn't wait for the nightly run to see opportunity areas.
+    with service_connection() as conn:
+        fresh = conn.execute(
+            """
+            select c.id from public.creators c
+             where c.account_id = %s
+               and not exists (select 1 from public.opportunities o where o.creator_id = c.id)
+            """,
+            (account_id,),
+        ).fetchall()
+    for c in fresh:
+        enqueue(
+            "build_opportunities",
+            {"creator_id": str(c["id"])},
+            creator_id=c["id"],
+            idempotency_key=f"opps:first:{c['id']}",
+        )
     result.update(
         {
             "learned_memory": learned,

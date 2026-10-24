@@ -16,6 +16,11 @@ type Fixtures = {
   simulations: { take1: any; take2: any };
   agents: Record<string, any>;
   agent_replies: Record<string, string>;
+  // v2.1
+  recaps: any[];
+  recap: Record<string, any>;
+  share_image: Record<string, string>;
+  first_recap_id: string | null;
 };
 
 const ORDER = ['ideas', 'script', 'storyboard', 'caption'] as const;
@@ -33,6 +38,8 @@ type State = {
   chats: Record<string, { role: string; content: string }[]>;
   plan: 'free' | 'pro';
   used: { project: number; simulation: number; chat: number };
+  onboardStart?: number | null; // when the visitor entered a username (first-run progress)
+  viewed?: Record<string, boolean>; // recaps they've watched
 };
 const KEY = 'curo.demo.state';
 function state(): State {
@@ -109,7 +116,25 @@ export async function demoApi(method: string, rawPath: string, body: any): Promi
     if (path === '/billing') return billing(f, s);
     if (path === '/admin/costs') throw new DemoError(404, 'Not found');
     if (path === '/chat') return [];
-    if (path === '/onboarding/status') return { status: 'ready', reels_found: 50, reels_processed: 30, comments_done: 30, comments_total: 30 };
+    if (path === '/onboarding/status') return onboarding(f, s);
+    if (path === '/me') {
+      const me = clone(f.get['/me']);
+      me.is_anonymous = anonymous();
+      if (me.is_anonymous) me.email = null;
+      return me;
+    }
+    if (path === '/recaps/latest') {
+      const latest = [...f.recaps].sort((a, b) => (a.period_end < b.period_end ? 1 : -1))[0];
+      return latest ? withSeen(f.recap[latest.id], s) : null;
+    }
+    if (path === '/recaps') return f.recaps.map((r: any) => withSeen(r, s));
+    const share = m(/^\/recaps\/([^/]+)\/share-image$/);
+    if (share) return f.share_image[share[1]] ?? '';
+    const one = m(/^\/recaps\/([^/]+)$/);
+    if (one) {
+      if (!f.recap[one[1]]) throw new DemoError(404, 'Recap not found');
+      return withSeen(f.recap[one[1]], s);
+    }
     if (m(/^\/jobs\//)) return job(path.split('/')[2]);
     if (m(/^\/projects\/[^/]+$/)) return project(f, s);
     if (m(/^\/opportunities\/[^/]+$/)) {
@@ -234,7 +259,16 @@ export async function demoApi(method: string, rawPath: string, body: any): Promi
     sessionStorage.removeItem(KEY);
     return { status: 'deleted', job_id: null };
   }
-  if (path === '/onboarding/username') return { job_id: 'demo-job', username: 'curo.demo' };
+  if (path === '/onboarding/username') {
+    s.onboardStart = Date.now();
+    return done({ job_id: 'demo-job', username: 'curo.demo' });
+  }
+  const viewed = m(/^\/recaps\/([^/]+)\/viewed$/);
+  if (viewed) {
+    s.viewed = { ...(s.viewed ?? {}), [viewed[1]]: true };
+    const r = f.recaps.find((x: any) => x.id === viewed[1]);
+    return done(withSeen(r, s));
+  }
   throw new DemoError(501, 'This isn’t available in the demo.');
 }
 
@@ -250,4 +284,36 @@ export async function* demoChat(): AsyncGenerator<{ event: string; data: any }> 
     yield { event: 'delta', data: { text: `${word} ` } };
   }
   yield { event: 'done', data: { text } };
+}
+
+
+// ---------------------------------------------------------------- v2.1 first run
+
+function anonymous(): boolean {
+  try {
+    const raw = window.localStorage.getItem('curo.session');
+    return !(raw && JSON.parse(raw).email);
+  } catch {
+    return true;
+  }
+}
+
+function withSeen(r: any, s: State) {
+  if (!r) return r;
+  const seen = !!s.viewed?.[r.id];
+  return { ...clone(r), is_new: !seen, viewed_at: seen ? new Date().toISOString() : null };
+}
+
+/** The first run's progress strip, played out over about ten seconds. */
+function onboarding(f: Fixtures, s: State) {
+  const base = { username: 'curo.demo', followers: f.get['/me']?.account?.followers ?? null, reels_processed: 30 };
+  if (!s.onboardStart) {
+    return { ...base, status: 'ready', step: 'recap_ready', reels_found: 50, comments_done: 30, comments_total: 30, recap_id: f.first_recap_id, recap_status: 'ready' };
+  }
+  const t = (Date.now() - s.onboardStart) / 1000;
+  if (t < 2) return { ...base, status: 'running', step: 'profile', reels_found: 0, comments_done: 0, comments_total: 0 };
+  if (t < 4) return { ...base, status: 'running', step: 'reels', reels_found: 0, comments_done: 0, comments_total: 0 };
+  if (t < 7) return { ...base, status: 'running', step: 'comments', reels_found: 50, comments_done: Math.round((t - 4) * 10), comments_total: 30 };
+  if (t < 10) return { ...base, status: 'running', step: 'recap', reels_found: 50, comments_done: 30, comments_total: 30, recap_id: f.first_recap_id, recap_status: 'building' };
+  return { ...base, status: 'ready', step: 'recap_ready', reels_found: 50, comments_done: 30, comments_total: 30, recap_id: f.first_recap_id, recap_status: 'ready' };
 }

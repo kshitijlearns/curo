@@ -394,3 +394,64 @@ Kept in Studio and the Simulator.
 - **Which Vercel plan will you deploy on?** The design works on both (section 1). On Hobby,
   6-hourly snapshots and 12-hourly discovery only run with the standalone worker on a small
   host; without it, they fall back to the daily cron.
+
+---
+
+# v2.1: onboarding, the monthly Creator Recap and the new Home
+
+Source: `CURO_Onboarding_Recap_Home_Prompt.md` (wins over v2 where they differ). Built in one go
+on branch `v2.1-recap` (D212). Decisions D212–D222.
+
+## A. First-run flow
+`/` with no session → **`/start`**: the username screen (validated as typed). Continue creates
+an **anonymous session** first — Supabase `signInAnonymously()` when configured, otherwise the
+local stub `POST /v1/auth/anonymous` (an `auth.users` row with `is_anonymous = true`) — then
+`POST /v1/onboarding/username`. Errors: not found, private ("CURO can only read public
+profiles…"), and **already a CURO account** (409 `account_taken` → "Sign in instead").
+Then three onboarding cards (Home, Idea Studio, Simulator; Sketch-style SVG art, dots, Next,
+Skip) with a **live progress strip** from `GET /v1/onboarding/status` (`step`: profile →
+reels → comments → recap; polling every 1.5 s — Realtime when Supabase is on). The last card's
+button is "See my recap" once `recap_id` is set, "Almost there…" before. A waiting screen with
+teasers covers the rest (90 s → "We'll notify you", into Home with a live placeholder; 5 min →
+logged error + friendly fallback). After the recap: **Save your account** (email + code;
+local `POST /v1/auth/convert`, Supabase `updateUser({email})` + `verifyOtp('email_change')`),
+or "Maybe later" (a reminder on Home next time). Anonymous accounts that never convert are
+deleted after 30 days by the daily cleanup.
+
+## B. Creator Recap
+- **`services/recap.py`** (pure, unit-tested): facts per slide, minimum-data rules, slide choice
+  and order (hook → wins → audience → style → reveal; 5–12 slides), creator level + modifier,
+  archetype (+ runner-up, evidence), "that's like…" comparisons, Indian number formatting.
+  Thresholds, copy and comparisons live in **`services/recap_config.py`**.
+- **Periods:** first = last 90 days (or all history); monthly = previous calendar month in the
+  creator's time zone, built on the 1st by the scheduler (paused creators: on next login).
+- **Table `recaps`** (migration 0017): as specified; unique (creator, kind, period_start); RLS own.
+- **Job `build_recap`**: facts → slides → **T23 write recap copy** (one call, JSON per slide:
+  headline ≤ 60, subline ≤ 90) → validator per line (retry once, then template) → store.
+  `onboard_public` enqueues it (kind `first`) once the newest 10 reels' comments are in.
+- **Endpoints:** `GET /v1/recaps/latest`, `GET /v1/recaps`, `GET /v1/recaps/{id}`,
+  `POST /v1/recaps/{id}/viewed`, `GET /v1/recaps/{id}/share-image` (1080×1920 SVG, rendered
+  server-side; the web converts it to PNG for Share/Download).
+- **Cost:** one Claude call per recap, recorded in `usage_ledger` as task `T23` (feature
+  `recap`); free on every plan.
+
+## C. New Home — four swipeable sections
+1. **Insights: your Creator Recap** — cover card (New badge until viewed) → 3–4 highlight cards
+   (open the story at that slide) → "All recaps".
+2. **Opportunity areas** (top 5, v2).
+3. **Trending for you** — tap → trend detail sheet with "Make this my way" → Studio.
+4. **What your followers will love** — `follower_ideas` (migration 0017), candidates from
+   comment requests/questions, proven sub-clusters and pattern cards, and Simulator audience
+   segments; score `0.45 demand + 0.35 proven + 0.20 novelty`; deduped against opportunities by
+   embedding similarity (≥ 0.85, the higher section keeps it); named by **T24** with the number
+   check. Rebuilt weekly and after each recap. `GET /v1/follower-ideas`.
+Carousels: scroll-snap, the next card peeks, page dots, keyboard/trackpad; "See all" per section;
+skeletons; a retry card per section.
+
+## D. Task numbers
+The prompt's T16/T17 are already taken (v2: T16 name_trend, T17 segment_audience), so the recap
+copy is **T23** and the follower idea is **T24** (D213).
+
+## E. Demo mode
+The Vercel deploy plays back fixtures (D211); the recording now covers the first-run flow,
+the recap (with its share image), all recaps and follower ideas.

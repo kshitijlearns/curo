@@ -121,6 +121,7 @@ class Settings(BaseSettings):
     cost_alert_usd: float = 5.0
     payment_provider: Literal["mock", "razorpay"] = "mock"
     admin_emails: str = ""  # comma-separated: who sees /admin/costs
+    web_url: str = "curo-sand.vercel.app"  # printed on the recap share card
     cron_secret: str = ""  # POST /v1/cron/tick needs "Authorization: Bearer <CRON_SECRET>"
     claude_model_agents: str = "claude-haiku-5-5"
 

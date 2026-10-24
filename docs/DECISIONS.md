@@ -1343,6 +1343,95 @@ the screen says it's a demo with sample data; Ask Curo answers that it needs the
 `API_ORIGIN` on Vercel once the API is hosted and demo mode switches off. Locally:
 `npm run dev:demo` (port 3001).
 
+## CURO v2.1: onboarding, the Creator Recap and the new Home (CURO_Onboarding_Recap_Home_Prompt.md)
+
+### D212 · Built in one go, no stops between phases — settled (deviation)
+The prompt asks to stop for approval after each of its six phases. The creator asked for the
+changes to be made straight through and shipped as a pull request, so all six were built on
+branch `v2.1-recap` (v2 was already merged) and checked together; PLAN_V2.md's v2.1 section is
+the phase-1 plan.
+
+### D213 · Task numbers T23 and T24 — settled (deviation)
+The prompt names the recap copy "T16" and the follower idea "T17"; v2 already uses T16
+(name_trend) and T17 (segment_audience). They are **T23 write_recap_copy** and **T24
+name_follower_idea**, each with a schema, a prompt file and a mock.
+
+### D214 · Anonymous first-run sessions — settled
+The username comes first, before any email. With Supabase, the web app calls
+`signInAnonymously()` (enable "Allow anonymous sign-ins" in Supabase Auth); locally,
+`POST /v1/auth/anonymous` creates an `auth.users` row with `is_anonymous = true` (the column
+Supabase has) and returns a normal session. "Save your account" converts it with all its data:
+Supabase `updateUser({email})` + `verifyOtp(type 'email_change')`, or locally
+`POST /v1/auth/convert`. An email that already has an account is refused (409 `email_taken`,
+"Sign in with it instead"). A handle another creator has already collected answers 409
+`account_taken` → "Sign in instead". The daily cleanup deletes anonymous accounts older than
+30 days, with everything they hold. Not-found and private accounts use the prompt's wording.
+
+### D215 · The Creator Recap engine — settled
+`services/recap.py` computes every fact (unit-tested on three creators: 60 followers / 6
+reels, the demo creator at ~48K, 1.2M); T23 only writes words around them, and every line goes
+through the no-new-numbers validator (one retry, then the template line). Each slide has a
+minimum-data rule and is dropped, never zero-filled; a recap has 5–12 slides in story order,
+the least essential dropped first when more qualify. The first recap covers the last 90 days
+and is queued as soon as the newest 10 reels' comments are in; slides that need video DNA
+(superpower, top topic) or labelled comments (language mix) simply don't appear until that
+data exists. Monthly recaps cover the previous calendar month in the creator's time zone, built
+by the scheduler for every active creator who joined before that month ended; paused creators
+get theirs when they come back. A creator has one "your story so far": a rebuild replaces it.
+Thresholds, copy and comparisons live in `services/recap_config.py`. Comparisons are generic
+sizes (no named venues), picked so the multiple is 2–50, closest to 10. Indian number grouping
+throughout (2,48,300; 30.7L).
+
+### D216 · Recap colours and contrast — settled
+Slides rotate full-bleed backgrounds through lavender, pink, ink, gray and white with ink or
+white text; every pair passes WCAG AA (4.5:1, unit-tested). Blue (#5B73F2) fails AA behind body
+text with either ink or white (about 3.8:1 and 4.0:1), so it is the accent — big numbers,
+charts, confetti — never a slide background. The reveal slide is always ink.
+
+### D217 · The share card is drawn on the server, made a PNG in the browser — settled
+`GET /v1/recaps/{id}/share-image` returns a 1080×1920 SVG in CURO's colours (handle, period,
+up to four stats, level, archetype, modifier, CURO mark and `WEB_URL`; never a comment or
+another handle). The web app draws it onto a canvas and exports a PNG for **Share** (Web Share
+API with files where supported, e.g. Chrome on Android) and **Download**. Fonts fall back to
+system sans inside the image.
+
+### D218 · Archetypes without a classification call — settled (deviation)
+Before DNA exists, archetypes are scored from captions, hashtags, posting times and counts with
+fixed keyword cues (`recap_config.CUES`) rather than a Haiku classification call — cheaper and
+deterministic; the evidence records which source was used. With DNA: narrative shape,
+format, ending, audio and visual style. Ties go to the fixed archetype order; a runner-up is
+shown above a 0.3 score.
+
+### D219 · What your followers will love — settled
+Candidates: comment themes (demand = share of comments, 15% = full), proven sub-clusters and
+pattern cards (proven = lift − 1), and the Simulator's audience segments when they exist.
+Score `0.45 demand + 0.35 proven + 0.20 novelty`, novelty = 1 − the closest similarity to the
+last 10 reels. Near-duplicates (embedding similarity ≥ 0.85) are merged, and an idea that
+Opportunity areas already shows with a higher score is left out there (the opportunity keeps
+it; deviation from "keep the higher-scoring section" only in that the opportunity list is never
+filtered). Rebuilt weekly, after each recap, after comment labelling and after learning, so a
+new creator's ideas fill in within minutes. A new creator's opportunity areas are also built
+after their first learning run instead of waiting for the nightly job.
+
+### D220 · Home's four sections — settled
+Insights (recap cover, highlight stats that open the story at that slide, All recaps),
+Opportunity areas, Trending for you (tap → detail sheet, "Make this my way" starts a Studio
+project with the angle and the trend), What your followers will love. Each is a scroll-snap
+carousel with a peeking next card, page dots, arrow keys and "See all" (the same cards as a
+list); each section loads and fails on its own. Refresh re-fetches the sections only, never a
+new scrape. The first time a new recap is ready, it opens full screen before Home (once per
+recap per tab). Saving the account is reminded on Home until it's done.
+
+### D221 · Progress by polling — settled
+The progress strip reads `GET /v1/onboarding/status` every 1.5 s (`step`: profile → reels →
+comments → recap → recap_ready). Supabase Realtime on `public.jobs` / `public.recaps` can
+replace polling later without changing the screens (INTEGRATION.md §9).
+
+### D222 · Web accessibility checks — settled (deviation)
+The web app has no test runner yet, so the story player's keyboard controls (← → space Esc),
+tap/hold/swipe and reduced motion were checked by hand in the browser; colour contrast is a
+Python unit test. `prefers-reduced-motion` turns off auto-advance, count-ups and confetti.
+
 ## Schema additions (beyond the MVP doc's key columns; built in Phase 2, in `db/migrations/`)
 
 | Column | Why |
@@ -1388,3 +1477,4 @@ the screen says it's a demo with sample data; Ask Curo answers that it needs the
 | `creators.last_seen_at`, `paused_at`; `accounts.last_discovered_at`; `reels.comment_reads` | Pausing, discovery on its own clock, capped comment re-reads (D204) — migration 0014 |
 | `audience_segments`, `audience_personas`, `persona_calibrations`, `simulation_agents`, `agent_chats`; `simulations.timeline`, `engagement_score`, `persona_version` | The AI audience (D205) — migration 0015 |
 | `plans`, `subscriptions`, `credit_ledger`, `usage_ledger`; `creators.is_admin`; `projects.revisions` | Plans, credits and costs (D208) — migration 0016 |
+| `recaps`, `follower_ideas`; `auth.users.is_anonymous` (local shim) | The Creator Recap, "What your followers will love", anonymous first-run sessions (D214–D219) — migration 0017 |

@@ -161,7 +161,9 @@ def test_private_account_is_refused(client):
     client.post("/v1/onboarding/username", json={"username": "secret.style"}, headers=headers)
     status = client.get("/v1/onboarding/status", headers=headers).json()
     assert status["status"] == "failed"
-    assert "private" in status["error"] and "never asks you to log in" in status["error"]
+    assert status["error"] == (
+        "CURO can only read public profiles. Make your account public or try another one."
+    )  # never a password or an Instagram login (v2.1 §2)
     assert client.get("/v1/me", headers=headers).json()["onboarded"] is False
 
 

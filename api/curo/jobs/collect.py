@@ -45,10 +45,10 @@ def onboard_public(ctx: JobContext) -> dict[str, Any]:
         profile = provider.get_profile(username)
     except PrivateAccount as exc:
         raise JobFailed(
-            "This account is private. Curo only reads public accounts and never asks you to log in."
+            "CURO can only read public profiles. Make your account public or try another one."
         ) from exc
     except AccountNotFound as exc:
-        raise JobFailed(f"We couldn't find @{username} on Instagram. Check the spelling.") from exc
+        raise JobFailed("We couldn't find that account. Check the spelling?") from exc
 
     with service_connection() as conn:
         account_id = store.upsert_account(conn, profile, now)
@@ -74,12 +74,17 @@ def onboard_public(ctx: JobContext) -> dict[str, Any]:
         comments_total=min(ONBOARD_DEEP, len(stored)),
     )
 
+    recap_queued = False
     for i, (reel, data) in enumerate(zip(stored[:ONBOARD_DEEP], reels[:ONBOARD_DEEP], strict=True)):
         if not data.comments_disabled:
             comments = provider.get_comments(reel.permalink, get_settings().comment_limit)
             with service_connection() as conn:
                 store.store_comments(conn, reel.id, comments, username)
         ctx.progress(comments_done=i + 1)
+        if i + 1 == RECAP_AFTER_COMMENTS:
+            recap_queued = _queue_first_recap(ctx)
+    if not recap_queued:
+        _queue_first_recap(ctx)
 
     # Understanding (MVP doc §9): the newest 30 reels are processed; comments are labelled.
     queue_understanding(account_id, [r.id for r in stored[:ONBOARD_DEEP]], ctx.creator_id)
@@ -92,6 +97,20 @@ def onboard_public(ctx: JobContext) -> dict[str, Any]:
 
     ctx.progress(step="ready", message="Your reels are in")
     return {"account_id": str(account_id), "reels": len(stored), "followers": profile.followers}
+
+
+RECAP_AFTER_COMMENTS = 10  # the first recap needs only the newest reels' comments (v2.1 §2)
+
+
+def _queue_first_recap(ctx: JobContext) -> bool:
+    """The first Creator Recap, built from fast data while the rest keeps collecting."""
+    if not ctx.creator_id:
+        return False
+    from curo.jobs.recap import queue_recap
+
+    ctx.progress(step="recap", message="Building your recap")
+    queue_recap(ctx.creator_id, "first", key=f"recap:{ctx.creator_id}:first:{ctx.job_id}")
+    return True
 
 
 def queue_understanding(account_id: UUID, reel_ids: list[UUID], creator_id: UUID | None) -> None:

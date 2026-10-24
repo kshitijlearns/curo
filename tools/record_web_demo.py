@@ -31,6 +31,8 @@ def call(method: str, path: str, body=None):
         req.add_header("Authorization", f"Bearer {TOKEN}")
     with urllib.request.urlopen(req, timeout=300) as res:
         raw = res.read()
+        if res.headers.get_content_type() == "image/svg+xml":
+            return raw.decode("utf-8")
         return json.loads(raw) if raw else None
 
 
@@ -130,6 +132,16 @@ def main() -> None:
                 replies[q] = out["answer"]
 
     keep("/saved")
+    # v2.1: the Creator Recap (first + any monthly), its share card, and follower ideas.
+    keep("/follower-ideas")
+    fx["recaps"] = call("GET", "/recaps")
+    fx["recap"] = {}
+    fx["share_image"] = {}
+    for r in fx["recaps"]:
+        fx["recap"][r["id"]] = call("GET", f"/recaps/{r['id']}")
+        fx["share_image"][r["id"]] = call("GET", f"/recaps/{r['id']}/share-image")
+    first = next((r for r in fx["recaps"] if r["kind"] == "first"), None)
+    fx["first_recap_id"] = first["id"] if first else None
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(fx, ensure_ascii=False), encoding="utf-8")
     print(f"wrote {OUT} ({OUT.stat().st_size // 1024} KB)")

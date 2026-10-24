@@ -11,7 +11,7 @@ import { BackHeader, BrandHeader, Loading, Nav, Toast } from '@/components/Chrom
 import { Composer } from '@/components/Composer';
 import { UpgradeSheet } from '@/components/UpgradeSheet';
 import { signedIn } from '@/lib/session';
-import { useMe, useOpportunity, useSaveOpportunity } from '@/lib/hooks';
+import { useLatestRecap, useMe, useOpportunity, useSaveOpportunity } from '@/lib/hooks';
 import { HomeView } from '@/screens/HomeView';
 import { OpportunityView } from '@/screens/OpportunityView';
 import { SavedView } from '@/screens/SavedView';
@@ -23,7 +23,7 @@ export default function Page() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    signedIn().then((ok) => (ok ? setReady(true) : router.replace('/login')));
+    signedIn().then((ok) => (ok ? setReady(true) : router.replace('/start')));
   }, [router]);
   if (!ready) {
     return (
@@ -49,8 +49,23 @@ function Shell() {
   const save = useSaveOpportunity();
 
   useEffect(() => {
-    if (me.data && !me.data.onboarded) router.replace('/onboarding');
+    if (me.data && !me.data.onboarded) router.replace(me.data.creator ? '/welcome' : '/start');
   }, [me.data, router]);
+
+  // A new recap opens full screen before Home, once (v2.1 §3.3).
+  const latest = useLatestRecap();
+  useEffect(() => {
+    const r = latest.data;
+    if (!r || r.status !== 'ready' || !r.is_new) return;
+    const key = `curo.recap.opened.${r.id}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+    } catch {
+      return;
+    }
+    router.push(`/recap?id=${r.id}`);
+  }, [latest.data, router]);
 
   let header: React.ReactNode;
   if (s.saved) {

@@ -5,6 +5,10 @@ SUPABASE_JWT_SECRET) — the same tokens Supabase Auth issues, so nothing change
 Supabase is switched on. With AUTH_PROVIDER=local, a small email one-time-code stub issues
 them (``/v1/auth/otp`` → ``/v1/auth/verify``).
 
+v2.1: a first-run visitor gets an **anonymous** session before giving an email
+(``/v1/auth/anonymous`` locally, Supabase's ``signInAnonymously`` otherwise), converted to a
+real account later (``/v1/auth/convert``) with all its data. Never an Instagram login.
+
 Auth uses real time, not CURO's time-travel clock: tokens and codes must really expire.
 """
 
@@ -34,17 +38,19 @@ _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 class User:
     id: UUID
     email: str | None = None
+    is_anonymous: bool = False
 
 
 def _secret() -> str:
     return get_settings().supabase_jwt_secret
 
 
-def issue_token(user_id: UUID, email: str | None) -> tuple[str, int]:
+def issue_token(user_id: UUID, email: str | None, anonymous: bool = False) -> tuple[str, int]:
     now = datetime.now(UTC)
     claims = {
         "sub": str(user_id),
         "email": email,
+        "is_anonymous": anonymous,
         "role": "authenticated",
         "aud": "authenticated",
         "iat": int(now.timestamp()),
@@ -56,7 +62,7 @@ def issue_token(user_id: UUID, email: str | None) -> tuple[str, int]:
 def verify_token(token: str) -> User:
     try:
         claims = jwt.decode(token, _secret(), algorithms=["HS256"], audience="authenticated")
-        return User(UUID(claims["sub"]), claims.get("email"))
+        return User(UUID(claims["sub"]), claims.get("email"), bool(claims.get("is_anonymous")))
     except (jwt.PyJWTError, KeyError, ValueError) as exc:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid or expired session") from exc
 
@@ -105,23 +111,34 @@ def request_code(email: str) -> str:
     return code
 
 
+def _code_ok(conn, email: str, code: str) -> bool:
+    """Check (and use up) a sign-in code; a wrong code counts as an attempt."""
+    row = conn.execute(
+        "select code_hash, expires_at, attempts from auth.local_otp_codes where email = %s for update",
+        (email,),
+    ).fetchone()
+    usable = (
+        row is not None
+        and row["expires_at"] >= datetime.now(UTC)
+        and row["attempts"] < OTP_MAX_ATTEMPTS
+    )
+    if usable and hmac.compare_digest(row["code_hash"], _hash(email, (code or "").strip())):
+        conn.execute("delete from auth.local_otp_codes where email = %s", (email,))
+        return True
+    if usable:
+        conn.execute(
+            "update auth.local_otp_codes set attempts = attempts + 1 where email = %s", (email,)
+        )
+    return False
+
+
 def verify_code(email: str, code: str) -> User:
     """Check a sign-in code; create the user on first sign-in."""
     email = normalize_email(email)
     user = None
     # Decide inside the transaction, raise after it commits (so failed attempts are counted).
     with service_connection() as conn:
-        row = conn.execute(
-            "select code_hash, expires_at, attempts from auth.local_otp_codes where email = %s for update",
-            (email,),
-        ).fetchone()
-        usable = (
-            row is not None
-            and row["expires_at"] >= datetime.now(UTC)
-            and row["attempts"] < OTP_MAX_ATTEMPTS
-        )
-        if usable and hmac.compare_digest(row["code_hash"], _hash(email, (code or "").strip())):
-            conn.execute("delete from auth.local_otp_codes where email = %s", (email,))
+        if _code_ok(conn, email, code):
             user = conn.execute(
                 """
                 insert into auth.users (email, last_sign_in_at) values (%s, now())
@@ -130,12 +147,55 @@ def verify_code(email: str, code: str) -> User:
                 """,
                 (email,),
             ).fetchone()
-        elif usable:
-            conn.execute(
-                "update auth.local_otp_codes set attempts = attempts + 1 where email = %s", (email,)
-            )
     if user is None:
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED, "That code didn't work. Request a new one."
         )
     return User(user["id"], email)
+
+
+def create_anonymous() -> User:
+    """A first-run session before any email (v2.1)."""
+    with service_connection() as conn:
+        row = conn.execute(
+            "insert into auth.users (is_anonymous, last_sign_in_at) values (true, now()) returning id"
+        ).fetchone()
+    return User(row["id"], None, True)
+
+
+class EmailTaken(Exception):
+    pass
+
+
+def convert_anonymous(user: User, email: str, code: str) -> User:
+    """Attach a verified email to an anonymous account, keeping all its data."""
+    email = normalize_email(email)
+    ok = taken = False
+    with service_connection() as conn:
+        row = conn.execute(
+            "select is_anonymous from auth.users where id = %s for update", (user.id,)
+        ).fetchone()
+        if row is None or not row["is_anonymous"]:
+            raise HTTPException(status.HTTP_409_CONFLICT, "This account already has an email")
+        if _code_ok(conn, email, code):
+            ok = True
+            other = conn.execute(
+                "select id from auth.users where email = %s and id <> %s", (email, user.id)
+            ).fetchone()
+            if other:
+                taken = True
+            else:
+                conn.execute(
+                    """
+                    update auth.users set email = %s, is_anonymous = false, last_sign_in_at = now()
+                     where id = %s
+                    """,
+                    (email, user.id),
+                )
+    if not ok:
+        raise HTTPException(
+            status.HTTP_401_UNAUTHORIZED, "That code didn't work. Request a new one."
+        )
+    if taken:
+        raise EmailTaken(email)
+    return User(user.id, email, False)
