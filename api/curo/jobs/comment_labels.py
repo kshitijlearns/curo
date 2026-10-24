@@ -77,6 +77,10 @@ def label_comments(ctx: JobContext) -> dict[str, Any]:
                 labelled += 1
 
     themes = rebuild_themes(account_id) if is_creator else 0
+    if is_creator and themes:
+        from curo.jobs.follower_ideas import queue_follower_ideas
+
+        queue_follower_ideas(account_id, f"labels:{ctx.job_id}")
     return {"labelled": labelled, "themes": themes}
 
 

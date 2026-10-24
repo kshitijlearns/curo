@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import psycopg
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from curo import clock
 from curo.auth import User, current_user
-from curo.db import creator_session
+from curo.db import creator_session, service_connection
 from curo.queue import enqueue
 from curo.routes.deps import rls_conn
 from curo.schemas.api import JobOut, OnboardingStarted, OnboardingStatus, UsernameIn
@@ -18,6 +18,22 @@ router = APIRouter(prefix="/v1/onboarding", tags=["onboarding"])
 @router.post("/username", status_code=status.HTTP_202_ACCEPTED, response_model=OnboardingStarted)
 def start(body: UsernameIn, user: User = Depends(current_user)) -> OnboardingStarted:
     """Start collecting a public handle. Never asks for an Instagram login."""
+    with service_connection() as conn:
+        taken = conn.execute(
+            """
+            select 1 from public.creators
+             where ig_username = %s and user_id <> %s and account_id is not null
+            """,
+            (body.username, user.id),
+        ).fetchone()
+    if taken:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            {
+                "code": "account_taken",
+                "message": f"@{body.username} is already on CURO. Sign in instead.",
+            },
+        )
     # Commit the creator row first, so the job can see it.
     with creator_session(user.id) as conn:
         creator = conn.execute(
@@ -71,9 +87,31 @@ def get_status(conn: psycopg.Connection = Depends(rls_conn)) -> OnboardingStatus
             """,
             (creator["account_id"],),
         ).fetchone()["n"]
+    recap = conn.execute(
+        """
+        select id, status from public.recaps where creator_id = %s and kind = 'first'
+         order by created_at desc limit 1
+        """,
+        (creator["id"],),
+    ).fetchone()
+    followers = None
+    if creator["account_id"]:
+        acc = conn.execute(
+            "select followers from public.accounts where id = %s", (creator["account_id"],)
+        ).fetchone()
+        followers = acc["followers"] if acc else None
+    step = progress.get("step")
+    if recap and recap["status"] == "ready":
+        step = "recap_ready"
+    elif recap:
+        step = "recap"
     return OnboardingStatus(
         status=state,
         username=creator["ig_username"],
+        step=step,
+        followers=followers,
+        recap_id=recap["id"] if recap else None,
+        recap_status=recap["status"] if recap else None,
         job=JobOut(**job),
         reels_found=progress.get("reels_found", 0),
         comments_done=progress.get("comments_done", 0),

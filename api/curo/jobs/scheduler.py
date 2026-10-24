@@ -230,7 +230,42 @@ def tick(now: datetime | None = None) -> list[str]:
     handed over again."""
     now = now or clock.now()
     pause_inactive(now)
-    return redispatch_orphans(now) + snapshot_tick(now) + learning_tick(now) + nightly_tick(now)
+    from curo.jobs.recap import monthly_tick
+
+    return (
+        redispatch_orphans(now)
+        + snapshot_tick(now)
+        + learning_tick(now)
+        + nightly_tick(now)
+        + monthly_tick(now)
+        + follower_ideas_tick(now)
+    )
+
+
+def follower_ideas_tick(now: datetime) -> list[str]:
+    """ "What your followers will love" is rebuilt weekly for every active creator (and after
+    each recap)."""
+    week = f"{now:%G-W%V}"
+    out: list[str] = []
+    with service_connection() as conn:
+        rows = conn.execute(
+            """
+            select c.id from public.creators c
+             where c.account_id is not null and c.paused_at is null
+               and not exists (select 1 from public.follower_ideas f
+                                where f.creator_id = c.id and f.created_at > %s)
+            """,
+            (now - timedelta(days=7),),
+        ).fetchall()
+    for r in rows:
+        _queue(
+            out,
+            f"build_follower_ideas:{r['id']}",
+            "build_follower_ideas",
+            {"creator_id": str(r["id"])},
+            f"follower_ideas:{r['id']}:{week}",
+        )
+    return out
 
 
 def pause_inactive(now: datetime) -> int:

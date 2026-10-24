@@ -213,11 +213,16 @@ def test_comments_are_labelled_and_grouped_into_themes(demo):
 # ---------------------------------------------------------------- learning
 
 
+def learning_only(queued: list[str]) -> list[str]:
+    """What a tick queued, without v2.1's recap and follower-idea jobs."""
+    return [q for q in queued if not q.startswith(("build_recap", "build_follower_ideas"))]
+
+
 def test_learning_runs_once_processing_has_settled(demo):
     _, aid = demo
     with clock.frozen_at(ANCHOR):
-        assert tick(ANCHOR) == [f"recompute_learning:{aid}"]
-        assert tick(ANCHOR + timedelta(minutes=1)) == []  # nothing changed since
+        assert learning_only(tick(ANCHOR)) == [f"recompute_learning:{aid}"]
+        assert learning_only(tick(ANCHOR + timedelta(minutes=1))) == []  # nothing changed since
     with service_connection() as conn:
         baselines = conn.execute(
             "select count(*) as n from public.baselines where account_id = %s", (aid,)
@@ -243,9 +248,9 @@ def test_the_nightly_batch_runs_once_a_night(demo):
     _, aid = demo
     two_am = ANCHOR.replace(hour=20, minute=30) - timedelta(days=1)  # 02:00 IST on the anchor day
     with clock.frozen_at(ANCHOR):
-        first = tick(two_am)
-        again = tick(two_am + timedelta(minutes=20))
-        nine_am = tick(ANCHOR - timedelta(hours=1))
+        first = learning_only(tick(two_am))
+        again = learning_only(tick(two_am + timedelta(minutes=20)))
+        nine_am = learning_only(tick(ANCHOR - timedelta(hours=1)))
     assert "recompute_learning:priors" in first and f"recompute_learning:{aid}" in first
     assert again == [] and not any(x.startswith("label_comments") for x in nine_am)
 

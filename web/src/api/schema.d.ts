@@ -38,6 +38,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/anonymous": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Anonymous
+         * @description A session before any email (v2.1 first run); saved to an email later via /convert.
+         */
+        post: operations["anonymous_v1_auth_anonymous_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Convert
+         * @description Save an anonymous account: verify the emailed code and keep everything it has.
+         */
+        post: operations["convert_v1_auth_convert_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/otp": {
         parameters: {
             query?: never;
@@ -179,6 +219,26 @@ export interface paths {
         put?: never;
         /** Cron Tick */
         post: operations["cron_tick_v1_cron_tick_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/follower-ideas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Follower Ideas
+         * @description What your followers will love: the top 5, best first.
+         */
+        get: operations["follower_ideas_v1_follower_ideas_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -692,6 +752,94 @@ export interface paths {
         put?: never;
         /** Revise Storyboard */
         post: operations["revise_storyboard_v1_projects__project_id__storyboard_revise_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/recaps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All Recaps */
+        get: operations["all_recaps_v1_recaps_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/recaps/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Latest
+         * @description The newest recap (ready or still building), or null before the first one.
+         */
+        get: operations["latest_v1_recaps_latest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/recaps/{recap_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One */
+        get: operations["one_v1_recaps__recap_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/recaps/{recap_id}/share-image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Share Image */
+        get: operations["share_image_v1_recaps__recap_id__share_image_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/recaps/{recap_id}/viewed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Viewed */
+        post: operations["viewed_v1_recaps__recap_id__viewed_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1375,6 +1523,30 @@ export interface components {
             /** Task */
             task: string | null;
         };
+        /** FollowerIdeaOut */
+        FollowerIdeaOut: {
+            /** Evidence */
+            evidence?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Parts */
+            parts?: {
+                [key: string]: number;
+            };
+            /** Score */
+            score: number;
+            /** Segment */
+            segment?: string | null;
+            /** Title */
+            title: string;
+            /** Why */
+            why: string;
+        };
         /** FrameOutApi */
         FrameOutApi: {
             /** Beat Id */
@@ -1587,6 +1759,11 @@ export interface components {
             /** Email */
             email: string | null;
             /**
+             * Is Anonymous
+             * @default false
+             */
+            is_anonymous: boolean;
+            /**
              * Now
              * Format: date-time
              */
@@ -1672,9 +1849,15 @@ export interface components {
             comments_total: number;
             /** Error */
             error?: string | null;
+            /** Followers */
+            followers?: number | null;
             job?: components["schemas"]["JobOut"] | null;
             /** Message */
             message?: string | null;
+            /** Recap Id */
+            recap_id?: string | null;
+            /** Recap Status */
+            recap_status?: ("building" | "ready" | "failed") | null;
             /**
              * Reels Found
              * @default 0
@@ -1690,6 +1873,8 @@ export interface components {
              * @enum {string}
              */
             status: "not_started" | "running" | "ready" | "failed";
+            /** Step */
+            step?: string | null;
             /** Username */
             username?: string | null;
         };
@@ -1911,6 +2096,172 @@ export interface components {
             evidence: string;
             /** Text */
             text: string;
+        };
+        /** Recap */
+        Recap: {
+            /** Archetype */
+            archetype?: string | null;
+            /** Archetype Evidence */
+            archetype_evidence?: {
+                [key: string]: unknown;
+            };
+            /** Archetype Runner Up */
+            archetype_runner_up?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Creator Level */
+            creator_level?: string | null;
+            /** Handle */
+            handle?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Is New
+             * @default false
+             */
+            is_new: boolean;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "first" | "monthly";
+            /** Level Modifier */
+            level_modifier?: string | null;
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
+            /** Period Label */
+            period_label: string;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+            /** Slides */
+            slides?: components["schemas"]["RecapSlide"][];
+            /** Stats */
+            stats?: components["schemas"]["RecapStat"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "building" | "ready" | "failed";
+            /** Viewed At */
+            viewed_at?: string | null;
+        };
+        /** RecapCopy */
+        RecapCopy: {
+            /** Headline */
+            headline: string;
+            /**
+             * Source
+             * @default template
+             */
+            source: string;
+            /** Subline */
+            subline: string;
+        };
+        /** RecapSlide */
+        RecapSlide: {
+            copy: components["schemas"]["RecapCopy"];
+            /** Facts */
+            facts: {
+                [key: string]: unknown;
+            };
+            /** Slide Id */
+            slide_id: string;
+            visual: components["schemas"]["RecapVisual"];
+        };
+        /** RecapStat */
+        RecapStat: {
+            /** Label */
+            label: string;
+            /** Slide */
+            slide: string;
+            /** Value */
+            value: string;
+        };
+        /** RecapSummary */
+        RecapSummary: {
+            /** Archetype */
+            archetype?: string | null;
+            /** Archetype Runner Up */
+            archetype_runner_up?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Creator Level */
+            creator_level?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Is New
+             * @default false
+             */
+            is_new: boolean;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "first" | "monthly";
+            /** Level Modifier */
+            level_modifier?: string | null;
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
+            /** Period Label */
+            period_label: string;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+            /** Stats */
+            stats?: components["schemas"]["RecapStat"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "building" | "ready" | "failed";
+            /** Viewed At */
+            viewed_at?: string | null;
+        };
+        /** RecapVisual */
+        RecapVisual: {
+            /**
+             * Accent
+             * @default blue
+             */
+            accent: string;
+            /** Bg */
+            bg: string;
+            /** Fg */
+            fg: string;
+            /**
+             * Milestone
+             * @default false
+             */
+            milestone: boolean;
+            /**
+             * Seconds
+             * @default 6
+             */
+            seconds: number;
         };
         /**
          * ReelMatch
@@ -2672,6 +3023,61 @@ export interface operations {
             };
         };
     };
+    anonymous_v1_auth_anonymous_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Session"];
+                };
+            };
+        };
+    };
+    convert_v1_auth_convert_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OtpVerify"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Session"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     send_code_v1_auth_otp_post: {
         parameters: {
             query?: never;
@@ -2954,6 +3360,37 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    follower_ideas_v1_follower_ideas_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowerIdeaOut"][];
                 };
             };
             /** @description Validation Error */
@@ -3971,6 +4408,167 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StudioJob"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    all_recaps_v1_recaps_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecapSummary"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    latest_v1_recaps_latest_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recap"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    one_v1_recaps__recap_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                recap_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recap"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    share_image_v1_recaps__recap_id__share_image_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                recap_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 1080×1920 share card */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/svg+xml": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    viewed_v1_recaps__recap_id__viewed_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                recap_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecapSummary"];
                 };
             };
             /** @description Validation Error */

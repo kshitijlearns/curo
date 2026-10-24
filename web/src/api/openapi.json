@@ -1169,6 +1169,58 @@
         "title": "FeatureCost",
         "type": "object"
       },
+      "FollowerIdeaOut": {
+        "properties": {
+          "evidence": {
+            "additionalProperties": true,
+            "title": "Evidence",
+            "type": "object"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "parts": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Parts",
+            "type": "object"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "segment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Segment"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "why": {
+            "title": "Why",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "why",
+          "score"
+        ],
+        "title": "FollowerIdeaOut",
+        "type": "object"
+      },
       "FrameOutApi": {
         "properties": {
           "beat_id": {
@@ -1705,6 +1757,11 @@
             ],
             "title": "Email"
           },
+          "is_anonymous": {
+            "default": false,
+            "title": "Is Anonymous",
+            "type": "boolean"
+          },
           "now": {
             "format": "date-time",
             "title": "Now",
@@ -1853,6 +1910,17 @@
             ],
             "title": "Error"
           },
+          "followers": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Followers"
+          },
           "job": {
             "anyOf": [
               {
@@ -1874,6 +1942,34 @@
             ],
             "title": "Message"
           },
+          "recap_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recap Id"
+          },
+          "recap_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "building",
+                  "ready",
+                  "failed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recap Status"
+          },
           "reels_found": {
             "default": 0,
             "title": "Reels Found",
@@ -1893,6 +1989,17 @@
             ],
             "title": "Status",
             "type": "string"
+          },
+          "step": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step"
           },
           "username": {
             "anyOf": [
@@ -2464,6 +2571,383 @@
           "evidence"
         ],
         "title": "Reason",
+        "type": "object"
+      },
+      "Recap": {
+        "properties": {
+          "archetype": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archetype"
+          },
+          "archetype_evidence": {
+            "additionalProperties": true,
+            "title": "Archetype Evidence",
+            "type": "object"
+          },
+          "archetype_runner_up": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archetype Runner Up"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "creator_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creator Level"
+          },
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_new": {
+            "default": false,
+            "title": "Is New",
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "first",
+              "monthly"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "level_modifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level Modifier"
+          },
+          "period_end": {
+            "format": "date",
+            "title": "Period End",
+            "type": "string"
+          },
+          "period_label": {
+            "title": "Period Label",
+            "type": "string"
+          },
+          "period_start": {
+            "format": "date",
+            "title": "Period Start",
+            "type": "string"
+          },
+          "slides": {
+            "items": {
+              "$ref": "#/components/schemas/RecapSlide"
+            },
+            "title": "Slides",
+            "type": "array"
+          },
+          "stats": {
+            "items": {
+              "$ref": "#/components/schemas/RecapStat"
+            },
+            "title": "Stats",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "building",
+              "ready",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "viewed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Viewed At"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "period_start",
+          "period_end",
+          "period_label",
+          "status",
+          "created_at"
+        ],
+        "title": "Recap",
+        "type": "object"
+      },
+      "RecapCopy": {
+        "properties": {
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "source": {
+            "default": "template",
+            "title": "Source",
+            "type": "string"
+          },
+          "subline": {
+            "title": "Subline",
+            "type": "string"
+          }
+        },
+        "required": [
+          "headline",
+          "subline"
+        ],
+        "title": "RecapCopy",
+        "type": "object"
+      },
+      "RecapSlide": {
+        "properties": {
+          "copy": {
+            "$ref": "#/components/schemas/RecapCopy"
+          },
+          "facts": {
+            "additionalProperties": true,
+            "title": "Facts",
+            "type": "object"
+          },
+          "slide_id": {
+            "title": "Slide Id",
+            "type": "string"
+          },
+          "visual": {
+            "$ref": "#/components/schemas/RecapVisual"
+          }
+        },
+        "required": [
+          "slide_id",
+          "facts",
+          "copy",
+          "visual"
+        ],
+        "title": "RecapSlide",
+        "type": "object"
+      },
+      "RecapStat": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "slide": {
+            "title": "Slide",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slide",
+          "label",
+          "value"
+        ],
+        "title": "RecapStat",
+        "type": "object"
+      },
+      "RecapSummary": {
+        "properties": {
+          "archetype": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archetype"
+          },
+          "archetype_runner_up": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archetype Runner Up"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "creator_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creator Level"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_new": {
+            "default": false,
+            "title": "Is New",
+            "type": "boolean"
+          },
+          "kind": {
+            "enum": [
+              "first",
+              "monthly"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "level_modifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level Modifier"
+          },
+          "period_end": {
+            "format": "date",
+            "title": "Period End",
+            "type": "string"
+          },
+          "period_label": {
+            "title": "Period Label",
+            "type": "string"
+          },
+          "period_start": {
+            "format": "date",
+            "title": "Period Start",
+            "type": "string"
+          },
+          "stats": {
+            "items": {
+              "$ref": "#/components/schemas/RecapStat"
+            },
+            "title": "Stats",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "building",
+              "ready",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "viewed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Viewed At"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "period_start",
+          "period_end",
+          "period_label",
+          "status",
+          "created_at"
+        ],
+        "title": "RecapSummary",
+        "type": "object"
+      },
+      "RecapVisual": {
+        "properties": {
+          "accent": {
+            "default": "blue",
+            "title": "Accent",
+            "type": "string"
+          },
+          "bg": {
+            "title": "Bg",
+            "type": "string"
+          },
+          "fg": {
+            "title": "Fg",
+            "type": "string"
+          },
+          "milestone": {
+            "default": false,
+            "title": "Milestone",
+            "type": "boolean"
+          },
+          "seconds": {
+            "default": 6,
+            "title": "Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bg",
+          "fg"
+        ],
+        "title": "RecapVisual",
         "type": "object"
       },
       "ReelMatch": {
@@ -4547,6 +5031,88 @@
         ]
       }
     },
+    "/v1/auth/anonymous": {
+      "post": {
+        "description": "A session before any email (v2.1 first run); saved to an email later via /convert.",
+        "operationId": "anonymous_v1_auth_anonymous_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Anonymous",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/convert": {
+      "post": {
+        "description": "Save an anonymous account: verify the emailed code and keep everything it has.",
+        "operationId": "convert_v1_auth_convert_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpVerify"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Convert",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/v1/auth/otp": {
       "post": {
         "description": "Send a 6-digit sign-in code. Locally there's no email service: the code is logged,\nand returned in development so the app can show it.",
@@ -5018,6 +5584,60 @@
         "summary": "Cron Tick",
         "tags": [
           "system"
+        ]
+      }
+    },
+    "/v1/follower-ideas": {
+      "get": {
+        "description": "What your followers will love: the top 5, best first.",
+        "operationId": "follower_ideas_v1_follower_ideas_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FollowerIdeaOut"
+                  },
+                  "title": "Response Follower Ideas V1 Follower Ideas Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Follower Ideas",
+        "tags": [
+          "recap"
         ]
       }
     },
@@ -6836,6 +7456,290 @@
         "summary": "Revise Storyboard",
         "tags": [
           "studio"
+        ]
+      }
+    },
+    "/v1/recaps": {
+      "get": {
+        "operationId": "all_recaps_v1_recaps_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RecapSummary"
+                  },
+                  "title": "Response All Recaps V1 Recaps Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "All Recaps",
+        "tags": [
+          "recap"
+        ]
+      }
+    },
+    "/v1/recaps/latest": {
+      "get": {
+        "description": "The newest recap (ready or still building), or null before the first one.",
+        "operationId": "latest_v1_recaps_latest_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Recap"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Latest V1 Recaps Latest Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Latest",
+        "tags": [
+          "recap"
+        ]
+      }
+    },
+    "/v1/recaps/{recap_id}": {
+      "get": {
+        "operationId": "one_v1_recaps__recap_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recap_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Recap Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Recap"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One",
+        "tags": [
+          "recap"
+        ]
+      }
+    },
+    "/v1/recaps/{recap_id}/share-image": {
+      "get": {
+        "operationId": "share_image_v1_recaps__recap_id__share_image_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recap_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Recap Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/svg+xml": {}
+            },
+            "description": "1080\u00d71920 share card"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Share Image",
+        "tags": [
+          "recap"
+        ]
+      }
+    },
+    "/v1/recaps/{recap_id}/viewed": {
+      "post": {
+        "operationId": "viewed_v1_recaps__recap_id__viewed_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "recap_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Recap Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecapSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Viewed",
+        "tags": [
+          "recap"
         ]
       }
     },

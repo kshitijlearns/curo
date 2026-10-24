@@ -22,6 +22,13 @@ router = APIRouter(prefix="/v1", tags=["me"])
 def get_me(user: User = Depends(current_user), conn: psycopg.Connection = Depends(rls_conn)) -> Me:
     creator = conn.execute("select * from public.creators where user_id = auth.uid()").fetchone()
     me = Me(user_id=user.id, email=user.email, now=clock.now())
+    with service_connection() as sc:
+        row = sc.execute(
+            "select email, is_anonymous from auth.users where id = %s", (user.id,)
+        ).fetchone()
+    if row:
+        me.is_anonymous = bool(row["is_anonymous"])
+        me.email = row["email"] or me.email
     if creator is None:
         return me
     me.creator = CreatorOut(**creator)

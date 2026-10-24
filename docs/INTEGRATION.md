@@ -70,13 +70,18 @@ day, so a change in the vendor's output is caught before it reaches creators."
 3. Check that the `postgres` role can `SET ROLE authenticated` (Supabase grants this).
 4. Sign-in: the API already verifies Supabase-format tokens (HS256, `aud=authenticated`,
    `SUPABASE_JWT_SECRET`), so set `AUTH_PROVIDER=supabase` and the local code routes
-   (`/v1/auth/otp`, `/v1/auth/verify`) disappear. In the app, replace the two calls in
-   `app/src/app/login.tsx` (`useRequestCode`, `useVerifyCode`) with supabase-js
-   `signInWithOtp({ email })` and `verifyOtp({ email, token, type: 'email' })`, and store the
-   session's `access_token` through `useSession().signIn` as now. Configure the email template
-   to send the 6-digit code.
-5. Check: sign in on the phone; `GET /v1/me` answers; a second account sees none of the first
-   one's rows (RLS is tested locally with two creators in `tests/`).
+   (`/v1/auth/otp`, `/verify`, `/anonymous`, `/convert`) disappear. The web app switches by
+   itself when `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set
+   (`web/src/lib/session.ts`): `signInWithOtp` / `verifyOtp` for sign-in, `signInAnonymously`
+   for the first run, and `updateUser({ email })` + `verifyOtp({ type: 'email_change' })` for
+   "Save your account" (D214).
+5. In Supabase Auth: turn on **anonymous sign-ins**, set the email templates (sign-in and
+   change-email) to send the 6-digit code, and keep CAPTCHA/rate limits on for anonymous
+   sign-ins. Anonymous users carry `is_anonymous` in their JWT and in `auth.users`; the daily
+   cleanup deletes the ones older than 30 days.
+6. Check: start at `/start` with a public handle, save the account, sign in again on another
+   browser; `GET /v1/me` answers; a second account sees none of the first one's rows (RLS is
+   tested locally with two creators in `tests/`).
 
 ## 2 · StorageProvider → Supabase Storage
 
@@ -128,7 +133,7 @@ day, so a change in the vendor's output is caught before it reaches creators."
 - Contract test: `python tools/record_contracts.py gemini-video path/to/a-reel.mp4` with a few
   of your own reels (talking, voiceover, music only). Budget: about 300 tokens per second.
 
-## 5 · LLMProvider → Claude (T2–T8, T10–T22)
+## 5 · LLMProvider → Claude (T2–T8, T10–T24)
 
 **The tasks**
 
@@ -263,6 +268,15 @@ scheduler with exactly one replica) plus Railway's Redis, all with the same envi
 (`.env.example`, `MOCK_MODE=false`); the web app deploys anywhere Next.js runs, with
 `API_ORIGIN` pointing at the API. Vercel is planned but not built yet: `docs/DEPLOY_VERCEL.md`
 (D200).
+
+## 10a · Creator Recap and follower ideas (v2.1)
+
+- T23 (recap copy, one call per recap) and T24 (one call per follower idea, up to 5) run on
+  `CLAUDE_MODEL_MAIN`; every line is checked by the validator, so a real model can only reword.
+  Record a few with `tools/record_contracts.py claude T23 …` before switching.
+- `WEB_URL` is printed on the share card (default `curo-sand.vercel.app`).
+- Cost: about one Claude call per recap and five per weekly idea rebuild, recorded in
+  `usage_ledger` (tasks `T23`, `T24`); recaps never use credits.
 
 ## 11 · Payments → Razorpay (or Stripe)
 

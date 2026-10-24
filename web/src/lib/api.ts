@@ -157,3 +157,12 @@ export async function uploadVideo(file: File): Promise<string> {
   if (!put.ok) throw new ApiError(put.status, 'The upload didn’t go through. Try again.');
   return signed.path;
 }
+
+/** A text response (the recap's share card SVG). */
+export async function apiText(path: string): Promise<string> {
+  if (DEMO) return String(await demoApi('GET', path, undefined));
+  const token = await getToken();
+  const res = await fetch(`${BASE}${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  if (!res.ok) throw new ApiError(res.status, 'Couldn’t load that.');
+  return res.text();
+}

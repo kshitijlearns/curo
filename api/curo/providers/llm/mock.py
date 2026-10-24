@@ -40,7 +40,7 @@ from curo.schemas.tasks import (
 )
 from curo.schemas.taxonomy import UNKNOWN
 
-from . import mock_audience, mock_sim, mock_studio, mock_trends
+from . import mock_audience, mock_recap, mock_sim, mock_studio, mock_trends
 from .base import LLMError, LLMProvider
 
 
@@ -571,4 +571,6 @@ _HANDLERS: dict[str, Callable] = {
     "T20": mock_audience.t20,
     "T21": mock_audience.t21,
     "T22": mock_audience.t22,
+    "T23": mock_recap.t23,
+    "T24": mock_recap.t24,
 }

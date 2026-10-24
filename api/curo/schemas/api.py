@@ -83,6 +83,11 @@ class OnboardingStarted(Accepted):
 class OnboardingStatus(BaseModel):
     status: Literal["not_started", "running", "ready", "failed"]
     username: str | None = None
+    # v2.1 progress strip: profile → reels → comments → recap (then ready).
+    step: str | None = None
+    followers: int | None = None
+    recap_id: UUID | None = None
+    recap_status: Literal["building", "ready", "failed"] | None = None
     job: JobOut | None = None
     reels_found: int = 0
     comments_done: int = 0
@@ -119,6 +124,8 @@ class DeletionStarted(BaseModel):
 class Me(BaseModel):
     user_id: UUID
     email: str | None
+    # v2.1: a first-run session with no email yet ("Save your account" converts it).
+    is_anonymous: bool = False
     # CURO's clock (honours FAKE_NOW / time travel): the app measures "updated X ago" against it.
     now: datetime
     creator: CreatorOut | None = None
@@ -888,3 +895,68 @@ class TrendCard(BaseModel):
     saturation: Literal["low", "medium", "high", "unknown"]
     hashtags: list[str] = Field(default_factory=list)
     fit: float = Field(description="0–1: how close it sits to the creator's own content")
+
+
+# --------------------------------------------------------------------------- v2.1 Creator Recap
+
+
+class RecapCopy(BaseModel):
+    headline: str
+    subline: str
+    source: str = "template"
+
+
+class RecapVisual(BaseModel):
+    bg: str
+    fg: str
+    accent: str = "blue"
+    milestone: bool = False
+    seconds: int = 6
+
+
+class RecapSlide(BaseModel):
+    slide_id: str
+    facts: dict[str, Any]
+    copy_: RecapCopy = Field(alias="copy")
+    visual: RecapVisual
+
+    model_config = {"populate_by_name": True}
+
+
+class RecapStat(BaseModel):
+    slide: str
+    label: str
+    value: str
+
+
+class RecapSummary(BaseModel):
+    id: UUID
+    kind: Literal["first", "monthly"]
+    period_start: date
+    period_end: date
+    period_label: str
+    status: Literal["building", "ready", "failed"]
+    creator_level: str | None = None
+    level_modifier: str | None = None
+    archetype: str | None = None
+    archetype_runner_up: str | None = None
+    stats: list[RecapStat] = Field(default_factory=list)
+    viewed_at: datetime | None = None
+    is_new: bool = False
+    created_at: datetime
+
+
+class Recap(RecapSummary):
+    handle: str | None = None
+    slides: list[RecapSlide] = Field(default_factory=list)
+    archetype_evidence: dict[str, Any] = Field(default_factory=dict)
+
+
+class FollowerIdeaOut(BaseModel):
+    id: UUID
+    title: str
+    why: str
+    segment: str | None = None
+    score: float
+    parts: dict[str, float] = Field(default_factory=dict)
+    evidence: dict[str, Any] = Field(default_factory=dict)

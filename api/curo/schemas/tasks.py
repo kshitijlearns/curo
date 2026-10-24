@@ -757,6 +757,52 @@ class T22Output(BaseModel):
     answer: str = Field(max_length=700)
 
 
+# ------------------------------------------------------------------ T23 · write recap copy (v2.1)
+
+
+class RecapSlideIn(BaseModel):
+    slide_id: str
+    facts: list[str] = Field(min_length=1, max_length=8)  # the numbers it may quote
+    data: dict[str, Any] = Field(default_factory=dict)  # the same facts, structured
+
+
+class T23Input(BaseModel):
+    """The playful lines around a recap's facts. Numbers come only from ``facts``."""
+
+    handle: str
+    period: str
+    comment_language: str | None = None  # e.g. "hinglish": Hinglish is fine then
+    slides: list[RecapSlideIn] = Field(min_length=1, max_length=18)
+
+
+class RecapLine(BaseModel):
+    slide_id: str
+    headline: str = Field(max_length=60)
+    subline: str = Field(max_length=90)
+
+
+class T23Output(BaseModel):
+    slides: list[RecapLine]
+
+
+# ------------------------------------------------------------------ T24 · a follower idea (v2.1)
+
+
+class T24Input(BaseModel):
+    """Name and explain one "What your followers will love" idea from its evidence."""
+
+    kind: Literal["request", "proven", "segment"]
+    topic: str
+    segment: str | None = None
+    facts: list[str] = Field(min_length=1, max_length=6)  # the numbers it may quote
+    examples: list[str] = Field(default_factory=list, max_length=3)  # comment text, no handles
+
+
+class T24Output(BaseModel):
+    title: str = Field(max_length=60)
+    why: str = Field(max_length=160)
+
+
 T1 = TaskSpec("T1", 1, "watch_video", "video", T1Input, T1Output)
 T2 = TaskSpec("T2", 1, "extract_dna", "fast", T2Input, T2Output)
 T3 = TaskSpec("T3", 1, "label_comments", "fast", T3Input, T3Output)
@@ -778,6 +824,8 @@ T19 = TaskSpec("T19", 1, "agent_reactions", "agents", T19Input, T19Output)
 T20 = TaskSpec("T20", 1, "thread_round", "agents", T20Input, T20Output)
 T21 = TaskSpec("T21", 1, "explain_simulation", "main", T21Input, T21Output)
 T22 = TaskSpec("T22", 1, "agent_chat", "main", T22Input, T22Output)
+T23 = TaskSpec("T23", 1, "write_recap_copy", "main", T23Input, T23Output)
+T24 = TaskSpec("T24", 1, "name_follower_idea", "main", T24Input, T24Output)
 
 TASKS: dict[str, TaskSpec] = {
     t.id: t
@@ -803,5 +851,7 @@ TASKS: dict[str, TaskSpec] = {
         T20,
         T21,
         T22,
+        T23,
+        T24,
     )
 }

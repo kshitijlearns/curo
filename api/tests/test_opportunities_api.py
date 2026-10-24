@@ -138,4 +138,4 @@ def test_a_private_handle_is_refused_at_onboarding(db):
         client = signed_in("fresh@example.com")
         client.post("/v1/onboarding/username", json={"username": "@secret.style"})
         status = client.get("/v1/onboarding/status").json()
-        assert status["status"] == "failed" and "private" in (status.get("error") or "").lower()
+        assert status["status"] == "failed" and "public profiles" in (status.get("error") or "")

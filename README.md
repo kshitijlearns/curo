@@ -35,6 +35,16 @@ while `./dev.ps1 local --seed` runs; try it locally with `cd web && npm run dev:
 
 If Windows blocks the script: `powershell -ExecutionPolicy Bypass -File dev.ps1 local`.
 
+### The first run (v2.1)
+
+Open the app with no session and it starts at **`/start`**: type an Instagram username (try a
+fixture handle such as **@stylewithrhea**). Three cards explain Home, Idea Studio and the
+Simulator while a live strip shows the backend reading the profile; then your first **Creator
+Recap** plays as a story, ending with what type of creator you are and a share card. After it
+you can save the account with an email code, or choose "Maybe later". Home then shows four
+swipeable sections: your Creator Recap, Opportunity areas, Trending for you and What your
+followers will love. A new recap arrives on the 1st of every month.
+
 ### Signing in and the demo data
 
 Sign in with any email: in development there's no email service, so the 6-digit code is

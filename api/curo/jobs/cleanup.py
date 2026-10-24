@@ -39,6 +39,7 @@ def cleanup(ctx: JobContext) -> dict[str, Any]:
             "select id from public.creators where deletion_requested_at is not null"
         ).fetchall()
     out["deleted_accounts"] = [deletion.delete_creator(r["id"]) for r in pending]
+    out["anonymous_deleted"] = _stale_anonymous(now)
     out["uploads_deleted"] = _old_uploads(now)
     out["peer_videos_deleted"] = _peer_videos()
     with service_connection() as conn:
@@ -50,6 +51,29 @@ def cleanup(ctx: JobContext) -> dict[str, Any]:
             (now.date(),),
         ).rowcount
     return out
+
+
+ANONYMOUS_DAYS = 30
+
+
+def _stale_anonymous(now) -> int:
+    """First-run accounts never saved to an email are deleted after 30 days, with all their
+    data (v2.1 §2 step 5)."""
+    with service_connection() as conn:
+        stale = conn.execute(
+            """
+            select u.id as user_id, c.id as creator_id from auth.users u
+              left join public.creators c on c.user_id = u.id
+             where u.is_anonymous and u.created_at < %s
+            """,
+            (now - timedelta(days=ANONYMOUS_DAYS),),
+        ).fetchall()
+    for r in stale:
+        if r["creator_id"]:
+            deletion.delete_creator(r["creator_id"])
+        with service_connection() as conn:
+            conn.execute("delete from auth.users where id = %s", (r["user_id"],))
+    return len(stale)
 
 
 def _old_uploads(now) -> int:

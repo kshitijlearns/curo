@@ -22,6 +22,7 @@ PUBLIC = {
     ("get", "/health"),
     ("post", "/v1/auth/otp"),
     ("post", "/v1/auth/verify"),
+    ("post", "/v1/auth/anonymous"),  # a first-run session before any email (v2.1)
     ("put", "/v1/uploads/local/{token}"),
     ("post", "/v1/webhooks/apify"),
     ("post", "/v1/billing/webhook/{provider}"),  # the provider's own signature (D208)

@@ -35,6 +35,9 @@ create table if not exists auth.users (
   last_sign_in_at timestamptz
 );
 
+-- Anonymous first-run sessions (v2.1), as Supabase Auth's own column.
+alter table auth.users add column if not exists is_anonymous boolean not null default false;
+
 -- One-time codes for the local email-OTP auth stub (Supabase Auth replaces this).
 create table if not exists auth.local_otp_codes (
   email      text primary key,
