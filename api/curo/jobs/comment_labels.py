@@ -130,7 +130,8 @@ def rebuild_themes(account_id: UUID) -> int:
         )
         kept = []
         for g in groups:
-            samples = sorted(g.comment_ids)[:12]
+            # By text, not by id: ids are random, and the name must not change run to run.
+            samples = sorted(g.comment_ids, key=lambda c: (text_of[c], c))[:12]
             label = llm.run(
                 T4, T4Input(kind="comments", samples=[text_of[c] for c in samples])
             ).label
