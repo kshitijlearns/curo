@@ -1356,7 +1356,7 @@ ul.plain {
   font-size: 11.5px;
   font-weight: 600;
 }
-.badge {
+.react-badge {
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -1368,13 +1368,13 @@ ul.plain {
   background: var(--gray);
   color: var(--ink);
 }
-.badge-love {
+.react-badge-love {
   background: var(--pink);
 }
-.badge-like {
+.react-badge-like {
   background: var(--lavender);
 }
-.badge-skip {
+.react-badge-skip {
   background: var(--white);
   border: 1px solid var(--gray);
 }

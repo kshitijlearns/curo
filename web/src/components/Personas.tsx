@@ -67,7 +67,7 @@ export function ReactionBadge({ badge }: { badge: 'Love' | 'Like' | 'Unsure' | '
     Skip: <path d="M3 8h9M9 4.5L12.5 8 9 11.5" stroke="currentColor" strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />,
   }[badge];
   return (
-    <span className={`badge badge-${badge.toLowerCase()}`}>
+    <span className={`react-badge react-badge-${badge.toLowerCase()}`}>
       <svg width={12} height={12} viewBox="0 0 16 16" aria-hidden="true">
         {glyph}
       </svg>

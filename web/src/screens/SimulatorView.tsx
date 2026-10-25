@@ -375,7 +375,9 @@ function PersonaGroups({ crowd, simId }: { crowd: S['SimAudienceResult']; simId:
           <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
             <div className="row between">
               <strong className="small">{p.name}</strong>
-              <span className="small">{pct(p.watched_to_end)} watched to the end</span>
+              <span className="small">
+                {pct(p.kept_watching)} kept watching · {pct(p.watched_to_end)} to the end
+              </span>
             </div>
             <p className="small muted" style={{ margin: '2px 0' }}>
               Likes {pct(p.rates.likes)} · Comments {pct(p.rates.comments)} · Shares {pct(p.rates.shares)} · Saves {pct(p.rates.saves)} (simulated)

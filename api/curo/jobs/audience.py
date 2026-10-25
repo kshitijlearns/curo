@@ -374,12 +374,14 @@ def group_results(
     personas: list[dict],
 ) -> list[dict]:
     """One row per persona: its agents' watched-to-end share and calibrated rates (saves are
-    simulated), a mood from its engagement against the whole audience, and a takeaway."""
+    simulated), a mood from how it watched and engaged against the whole audience (half each:
+    the share that kept watching past the start, and E), and a takeaway."""
     seg_of = {a.agent_no: a.segment for a in agents}
     duration = tl.duration_s or max((r.watch_until_s for r in reactions), default=0) or 1
     overall = crowd.rates(reactions)
     overall_pred = {p.metric: p.rate for p in crowd.predict(overall, factors.get("", {}), None)}
     overall_e = crowd.engagement(overall_pred)
+    overall_stay = (overall.watched / overall.n) if overall.n else None
     out = []
     for row in personas:
         key = segment_key(row["id"])
@@ -394,7 +396,13 @@ def group_results(
             mine
         )
         e = crowd.engagement(rates)
-        ratio = (e / overall_e) if e is not None and overall_e else None
+        stay = got.watched / len(mine)  # kept watching past the start
+        parts = []
+        if e is not None and overall_e:
+            parts.append(e / overall_e)
+        if overall_stay:
+            parts.append(stay / overall_stay)
+        ratio = sum(parts) / len(parts) if parts else None
         if ratio is None:
             mood = "neutral"
         else:
@@ -409,9 +417,11 @@ def group_results(
             )
         early = sum(1 for r in mine if r.skipped) / len(mine)
         if mood == "love":
-            takeaway = f"Your strongest group for this reel: {_pct(to_end)} watched to the end."
+            takeaway = (
+                f"Your strongest group for this reel: {_pct(stay)} kept watching past the start."
+            )
         elif mood == "like":
-            takeaway = f"On board: {_pct(to_end)} watched to the end."
+            takeaway = f"On board: {_pct(stay)} kept watching past the start."
         elif tl.payoff_s and tl.payoff_s > 2:
             takeaway = (
                 f"{_pct(early)} scrolled on early; the result only shows at {tl.payoff_s:g} s."
@@ -428,6 +438,7 @@ def group_results(
                 "share": float(row["share"]),
                 "agents": len(mine),
                 "watched_to_end": round(to_end, 4),
+                "kept_watching": round(stay, 4),
                 "rates": {m: (None if v is None else round(v, 5)) for m, v in rates.items()},
                 "saves_simulated": True,
                 "calibration": "own"
@@ -437,6 +448,7 @@ def group_results(
                 "takeaway": takeaway,
                 "facts": [
                     f"{_pct(to_end)} of this group's agents watched to the end.",
+                    f"{_pct(stay)} of this group's agents kept watching past the start.",
                     f"{_pct(early)} of this group's agents scrolled on early.",
                     *(
                         f"Simulated {m} rate in this group: {_pct(v)}."
@@ -504,7 +516,8 @@ def studio_compare(project_id: UUID | None, groups: list[dict]) -> list[str]:
             g["studio_reaction"] = said[g["persona_id"]]
             out.append(
                 f"In Studio, {g['name']} {words[said[g['persona_id']]]}; in the simulation, "
-                f"{_pct(g['watched_to_end'])} of them watched to the end."
+                f"{_pct(g['kept_watching'])} of them kept watching past the start and "
+                f"{_pct(g['watched_to_end'])} watched to the end."
             )
     return out
 

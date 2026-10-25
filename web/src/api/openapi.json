@@ -4977,6 +4977,12 @@
             "title": "Color",
             "type": "string"
           },
+          "kept_watching": {
+            "default": 0.0,
+            "description": "Share that didn't scroll on at the start",
+            "title": "Kept Watching",
+            "type": "number"
+          },
           "mood": {
             "title": "Mood",
             "type": "string"

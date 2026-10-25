@@ -741,6 +741,7 @@ class SimPersonaResult(BaseModel):
     share: float
     agents: int
     watched_to_end: float
+    kept_watching: float = Field(0.0, description="Share that didn't scroll on at the start")
     rates: dict[str, float | None]
     saves_simulated: bool = True
     calibration: Literal["own", "overall"]

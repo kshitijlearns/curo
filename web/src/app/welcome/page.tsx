@@ -14,7 +14,7 @@ import { signedIn } from '@/lib/session';
 const CARDS = [
   {
     title: 'Your Home: know what’s working',
-    body: 'Every month you get a Creator Recap, a story of your content and your audience. Below it: opportunity areas, what’s trending in your niche, and ideas your followers will love.',
+    body: 'Meet the four groups of people who follow you and what they think of your reels. Every month you get a Creator Recap, a story of your content and your audience, plus opportunity areas and what’s trending in your niche.',
     art: <ArtHome />,
     bg: 'var(--lavender)',
   },

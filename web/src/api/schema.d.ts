@@ -3127,6 +3127,12 @@ export interface components {
             calibration: "own" | "overall";
             /** Color */
             color: string;
+            /**
+             * Kept Watching
+             * @description Share that didn't scroll on at the start
+             * @default 0
+             */
+            kept_watching: number;
             /** Mood */
             mood: string;
             /** Name */
