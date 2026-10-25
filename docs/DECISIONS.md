@@ -1514,7 +1514,9 @@ stored and logged. **A = Σ share × persona score / Σ share.** Ranking 15 cand
 fit only (no model calls); the 3 shown ideas and the validate chat get T27, and A and the
 score are recomputed from the blend. The reaction word comes from the blended score (≥ 75
 watch it all, ≥ 55 watch, ≥ 35 might scroll past, else skip), so the verdict, the avatars and
-the words agree by construction. Tweaks in the validate chat are compared on the code-side
+the words agree by construction. When the code check moves a persona into another band than the
+model's own reaction, its opinion line is the template for the shown reaction, so its words
+never contradict its label. Tweaks in the validate chat are compared on the code-side
 score, the scale they're re-scored on. Without 4 personas, A is the v2 audience demand.
 
 ### D232 · Reactions: caching, re-runs and revisions — settled (deviation)

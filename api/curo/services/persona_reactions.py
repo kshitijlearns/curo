@@ -205,6 +205,10 @@ def _run(creator_id: UUID, rows: list[dict], target: Target) -> None:
                                      target.format, fit(r))  # fmt: skip
             score = P.blend(float(m.score), 100 * code, weight)
             reaction = P.reaction_for(score)
+            if reaction != m.reaction:
+                # The code check moved them to another band: their words must say what the
+                # reaction shown says, so the line comes from the template for that reaction.
+                m = m.model_copy(update={"opinion": persona_text.opinion_for(b, reaction)})
             log.info(
                 "persona score %s %s: model=%s code=%.1f blend=%.1f (%s)",
                 r["short_name"], target.type, m.score, 100 * code, score, parts,
