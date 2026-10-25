@@ -11,12 +11,15 @@ export function Composer({
   busy,
   onSend,
   onNotice,
+  onTyping,
 }: {
   placeholder: string;
   hint?: string;
   busy?: boolean;
   onSend: (text: string) => void;
   onNotice: (text: string) => void;
+  /** v2.2: the persona row listens while there's text in the box. */
+  onTyping?: (typing: boolean) => void;
 }) {
   const [text, setText] = useState('');
   const base = useRef('');
@@ -31,6 +34,7 @@ export function Composer({
     voice.stop();
     onSend(t);
     setText('');
+    onTyping?.(false);
   };
 
   const mic = () => {
@@ -51,7 +55,11 @@ export function Composer({
           rows={1}
           value={text}
           placeholder={voice.listening ? 'Listening…' : placeholder}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            onTyping?.(e.target.value.trim().length > 0);
+          }}
+          onBlur={() => onTyping?.(false)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();

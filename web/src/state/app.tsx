@@ -5,7 +5,7 @@
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-import type { Limit } from '@/lib/api';
+import type { Limit, S } from '@/lib/api';
 
 export type Tab = 'home' | 'studio' | 'sim';
 
@@ -14,6 +14,15 @@ type Composer = {
   hint?: string;
   busy?: boolean;
   onSend: (text: string) => void;
+} | null;
+
+/** What the Studio's persona row reacts to (v2.2): the project's current draft (by a key that
+ *  changes with each content version), one idea, or a validated idea's reactions as they are. */
+export type PersonaTarget = {
+  projectId: string | null;
+  key: string;
+  target?: { target_type: 'idea' | 'script' | 'storyboard' | 'caption'; target_id?: string };
+  reactions?: S['PersonaReactionsOut'] | null;
 } | null;
 
 type AppState = {
@@ -33,6 +42,13 @@ type AppState = {
   clearLimit: () => void;
   composer: Composer;
   setComposer: (c: Composer) => void;
+  /** v2.2: the persona a "Make this" came from, preselected in the Studio's persona row. */
+  focusPersona: string | null;
+  setFocusPersona: (id: string | null) => void;
+  typing: boolean;
+  setTyping: (v: boolean) => void;
+  personaTarget: PersonaTarget;
+  setPersonaTarget: (t: PersonaTarget) => void;
 };
 
 const Ctx = createContext<AppState | null>(null);
@@ -51,6 +67,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState<AppState['toast']>(null);
   const [limit, setLimit] = useState<Limit | null>(null);
   const [composer, setComposer] = useState<Composer>(null);
+  const [focusPersona, setFocusPersona] = useState<string | null>(null);
+  const [typing, setTyping] = useState(false);
+  const [personaTarget, setPersonaTarget] = useState<PersonaTarget>(null);
 
   // Deep links: ?tab=studio&project=… / ?tab=sim&sim=… (the URL follows what's open).
   useEffect(() => {
@@ -119,8 +138,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       clearLimit: () => setLimit(null),
       composer,
       setComposer,
+      focusPersona,
+      setFocusPersona,
+      typing,
+      setTyping,
+      personaTarget,
+      setPersonaTarget,
     }),
-    [tab, saved, oppId, projectId, simId, toast, showToast, limit, composer],
+    [tab, saved, oppId, projectId, simId, toast, showToast, limit, composer, focusPersona, typing, personaTarget],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

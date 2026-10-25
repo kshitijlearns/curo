@@ -1,8 +1,8 @@
-"""The Creator Recap and "What your followers will love" (v2.1).
+"""The Creator Recap (v2.1; v2.2 adds the "Meet your followers" slides).
 
 ``GET /v1/recaps/latest`` (null while there is none), ``GET /v1/recaps``,
 ``GET /v1/recaps/{id}``, ``POST /v1/recaps/{id}/viewed``, ``GET /v1/recaps/{id}/share-image``
-(a 1080×1920 SVG; the web app makes the PNG), and ``GET /v1/follower-ideas``.
+(a 1080×1920 SVG; the web app makes the PNG).
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from curo import clock
 from curo.config import get_settings
 from curo.routes.deps import require_creator, rls_conn
-from curo.schemas.api import FollowerIdeaOut, Recap, RecapSummary
+from curo.schemas.api import Recap, RecapSummary
 from curo.services import recap_share
 
 router = APIRouter(tags=["recap"])
@@ -129,20 +129,8 @@ def share_image(recap_id: UUID, conn: psycopg.Connection = Depends(rls_conn)) ->
         full.level_modifier,
         full.archetype,
         get_settings().web_url,
+        next((s.facts.get("personas") for s in full.slides if s.slide_id == "share_card"), None),
     )
     return Response(
         body, media_type="image/svg+xml", headers={"Cache-Control": "private, max-age=300"}
     )
-
-
-@router.get("/v1/follower-ideas", response_model=list[FollowerIdeaOut])
-def follower_ideas(conn: psycopg.Connection = Depends(rls_conn)) -> list[FollowerIdeaOut]:
-    """What your followers will love: the top 5, best first."""
-    require_creator(conn)
-    rows = conn.execute(
-        """
-        select id, title, why, segment, score, parts, evidence from public.follower_ideas
-         where status = 'active' order by score desc, title limit 5
-        """
-    ).fetchall()
-    return [FollowerIdeaOut(**{**r, "score": float(r["score"])}) for r in rows]

@@ -4,7 +4,7 @@
  * (`npm run gen:api`), so the web app and the API can't drift.
  */
 import type { components } from '@/api/schema';
-import { DEMO, DemoError, demoApi, demoChat } from './demo';
+import { DEMO, DemoError, demoApi, demoChat, demoPersonaChat } from './demo';
 import { getToken, signOut } from './session';
 
 export type S = components['schemas'];
@@ -101,8 +101,24 @@ export async function* chatStream(body: S['ChatIn']): AsyncGenerator<{ event: st
     yield* demoChat();
     return;
   }
+  yield* sse('/chat', body);
+}
+
+/** Chat with a Follower Persona (v2.2): the same event stream (delta, done, error). */
+export async function* personaChatStream(
+  personaId: string,
+  body: S['PersonaChatIn'],
+): AsyncGenerator<{ event: string; data: any }> {
+  if (DEMO) {
+    yield* demoPersonaChat(personaId, body.message);
+    return;
+  }
+  yield* sse(`/personas/${personaId}/chat`, body);
+}
+
+async function* sse(path: string, body: unknown): AsyncGenerator<{ event: string; data: any }> {
   const token = await getToken();
-  const res = await fetch(`${BASE}/chat`, {
+  const res = await fetch(`${BASE}${path}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

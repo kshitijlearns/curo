@@ -156,16 +156,17 @@ def seed_demo(
             ("collect_hashtags", {}, "seed:hashtags"),
             ("trend_feed", {}, "seed:trends"),
             ("build_opportunities", {"creator_id": str(creator_id)}, f"seed:opps:{creator_id}"),
-            # v2.1: the demo creator's first Creator Recap and "What your followers will love".
+            # v2.1: the demo creator's first Creator Recap (v2.2: with its Follower Personas,
+            # then the full persona build on all of its labelled comments).
             (
                 "build_recap",
                 {"creator_id": str(creator_id), "kind": "first"},
                 f"seed:recap:{creator_id}",
             ),
             (
-                "build_follower_ideas",
-                {"creator_id": str(creator_id)},
-                f"seed:follower_ideas:{creator_id}",
+                "build_personas",
+                {"creator_id": str(creator_id), "reason": "refine"},
+                f"seed:personas:{creator_id}",
             ),
         ):
             enqueue(job_type, payload, idempotency_key=f"{key}:{stamp}")

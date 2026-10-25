@@ -109,6 +109,10 @@ class RecapInput:
     opportunities: int = 0
     trend_tags: set[str] = field(default_factory=set)
     today: date | None = None
+    # v2.2: the 4 Follower Personas (share order) and, for a monthly recap, last month's
+    # share of each persona that existed then (persona id → share).
+    personas: list[dict] = field(default_factory=list)
+    persona_previous: dict[str, float] | None = None
 
 
 # ------------------------------------------------------------------ numbers
@@ -715,14 +719,89 @@ def slide_facts(d: RecapInput) -> dict[str, dict | None]:
         ],
         "how": "Opportunity areas ready on your Home.",
     }
+    f.update(persona_facts(d))
+    if f.get("followers_summary"):  # the share card's avatar row (names only)
+        f["share_card"]["personas"] = f["followers_summary"]["personas"]
     return f
 
 
+# ------------------------------------------------------------------ Meet your followers (v2.2 §4)
+
+PERSONA_SLIDES = ("persona_1", "persona_2", "persona_3", "persona_4")
+
+
+def _plural(short: str) -> str:
+    return short if short.endswith(("s", "Crowd")) else f"{short}s"
+
+
+def persona_facts(d: RecapInput) -> dict[str, dict | None]:
+    """followers_intro, persona_1…4, followers_summary and (monthly) followers_shift. Shares
+    are the personas' own (code); their lines come from T26, already checked."""
+    out: dict[str, dict | None] = {s: None for s in C.PERSONA_SEQUENCE}
+    ps = d.personas
+    if len(ps) != 4:
+        return out
+    early = bool(ps[0].get("is_starter"))
+    small = [
+        {k: p[k] for k in ("id", "name", "short_name", "share_pct", "color", "avatar_seed")}
+        for p in ps
+    ]
+    out["followers_intro"] = {
+        "personas": small,
+        "early_guess": early,
+        "display": ["Now meet the people who watch you."],
+        "how": "Four groups found in your public comments. Personas are summaries, not real "
+        "people.",
+    }
+    for slide, p in zip(PERSONA_SLIDES, ps, strict=True):
+        out[slide] = {
+            **{k: p[k] for k in ("id", "name", "short_name", "share_pct", "color", "avatar_seed")},
+            "tagline": p["tagline"],
+            "comes_for": p["comes_for"][:3],
+            "thought": p["thought"],
+            "early_guess": early,
+            "display": [f"{p['share_pct']}% of your comments", p["tagline"]],
+            "how": "A group of your public comments, written as a character. "
+            + ("An early guess: it gets sharper as people comment." if early else ""),
+        }
+    out["followers_summary"] = {
+        "personas": small,
+        "early_guess": early,
+        "display": [", ".join(f"{p['short_name']} {p['share_pct']}%" for p in ps)],
+        "how": "Shares of your comments, by group.",
+    }
+    if d.kind == "monthly" and d.persona_previous is not None and not early:
+        moves = []
+        for p in ps:
+            before = d.persona_previous.get(str(p["id"]))
+            if before is None:
+                moves.append((1.0, f"A new group is showing up: {p['name']}.", p))
+            elif abs(p["share"] - before) >= C.PERSONA_SHIFT_POINTS:
+                verb = "grew" if p["share"] > before else "went"
+                line = (
+                    f"{_plural(p['short_name'])} {verb} from {round(100 * before)}% to "
+                    f"{p['share_pct']}% of your comments this month."
+                )
+                moves.append((abs(p["share"] - before), line, p))
+        if moves:
+            moves.sort(key=lambda m: -m[0])
+            out["followers_shift"] = {
+                "persona_id": str(moves[0][2]["id"]),
+                "color": moves[0][2]["color"],
+                "avatar_seed": moves[0][2]["avatar_seed"],
+                "display": [m[1] for m in moves[:3]],
+                "how": "Each group's share of your comments against last month.",
+            }
+    return out
+
+
 def choose(facts: dict[str, dict | None]) -> list[str]:
-    """The slides whose rule passed, in story order, capped at 12."""
+    """The slides whose rule passed, in story order, capped at 12 — or 18 with the persona
+    sequence, which is never dropped."""
     chosen = [s for s in C.ORDER if facts.get(s) is not None]
+    cap = C.MAX_SLIDES_WITH_PERSONAS if facts.get("followers_intro") else C.MAX_SLIDES
     for s in C.DROP_FIRST:
-        if len(chosen) <= C.MAX_SLIDES:
+        if len(chosen) <= cap:
             break
         if s in chosen:
             chosen.remove(s)
@@ -736,6 +815,9 @@ def visuals(slides: list[str], facts: dict[str, dict | None]) -> dict[str, dict]
         bg, fg = C.BACKGROUNDS[i % len(C.BACKGROUNDS)]
         if s == "creator_type":
             bg, fg = "ink", "white"
+        elif s in C.PERSONA_SEQUENCE:
+            colour = (facts.get(s) or {}).get("color")
+            bg, fg = C.PERSONA_BACKGROUNDS.get(colour or "", ("white", "ink"))
         out[s] = {
             "bg": bg,
             "fg": fg,
@@ -893,6 +975,14 @@ def template_copy(slide: str, facts: dict) -> tuple[str, str]:
         return f"{lvl} · {g('archetype')}"[:60], (g("archetype_line") or "")[:90]
     if slide == "share_card":
         return "Your recap card", "Share it or save it."
+    if slide == "followers_intro":
+        return "Meet your followers", "Now meet the people who watch you."
+    if slide in PERSONA_SLIDES:
+        return (g("name") or "")[:60], f"{g('share_pct')}% of your comments"
+    if slide == "followers_summary":
+        return "Your follower groups", "Tap any of them on Home to get to know them."
+    if slide == "followers_shift":
+        return "Your followers are shifting", shown[0][:90]
     if slide == "next_up":
         n = g("opportunities")
         return "Your next month starts here", (

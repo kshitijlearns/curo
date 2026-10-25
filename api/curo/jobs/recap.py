@@ -185,6 +185,7 @@ def load(conn, creator_id: UUID, kind: str, period: tuple[date, date] | None) ->
         "select count(*) as n from public.opportunities where creator_id = %s and status in ('active', 'saved')",
         (creator_id,),
     ).fetchone()["n"]
+    personas, previous_shares = _personas(conn, creator_id, kind, start)
     niche = creator_niche(conn, c["account_id"])
     trend_tags: set[str] = set()
     if niche:
@@ -214,7 +215,56 @@ def load(conn, creator_id: UUID, kind: str, period: tuple[date, date] | None) ->
         opportunities=opportunities,
         trend_tags=trend_tags,
         today=today,
+        personas=personas,
+        persona_previous=previous_shares,
     )
+
+
+def _personas(conn, creator_id: UUID, kind: str, start: date) -> tuple[list[dict], dict | None]:
+    """The 4 personas for "Meet your followers", and (monthly) each one's share last month."""
+    rows = conn.execute(
+        """
+        select id, name, short_name, tagline, share, color, avatar_seed, is_starter, profile,
+               thought
+          from public.follower_personas
+         where creator_id = %s and retired_at is null order by slot
+        """,
+        (creator_id,),
+    ).fetchall()
+    if len(rows) != 4:
+        return [], None
+    out = []
+    for r in rows:
+        prof = r["profile"] or {}
+        out.append(
+            {
+                "id": str(r["id"]),
+                "name": r["name"],
+                "short_name": r["short_name"],
+                "tagline": r["tagline"],
+                "share": float(r["share"]),
+                "share_pct": int(
+                    (prof.get("evidence") or {}).get("share_pct") or round(100 * float(r["share"]))
+                ),
+                "color": r["color"],
+                "avatar_seed": r["avatar_seed"],
+                "is_starter": r["is_starter"],
+                "comes_for": prof.get("comes_for", []),
+                "thought": (r["thought"] or {}).get("thought") or r["tagline"],
+            }
+        )
+    previous = None
+    if kind == "monthly":
+        hist = conn.execute(
+            """
+            select persona_id, share from public.persona_history
+             where creator_id = %s and period = %s
+            """,
+            (creator_id, start.replace(day=1)),
+        ).fetchall()
+        if hist:
+            previous = {str(h["persona_id"]): float(h["share"]) for h in hist}
+    return out, previous
 
 
 # ------------------------------------------------------------------ copy
@@ -281,6 +331,10 @@ def build_recap(ctx: JobContext) -> dict[str, Any]:
             date.fromisoformat(ctx.payload["period_end"]),
         )
     ctx.progress(step="recap", message="Building your recap")
+    # v2.2: the personas first (a fast build for the first recap; this month's for a monthly).
+    from curo.jobs.personas import ensure_for_recap
+
+    ensure_for_recap(creator_id, kind)
     with service_connection() as conn:
         data = load(conn, creator_id, kind, period)
         if kind == "first":
@@ -340,12 +394,6 @@ def build_recap(ctx: JobContext) -> dict[str, Any]:
                 recap_id,
             ),
         )
-    enqueue(
-        "build_follower_ideas",
-        {"creator_id": str(creator_id)},
-        creator_id=creator_id,
-        idempotency_key=f"follower_ideas:{creator_id}:recap:{recap_id}",
-    )
     ctx.progress(step="recap_ready", message="Your recap is ready")
     return {"recap_id": str(recap_id), "slides": len(slides)}
 

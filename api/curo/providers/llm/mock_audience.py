@@ -1,4 +1,4 @@
-"""Mock stand-ins for the AI audience (T17–T22): deterministic, built only from the input.
+"""Mock stand-ins for the AI audience (T18–T22): deterministic, built only from the input.
 
 Each agent's reaction comes from a random generator seeded on (run, agent number), shaped by
 the persona's traits, how well the video matches its interests, how soon the video gets to its
@@ -14,14 +14,10 @@ from __future__ import annotations
 
 import hashlib
 import random
-import re
 
 from curo.schemas.tasks import (
     Persona,
     Reaction,
-    Segment,
-    T17Input,
-    T17Output,
     T18Input,
     T18Output,
     T19Input,
@@ -36,116 +32,26 @@ from curo.schemas.tasks import (
 )
 from curo.services import agents
 
-# ------------------------------------------------------------------ T17 · segments
-
-# (key, label, description, interests, base share, traits: patience, liker, commenter, sharer, saver)
-BASE_SEGMENTS = [
-    (
-        "loyal_fan",
-        "Loyal fan",
-        "Follows the creator closely and watches most reels to the end.",
-        ["your style", "behind the scenes"],
-        0.22,
-        (0.8, 0.75, 0.35, 0.25, 0.2),
-    ),
-    (
-        "idea_saver",
-        "Idea saver",
-        "Watches for looks and ideas to try later; saves what is useful.",
-        ["how to", "ideas", "tips"],
-        0.18,
-        (0.6, 0.5, 0.15, 0.2, 0.6),
-    ),
-    (
-        "festive_planner",
-        "Festive planner",
-        "Plans outfits and looks around festivals and occasions.",
-        ["festival", "festive", "ganpati", "diwali", "occasion"],
-        0.16,
-        (0.55, 0.55, 0.3, 0.45, 0.45),
-    ),
-    (
-        "budget_shopper",
-        "Budget shopper",
-        "Wants prices, links and where to buy; asks in the comments.",
-        ["price", "budget", "link", "shop", "haul"],
-        0.14,
-        (0.45, 0.4, 0.5, 0.3, 0.35),
-    ),
-    (
-        "casual_scroller",
-        "Casual scroller",
-        "Scrolls fast and stays only if something happens in the first seconds.",
-        ["quick", "funny", "relatable"],
-        0.20,
-        (0.2, 0.3, 0.05, 0.15, 0.05),
-    ),
-    (
-        "fellow_creator",
-        "Fellow creator",
-        "Makes reels too; watches how it was shot and edited.",
-        ["reel tips", "editing", "lighting", "camera"],
-        0.10,
-        (0.6, 0.45, 0.3, 0.2, 0.4),
-    ),
-]
-THEME_HINTS = {  # a comment theme's words → the segment it grows
-    "price": "budget_shopper",
-    "link": "budget_shopper",
-    "where": "budget_shopper",
-    "buy": "budget_shopper",
-    "festive": "festive_planner",
-    "festival": "festive_planner",
-    "ganpati": "festive_planner",
-    "how": "idea_saver",
-    "tutorial": "idea_saver",
-    "steps": "idea_saver",
-    "edit": "fellow_creator",
-    "camera": "fellow_creator",
-    "light": "fellow_creator",
-}
-
-
-def t17(data: T17Input) -> T17Output:
-    weights = {k: share for k, _l, _d, _i, share, _t in BASE_SEGMENTS}
-    for theme in data.themes:
-        words = set(re.findall(r"[a-z]+", theme.label.lower()))
-        for w in sorted(words):
-            if w in THEME_HINTS:
-                weights[THEME_HINTS[w]] += theme.share
-                break
-    total = sum(weights.values())
-    segments = [
-        Segment(
-            key=k,
-            label=label,
-            share=round(weights[k] / total, 4),
-            description=desc,
-            interests=interests,
-        )
-        for k, label, desc, interests, _s, _t in BASE_SEGMENTS
-    ]
-    return T17Output(segments=segments)
-
-
 # ------------------------------------------------------------------ T18 · personas
 
+# Neutral sketches only: no age, gender, income or place (v2.2 §1.2).
 LOOKS = [
-    "a college student",
-    "a working professional",
-    "a homemaker who plans ahead",
-    "a small-town shopper",
-    "a big-city commuter",
-    "a weekend shopper",
+    "a regular who watches most days",
+    "a busy commuter",
+    "an early riser",
+    "a night-time scroller",
+    "a weekend planner",
+    "someone who shops online",
 ]
 HABITS = [
     "watches on the way to work",
     "scrolls late at night",
     "saves ideas into folders",
-    "sends reels to a sister",
+    "sends reels to a friend",
     "reads every caption",
     "skips anything slow",
 ]
+TRAITS = ("patience", "liker", "commenter", "sharer", "saver")
 
 
 def _rng(*parts: object) -> random.Random:
@@ -154,7 +60,7 @@ def _rng(*parts: object) -> random.Random:
 
 
 def t18(data: T18Input) -> T18Output:
-    base = next((t for k, *_r, t in BASE_SEGMENTS if k == data.segment.key), (0.5,) * 5)
+    base = tuple(data.segment.traits.get(k, 0.5) for k in TRAITS)
     out = []
     for i in range(data.count):
         no = data.first_agent_no + i
@@ -182,21 +88,16 @@ def t18(data: T18Input) -> T18Output:
 
 # ------------------------------------------------------------------ T19 · reactions
 
+# Agent comments by their persona's main comment intent.
 COMMENTS = {
-    "loyal_fan": ["Obsessed with this one", "You never miss", "Love how you styled it"],
-    "idea_saver": ["Saving this for later", "Need a full tutorial on this", "Trying this soon"],
-    "festive_planner": [
-        "Perfect for the festive week",
-        "Wearing this for the puja",
-        "Which look for the evening?",
-    ],
-    "budget_shopper": ["Price please?", "Link for the kurta?", "Where is this from?"],
-    "casual_scroller": ["Nice", "Cute", "Okay this is good"],
-    "fellow_creator": [
-        "That transition is clean",
-        "What do you light this with?",
-        "The pacing works",
-    ],
+    "praise": ["Obsessed with this one", "You never miss", "Love how you styled it"],
+    "plans_to_save": ["Saving this for later", "Need a full tutorial on this", "Trying this soon"],
+    "request": ["Do a festive version please", "Part two please", "Need more of these"],
+    "question": ["Price please?", "Where is this from?", "Which one is your favourite?"],
+    "tags_friend": ["Sending this to my best friend", "We need to try this", "This is so us"],
+    "thats_me": ["This is literally me", "Same every single time", "Why is this so relatable"],
+    "disagreement": ["Nice, but the first look was better", "Not sure about the colour"],
+    "other": ["Nice", "Cute", "Okay this is good"],
 }
 
 
@@ -246,7 +147,7 @@ def t19(data: T19Input) -> T19Output:
                 skipped=False,
                 liked=liked,
                 commented=commented,
-                comment_text=r.choice(COMMENTS.get(a.segment, COMMENTS["casual_scroller"]))
+                comment_text=r.choice(COMMENTS.get(a.intent or "other", COMMENTS["other"]))
                 if commented
                 else None,
                 shared=shared,

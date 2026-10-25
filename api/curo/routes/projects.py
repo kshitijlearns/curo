@@ -91,7 +91,13 @@ def project_state(conn: psycopg.Connection, project_id: UUID) -> Project:
         if o:
             out["opportunity"] = {"id": o["id"], "name": o["name"], "tag": TAG_LABELS[o["tag"]]}
     rows = conn.execute(
-        "select * from public.ideas where project_id = %s order by round, score desc nulls last, created_at",
+        # The three cards keep their jobs' order (proven, adapted, explore) whatever their
+        # scores: the personas' reactions (v2.2) can move a score after the slots are picked.
+        """
+        select * from public.ideas where project_id = %s
+         order by round, array_position(array['proven', 'adapted', 'explore'], slot) nulls last,
+                  score desc nulls last, created_at
+        """,
         (project_id,),
     ).fetchall()
     rounds: dict[int, dict] = {}

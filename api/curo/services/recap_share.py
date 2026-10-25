@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from html import escape
 
+from curo.services import persona_avatar
 from curo.services.recap_config import COLOURS
 
 W, H = 1080, 1920
@@ -43,8 +44,14 @@ def svg(
     modifier: str | None,
     archetype: str | None,
     web_url: str,
+    personas: list[dict] | None = None,
 ) -> str:
+    """``personas`` (v2.2): a row of the 4 avatars with short names under the creator type;
+    names only, never a quote."""
     c = COLOURS
+    row = personas if personas and len(personas) == 4 else None
+    # With the persona row everything above it is tighter, so it all fits above the mark.
+    card_h, step, value_y, value_size = (150, 165, 82, 72) if row else (210, 240, 125, 96)
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">',
         f'<rect width="{W}" height="{H}" fill="{c["lavender"]}"/>',
@@ -58,11 +65,13 @@ def svg(
     ]
     y = 470
     for s in stats[:4]:
-        parts.append(f'<rect x="90" y="{y}" width="900" height="210" rx="48" fill="{c["white"]}"/>')
-        parts.append(_text(150, y + 125, s["value"], 96, 600, c["blue"]))
-        parts.append(_text(150, y + 178, s["label"], 38, 400))
-        y += 240
-    y = max(y, 1200) + 40
+        parts.append(
+            f'<rect x="90" y="{y}" width="900" height="{card_h}" rx="48" fill="{c["white"]}"/>'
+        )
+        parts.append(_text(150, y + value_y, s["value"], value_size, 600, c["blue"]))
+        parts.append(_text(150, y + card_h - 28, s["label"], 38, 400))
+        y += step
+    y = max(y, 1130 if row else 1200) + 40
     parts.append(f'<rect x="90" y="{y}" width="900" height="300" rx="48" fill="{c["ink"]}"/>')
     parts.append(_text(150, y + 80, "You're", 40, 400, c["lavender"]))
     lines = _wrap(" · ".join(x for x in (level, archetype) if x), 26)[:2]
@@ -70,6 +79,17 @@ def svg(
         parts.append(_text(150, y + 150 + i * 70, line, 60, 600, c["white"]))
     if modifier:
         parts.append(_text(150, y + 270, modifier, 36, 400, c["pink"]))
+    if row:
+        y += 330  # 1500: the row ends at 1770, above the CURO mark
+        parts.append(f'<rect x="90" y="{y}" width="900" height="270" rx="48" fill="{c["white"]}"/>')
+        parts.append(_text(150, y + 56, "Your followers", 34, 600))
+        for i, p in enumerate(row):
+            cx = 90 + 112 + i * 225
+            parts.append(
+                f'<g transform="translate({cx - 60} {y + 72}) scale(1.2)">'
+                f"{persona_avatar.svg_group(int(p['avatar_seed']), p['color'])}</g>"
+            )
+            parts.append(_text(cx, y + 238, p["short_name"][:16], 26, 400, anchor="middle"))
     parts.append(_text(90, 1830, "CURO", 56, 600))
     parts.append(_text(90, 1880, web_url, 32, 400))
     parts.append("</svg>")

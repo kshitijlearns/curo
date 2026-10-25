@@ -7,7 +7,7 @@ where an AI audience built from your own comments watches your reel before you p
 Everything outside CURO (Apify, Gemini, Claude, Supabase, payments, Sentry/PostHog) sits
 behind an interface with a working mock, so the whole app runs on realistic fake data until
 keys arrive. See [PLAN_V2.md](PLAN_V2.md), [docs/DECISIONS.md](docs/DECISIONS.md) (v2:
-D200–D210) and [docs/INTEGRATION.md](docs/INTEGRATION.md).
+D200–D211, v2.1: D212–D222, v2.2: D223–D240) and [docs/INTEGRATION.md](docs/INTEGRATION.md).
 
 ## Run it
 
@@ -42,8 +42,19 @@ fixture handle such as **@stylewithrhea**). Three cards explain Home, Idea Studi
 Simulator while a live strip shows the backend reading the profile; then your first **Creator
 Recap** plays as a story, ending with what type of creator you are and a share card. After it
 you can save the account with an email code, or choose "Maybe later". Home then shows four
-swipeable sections: your Creator Recap, Opportunity areas, Trending for you and What your
-followers will love. A new recap arrives on the 1st of every month.
+swipeable sections: What your followers think of you, your Creator Recap, Opportunity areas
+and Trending for you. A new recap arrives on the 1st of every month.
+
+### Follower Personas (v2.2)
+
+Every creator gets **4 Follower Personas**: characters that summarise the main groups of people
+commenting on their reels (k-means on comment embeddings and behaviour, profiled in code,
+written by Claude, checked for numbers and sensitive attributes). Each has a dot-cluster avatar
+that reacts (see **`/dev/avatars`**). They're introduced in the recap ("Meet your followers"),
+get a card each at the top of Home (tap for the detail sheet and a chat), react to every Studio
+idea and draft from a row above the composer (tap one for its own take; A in the idea score is
+their share-weighted score), and the Simulator's 1,000 agents are drawn from them, with "How
+each follower group reacted". Personas are summaries, not real people.
 
 ### Signing in and the demo data
 
@@ -75,13 +86,14 @@ the dataset's moment, 23 Aug 2027.
 | --- | --- |
 | `./dev.ps1 local [--seed]` | the backend without Docker (optionally loading the demo) |
 | `./dev.ps1 web` | the web app on :3000 |
-| `./dev.ps1 test` | Python tests + web type-check |
+| `./dev.ps1 test` | Python tests + web type-check and tests |
 | `./dev.ps1 lint` / `format` | checks / auto-format |
 | `./dev.ps1 api-types` | regenerate the web app's typed API client after changing API schemas |
 | `./dev.ps1 local-time advance 6h` | move CURO's clock |
 | `./dev.ps1 learning curo.demo` | print what CURO learned about an account |
 | `python tools/reembed.py [--apply]` | re-embed every reel after changing the embedding model (D210) |
 | `python tools/record_contracts.py …` | record real vendor and model answers for the contract tests (`docs/INTEGRATION.md`) |
+| `python tools/avatar_sketch.py` | redraw the persona avatar mood sketch and the avatar test fixture |
 
 ## Layout
 
@@ -103,4 +115,7 @@ Public data only (no Instagram API, no Instagram login, never an Instagram passw
 Missing counts are unknown, never zero. Every number is relative to the creator's own
 reels. Predictions are ranges. AI text may only contain numbers from its input facts.
 Simulated audience output is always labelled simulated. At most five hashtags, in the web
-app, the API and the database. Every plan limit is enforced on the server.
+app, the API and the database. Every plan limit is enforced on the server. Personas never state
+or imply age, gender, religion, caste, ethnicity, sexuality, health, income, politics or exact
+location, and always carry "Built from your public comments. Personas are summaries, not real
+people."

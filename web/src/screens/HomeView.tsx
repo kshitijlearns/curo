@@ -1,11 +1,12 @@
 'use client';
 /**
- * Home (v2.1 §5): one scroll, four swipeable sections —
- * 1. Insights: your Creator Recap (cover, highlight stats, all recaps)
- * 2. Opportunity areas
- * 3. Trending for you (tap → detail with "Make this my way")
- * 4. What your followers will love
+ * Home (v2.2 §5): one scroll, four swipeable sections —
+ * 1. What your followers think of you (the 4 Follower Personas; tap → detail sheet)
+ * 2. Insights: your Creator Recap (cover, highlight stats, all recaps)
+ * 3. Opportunity areas
+ * 4. Trending for you (tap → detail with "Make this my way")
  * Each section loads on its own: a skeleton while loading, a retry card if it fails.
+ * ("What your followers will love" was removed in v2.2: the personas' "wants more" took over.)
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
@@ -16,10 +17,10 @@ import { Section } from '@/components/Carousel';
 import { ProgressStrip } from '@/components/FirstRun';
 import { Icon } from '@/components/Icon';
 import { Overlay } from '@/components/Overlay';
+import { PersonaSection } from '@/components/Personas';
 import { ScoreRing } from '@/components/ScoreRing';
 import { api, type S } from '@/lib/api';
 import {
-  useFollowerIdeas,
   useLatestRecap,
   useMe,
   useOnboardingStatus,
@@ -99,15 +100,15 @@ export function HomeView() {
           </div>
         </div>
       ) : null}
+      <PersonaSection />
       <RecapSection />
       <OpportunitySection />
       <TrendSection />
-      <FollowerSection />
     </>
   );
 }
 
-// ---------------------------------------------------------------------- 1. Creator Recap
+// ---------------------------------------------------------------------- 2. Creator Recap
 
 function RecapSection() {
   const router = useRouter();
@@ -179,7 +180,7 @@ function RecapSection() {
   );
 }
 
-// ---------------------------------------------------------------------- 2. Opportunity areas
+// ---------------------------------------------------------------------- 3. Opportunity areas
 
 function OpportunitySection() {
   const s = useApp();
@@ -213,7 +214,7 @@ function OpportunitySection() {
   );
 }
 
-// ---------------------------------------------------------------------- 3. Trending for you
+// ---------------------------------------------------------------------- 4. Trending for you
 
 function TrendSection() {
   const q = useTrends();
@@ -291,36 +292,6 @@ function TrendSheet({ t, onClose }: { t: S['TrendCard']; onClose: () => void }) 
         </p>
       ) : null}
     </Overlay>
-  );
-}
-
-// ---------------------------------------------------------------------- 4. What your followers will love
-
-function FollowerSection() {
-  const q = useFollowerIdeas();
-  const start = useStartProject();
-  if (q.isLoading) return <Section title="What your followers will love"><Skeletons /></Section>;
-  if (q.error) return <Section title="What your followers will love" error={q.error} onRetry={() => q.refetch()}>{null}</Section>;
-  const ideas = q.data ?? [];
-  return (
-    <Section title="What your followers will love">
-      {ideas.length === 0 ? (
-        <div className="card gray">
-          <p className="light">Ideas from your audience appear once CURO has read your comments.</p>
-        </div>
-      ) : (
-        ideas.map((i) => (
-          <article key={i.id} className="card">
-            {i.segment ? <span className="pill lav">For {i.segment.toLowerCase()}</span> : null}
-            <h3 style={{ marginTop: 10 }}>{i.title}</h3>
-            <p className="light small">{i.why}</p>
-            <button className="btn small" style={{ marginTop: 12 }} disabled={start.isPending} onClick={() => start.mutate(i.title)}>
-              <Icon name="studio" size={16} /> Open in Studio
-            </button>
-          </article>
-        ))
-      )}
-    </Section>
   );
 }
 

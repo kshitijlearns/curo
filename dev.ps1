@@ -90,7 +90,7 @@ Without Docker (embedded Postgres, one process; see tools/local_stack.py):
   "test-api" { Push-Location api; try { Invoke-Step { & $Py -m pytest @Rest } } finally { Pop-Location } }
   "test-app" {
     Push-Location web
-    try { Invoke-Step { npm run typecheck } }
+    try { Invoke-Step { npm run typecheck }; Invoke-Step { npm test } }
     finally { Pop-Location }
   }
   "lint" {

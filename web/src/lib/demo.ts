@@ -21,6 +21,10 @@ type Fixtures = {
   recap: Record<string, any>;
   share_image: Record<string, string>;
   first_recap_id: string | null;
+  // v2.2: the personas' reactions per Studio stage (and per idea: "idea:<id>"), and recorded
+  // persona chat answers per persona and question kind.
+  persona_reactions?: Record<string, any>;
+  persona_chat?: Record<string, Record<string, string>>;
 };
 
 const ORDER = ['ideas', 'script', 'storyboard', 'caption'] as const;
@@ -136,6 +140,12 @@ export async function demoApi(method: string, rawPath: string, body: any): Promi
       return withSeen(f.recap[one[1]], s);
     }
     if (m(/^\/jobs\//)) return job(path.split('/')[2]);
+    const pchat = m(/^\/personas\/([^/]+)\/chat$/);
+    if (pchat) return s.chats[`persona:${pchat[1]}`] ?? [];
+    if (m(/^\/projects\/[^/]+\/persona-reactions$/)) {
+      const all = f.persona_reactions ?? {};
+      return clone(all[s.stage] ?? { status: 'none', reactions: [], label: '' });
+    }
     if (m(/^\/projects\/[^/]+$/)) return project(f, s);
     if (m(/^\/opportunities\/[^/]+$/)) {
       const o = clone(f.get[path]);
@@ -165,6 +175,11 @@ export async function demoApi(method: string, rawPath: string, body: any): Promi
 
   // ---------------------------------------------------------------- actions
   if (path === '/reels/refresh') return { status: 'fresh', last_snapshot_at: null };
+  if (m(/^\/projects\/[^/]+\/persona-reactions$/)) {
+    const all = f.persona_reactions ?? {};
+    const key = body?.target_id ? `idea:${body.target_id}` : s.stage;
+    return clone(all[key] ?? all[s.stage] ?? { status: 'none', reactions: [], label: '' });
+  }
   const saveOpp = m(/^\/opportunities\/([^/]+)\/save$/);
   if (saveOpp) {
     s.saved[saveOpp[1]] = method === 'POST';
@@ -279,6 +294,36 @@ export async function* demoChat(): AsyncGenerator<{ event: string; data: any }> 
   save(s);
   const text =
     'This is the demo, so Ask Curo isn’t connected to a server. With the backend running, it answers from your own reels and comments and can change any Studio step for you.';
+  for (const word of text.split(' ')) {
+    await new Promise((r) => setTimeout(r, 25));
+    yield { event: 'delta', data: { text: `${word} ` } };
+  }
+  yield { event: 'done', data: { text } };
+}
+
+/** Persona chat in the demo: answers recorded from the real T28 for a few kinds of question. */
+export async function* demoPersonaChat(personaId: string, message: string): AsyncGenerator<{ event: string; data: any }> {
+  const f = await load();
+  const s = state();
+  s.used.chat += 1;
+  const answers = f.persona_chat?.[personaId] ?? {};
+  const kind = /how many|exact|who|real|age|old/i.test(message)
+    ? 'honest'
+    : /share|send/i.test(message)
+      ? 'share'
+      : /why|skip|scroll/i.test(message)
+        ? 'why'
+        : 'next';
+  const text =
+    answers[kind] ?? Object.values(answers)[0] ?? 'I’m a summary of your comments. In the demo I can only give recorded answers.';
+  const k = `persona:${personaId}`;
+  const now = new Date().toISOString();
+  s.chats[k] = [
+    ...(s.chats[k] ?? []),
+    { id: `u${Date.now()}`, role: 'user', content: message, created_at: now } as any,
+    { id: `p${Date.now()}`, role: 'persona', content: text, created_at: now } as any,
+  ];
+  save(s);
   for (const word of text.split(' ')) {
     await new Promise((r) => setTimeout(r, 25));
     yield { event: 'delta', data: { text: `${word} ` } };

@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 
 import { BackHeader, BrandHeader, Loading, Nav, Toast } from '@/components/Chrome';
 import { Composer } from '@/components/Composer';
+import { PersonaRow } from '@/components/Personas';
 import { UpgradeSheet } from '@/components/UpgradeSheet';
 import { signedIn } from '@/lib/session';
 import { useLatestRecap, useMe, useOpportunity, useSaveOpportunity } from '@/lib/hooks';
@@ -112,11 +113,12 @@ function Shell() {
   return (
     <div className="app">
       {header}
-      <main className="sheet" style={{ paddingBottom: composer ? 230 : 140 }}>
+      <main className="sheet" style={{ paddingBottom: composer ? (s.tab === 'studio' ? 320 : 230) : 140 }}>
         {view}
       </main>
       <div className="dock">
         <div className="dock-inner">
+          {composer && s.tab === 'studio' ? <PersonaRow /> : null}
           {composer ? (
             <Composer
               placeholder={composer.placeholder}
@@ -124,6 +126,7 @@ function Shell() {
               busy={composer.busy}
               onSend={composer.onSend}
               onNotice={s.showToast}
+              onTyping={s.setTyping}
             />
           ) : null}
           <Nav active={s.tab} onNav={s.nav} />

@@ -10,8 +10,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { AskThread, useAskCuro } from '@/components/AskCuro';
 import { ErrorNote, Loading } from '@/components/Chrome';
 import { Icon } from '@/components/Icon';
+import { WhoThisIsFor } from '@/components/Personas';
 import { api, waitForJob, type S } from '@/lib/api';
-import { useProject, useSaved } from '@/lib/hooks';
+import { usePersonaReactions, useProject, useSaved } from '@/lib/hooks';
 import { useApp } from '@/state/app';
 
 const MAX_HASHTAGS = 5;
@@ -61,6 +62,12 @@ function StudioStart() {
   }, [check.isPending]);
 
   const v = check.data;
+  // The persona row shows the validated idea's reactions (computed with the verdict).
+  useEffect(() => {
+    s.setPersonaTarget(v?.personas ? { projectId: null, key: `validate:${v.text}`, reactions: v.personas } : null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [v]);
+  useEffect(() => () => s.setPersonaTarget(null), []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <>
       <h2 className="section-title">Studio</h2>
@@ -80,6 +87,11 @@ function StudioStart() {
             </span>
           </div>
           <h3 style={{ marginTop: 10 }}>{idea}</h3>
+          {v.personas?.summary ? (
+            <p className="small" style={{ marginTop: 6, fontWeight: 600 }}>
+              {v.personas.summary} <span className="muted" style={{ fontWeight: 400 }}>Tap a persona below for their take.</span>
+            </p>
+          ) : null}
           {v.reasons.map((r) => (
             <p key={r.text} style={{ marginTop: 8 }}>
               {r.text} <span className="small muted">{r.evidence}</span>
@@ -135,6 +147,16 @@ function ProjectView({ id }: { id: string }) {
   const p = q.data;
   const current: Step = step ?? stepOf(p);
   const ask = useAskCuro({ screen: screenOf(current), projectId: id, onJobDone: refresh });
+  const [focusIdea, setFocusIdea] = useState<string | null>(null);
+  const target = personaTargetOf(p, current, focusIdea);
+
+  // The persona row reacts to what's on screen: the idea in focus, or this step's draft.
+  // A new content version is a new key, so reactions re-run once per revision.
+  useEffect(() => {
+    s.setPersonaTarget(target ? { projectId: id, key: target.key, target: target.body } : null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, target?.key]);
+  useEffect(() => () => s.setPersonaTarget(null), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     s.setComposer({
@@ -206,6 +228,8 @@ function ProjectView({ id }: { id: string }) {
         <IdeasStep
           p={p}
           busy={!!running}
+          focus={target?.body.target_id ?? null}
+          onFocus={setFocusIdea}
           onMore={() => run('Writing three new ideas…', 'ideas', { prompt: null })}
           onPick={async (ideaId) => {
             await api(`/projects/${id}/ideas/${ideaId}/select`, { body: {} });
@@ -247,12 +271,29 @@ function ProjectView({ id }: { id: string }) {
           busy={!!running}
           onWrite={() => run('Writing captions and hashtags…', 'captions')}
           onChange={refresh}
+          personaKey={target?.key ?? null}
         />
       ) : null}
 
       <AskThread messages={ask.messages} busy={ask.busy} />
     </>
   );
+}
+
+/** What the personas react to on this step, with a key that changes with each content version. */
+function personaTargetOf(p: S['Project'] | undefined, st: Step, focusIdea: string | null) {
+  if (!p) return null;
+  if (st === 'ideas') {
+    const rounds = (p.rounds ?? []) as S['IdeaRound'][];
+    const latest = rounds[rounds.length - 1];
+    const ids = (latest?.ideas ?? (p.idea ? [p.idea] : [])).map((i) => i.id);
+    const pick = (focusIdea && ids.includes(focusIdea) ? focusIdea : null) ?? p.idea?.id ?? ids[0];
+    return pick ? { key: `idea:${pick}`, body: { target_type: 'idea' as const, target_id: pick } } : null;
+  }
+  if (st === 'script' && p.script) return { key: `script:${p.script.version}`, body: { target_type: 'script' as const } };
+  if (st === 'storyboard' && p.storyboard) return { key: `storyboard:${p.storyboard.version}`, body: { target_type: 'storyboard' as const } };
+  if (st === 'caption' && p.captions) return { key: `caption:${p.captions.version}`, body: { target_type: 'caption' as const } };
+  return null;
 }
 
 function stepOf(p?: S['Project']): Step {
@@ -282,20 +323,26 @@ const PART = { H: 'Your history', A: 'Audience', T: 'Trend', N: 'Novelty' } as c
 function IdeasStep({
   p,
   busy,
+  focus,
+  onFocus,
   onMore,
   onPick,
 }: {
   p: S['Project'];
   busy: boolean;
+  focus: string | null;
+  onFocus: (id: string) => void;
   onMore: () => void;
   onPick: (id: string) => void;
 }) {
   const rounds = p.rounds as S['IdeaRound'][];
   const latest = rounds[rounds.length - 1];
-  if (!latest) return busy ? null : <Loading text="Curo is writing your first three ideas…" />;
+  // A project from the creator's own idea (or a persona's "Make this") starts with that idea.
+  const shown = latest?.ideas ?? (p.idea ? [p.idea] : []);
+  if (!shown.length) return busy ? null : <Loading text="Curo is writing your first three ideas…" />;
   return (
     <>
-      {latest.ideas.map((idea, i) => (
+      {shown.map((idea, i) => (
         <article key={idea.id} className={`card ${idea.selected ? 'lav' : ''}`} style={{ animationDelay: `${i * 70}ms` }}>
           <div className="row between">
             <span className="pill pink">{idea.slot ? SLOT[idea.slot] : 'Your idea'}</span>
@@ -319,9 +366,14 @@ function IdeasStep({
               ))}
             </div>
           ) : null}
-          <button className="btn block" style={{ marginTop: 14 }} onClick={() => onPick(idea.id)} disabled={busy}>
-            {idea.selected ? 'Continue with this' : 'Make this one'}
-          </button>
+          <div className="row" style={{ marginTop: 14, gap: 8 }}>
+            <button className="btn" style={{ flex: 1 }} onClick={() => onPick(idea.id)} disabled={busy}>
+              {idea.selected ? 'Continue with this' : 'Make this one'}
+            </button>
+            <button className={`btn small ${focus === idea.id ? 'lav' : 'ghost'}`} onClick={() => onFocus(idea.id)} aria-pressed={focus === idea.id}>
+              {focus === idea.id ? 'Reactions below' : 'See reactions'}
+            </button>
+          </div>
         </article>
       ))}
       <button className="btn block ghost" onClick={onMore} disabled={busy}>
@@ -503,13 +555,16 @@ function CaptionStep({
   busy,
   onWrite,
   onChange,
+  personaKey,
 }: {
   p: S['Project'];
   busy: boolean;
   onWrite: () => void;
   onChange: () => void;
+  personaKey: string | null;
 }) {
   const s = useApp();
+  const who = usePersonaReactions(p.id, personaKey, { target_type: 'caption' });
   const c = p.captions;
   const [tags, setTags] = useState<string[]>(c?.hashtags ?? []);
   useEffect(() => setTags(c?.hashtags ?? []), [c?.hashtags]);
@@ -575,6 +630,7 @@ function CaptionStep({
       <div className="card lav">
         <h3>Ready to record</h3>
         <p className="light">Record it, then test it in the Simulator before you post.</p>
+        <WhoThisIsFor data={who.data} />
         <button className="btn block" style={{ marginTop: 12 }} onClick={() => s.nav('sim')}>
           <Icon name="simulator" size={18} /> Go to the Simulator
         </button>

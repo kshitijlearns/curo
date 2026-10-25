@@ -13,7 +13,10 @@ import { AskThread, useAskCuro } from '@/components/AskCuro';
 import { ErrorNote, Loading } from '@/components/Chrome';
 import { Overlay } from '@/components/Overlay';
 import { Icon } from '@/components/Icon';
+import { PersonaAvatar } from '@/components/PersonaAvatar';
+import { PersonaChat, PersonaLabel } from '@/components/Personas';
 import { ScoreRing } from '@/components/ScoreRing';
+import type { Mood, PersonaColor } from '@/lib/avatar';
 import { api, uploadVideo, waitForJob, type S } from '@/lib/api';
 import { useProject, useSimulation } from '@/lib/hooks';
 import { useApp } from '@/state/app';
@@ -288,6 +291,7 @@ function SimResult({ id }: { id: string }) {
       ) : null}
 
       {crowd ? <Explain ex={crowd.explain} /> : null}
+      {crowd?.personas?.length ? <PersonaGroups crowd={crowd} simId={id} /> : null}
 
       {crowd?.comments.length ? (
         <>
@@ -297,7 +301,8 @@ function SimResult({ id }: { id: string }) {
           <p className="label-sim">{SIM_LABEL}</p>
           {crowd.comments.slice(0, 12).map((c) => (
             <button key={c.agent_no} className="card tap" onClick={() => setAgent(c.agent_no)} aria-label={`Talk to Agent ${c.agent_no}`}>
-              <p className="small muted" style={{ fontWeight: 600 }}>
+              <p className="small muted row" style={{ fontWeight: 600, gap: 6 }}>
+                {c.color ? <i className={`dot-${c.color}`} aria-hidden="true" /> : null}
                 Agent {c.agent_no} · {c.segment}
               </p>
               <p style={{ marginTop: 4 }}>{c.text}</p>
@@ -322,7 +327,7 @@ function SimResult({ id }: { id: string }) {
         <div className="card">
           <h3 style={{ fontSize: 16 }}>Your AI audience</h3>
           <p className="small muted">
-            {crowd.agents} agents in {crowd.segments.length} groups, built from your comments.
+            {crowd.agents} agents drawn from your {crowd.segments.length} follower personas, in proportion to each one’s share.
           </p>
           {crowd.segments.map((g) => (
             <div key={g.key} style={{ marginTop: 10 }}>
@@ -354,6 +359,80 @@ function SimResult({ id }: { id: string }) {
 }
 
 const METRIC = { views: 'Views', likes: 'Likes', comments: 'Comments', shares: 'Shares', saves: 'Saves' } as const;
+
+const pct = (x: number | null | undefined) => (x === null || x === undefined ? '—' : `${(x * 100).toFixed(x < 0.1 ? 1 : 0)}%`);
+
+/** v2.2: "How each follower group reacted" — one row per persona; tap for its own take. */
+function PersonaGroups({ crowd, simId }: { crowd: S['SimAudienceResult']; simId: string }) {
+  const [open, setOpen] = useState<string | null>(null);
+  const g = (crowd.personas ?? []).find((x) => x.persona_id === open);
+  return (
+    <section className="card" aria-label="How each follower group reacted">
+      <h3 style={{ fontSize: 16 }}>How each follower group reacted</h3>
+      {(crowd.personas ?? []).map((p) => (
+        <button key={p.persona_id} className="group-row" onClick={() => setOpen(p.persona_id)} aria-label={`${p.name}: ${p.takeaway} Open their take`}>
+          <PersonaAvatar seed={p.avatar_seed} color={p.color as PersonaColor} mood={p.mood as Mood} size={40} name={p.name} share={p.share} decorative />
+          <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+            <div className="row between">
+              <strong className="small">{p.name}</strong>
+              <span className="small">
+                {pct(p.kept_watching)} kept watching · {pct(p.watched_to_end)} to the end
+              </span>
+            </div>
+            <p className="small muted" style={{ margin: '2px 0' }}>
+              Likes {pct(p.rates.likes)} · Comments {pct(p.rates.comments)} · Shares {pct(p.rates.shares)} · Saves {pct(p.rates.saves)} (simulated)
+            </p>
+            <p className="small" style={{ margin: 0 }}>
+              {p.takeaway}
+            </p>
+          </div>
+        </button>
+      ))}
+      {(crowd.studio_compare ?? []).length ? (
+        <div style={{ marginTop: 10 }}>
+          {(crowd.studio_compare ?? []).map((l) => (
+            <p key={l} className="small light" style={{ margin: '4px 0' }}>
+              {l}
+            </p>
+          ))}
+        </div>
+      ) : null}
+      <p className="small muted" style={{ marginTop: 8 }}>
+        {crowd.persona_label}
+      </p>
+      {g ? (
+        <Overlay labelledBy="sim-persona" onClose={() => setOpen(null)}>
+          <div className="row between">
+            <div className="row" style={{ gap: 10 }}>
+              <PersonaAvatar seed={g.avatar_seed} color={g.color as PersonaColor} mood={g.mood as Mood} size={64} name={g.name} share={g.share} />
+              <h2 id="sim-persona" style={{ margin: 0, fontSize: 20 }}>
+                {g.name}
+              </h2>
+            </div>
+            <button className="circle sm" onClick={() => setOpen(null)} aria-label="Close">
+              <Icon name="close" size={18} />
+            </button>
+          </div>
+          <p style={{ marginTop: 12 }}>{g.takeaway}</p>
+          {g.opinion ? (
+            <>
+              <p className="pop-reaction" style={{ marginTop: 8 }}>
+                {g.opinion.reaction_label}
+              </p>
+              <p>“{g.opinion.opinion}”</p>
+              {g.opinion.win_them_over ? <p className="small light">What would win them over: {g.opinion.win_them_over}</p> : null}
+            </>
+          ) : null}
+          <p className="label-sim" style={{ marginTop: 12 }}>
+            {SIM_LABEL}
+          </p>
+          <PersonaChat personaId={g.persona_id} name={g.short_name} context="simulator" contextId={simId} />
+          <PersonaLabel style={{ marginTop: 10 }} />
+        </Overlay>
+      ) : null}
+    </section>
+  );
+}
 
 function Predictions({ crowd }: { crowd: S['SimAudienceResult'] }) {
   return (
