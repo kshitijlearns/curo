@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
@@ -268,7 +269,7 @@ def out(opinions: list[dict], rows: list[dict]) -> dict[str, Any]:
                 "reaction_label": P.REACTION_WORDS[o["reaction"]],
                 "mood": mood,
                 "badge": P.BADGE[mood],
-                "score": round(float(o["score"])),
+                "score": shown_score(float(o["score"]), o["reaction"]),
                 "score_model": None if o["score_model"] is None else float(o["score_model"]),
                 "score_code": float(o["score_code"]),
                 "would": o["would"],
@@ -286,6 +287,13 @@ def out(opinions: list[dict], rows: list[dict]) -> dict[str, Any]:
         "audience": round(P.audience_part(scores, fits), 4) if items else None,
         "label": P.LABEL,
     }
+
+
+def shown_score(exact: float, reaction: str) -> int:
+    """The whole-number score shown: rounded, unless rounding would cross into another
+    reaction's band (74.6 under "Would watch" shows 74, not 75)."""
+    shown = round(exact)
+    return shown if P.reaction_for(shown) == reaction else math.floor(exact)
 
 
 def blended_scores(opinions: list[dict]) -> dict[str, float]:

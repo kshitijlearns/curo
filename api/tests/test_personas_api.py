@@ -289,10 +289,11 @@ def test_shown_ideas_get_four_reactions_and_a_is_their_weighted_score(demo):
         assert idea["parts"]["A"] == pytest.approx(a, abs=0.0015)
         assert idea["score"] == pytest.approx(ideas.idea_score(idea["parts"]), abs=1e-3)
         for x in r["reactions"]:
-            assert x["score"] == round(0.5 * (x["score_model"] or 0) + 0.5 * x["score_code"]) or (
-                abs(x["score"] - (0.5 * x["score_model"] + 0.5 * x["score_code"])) <= 0.5
-            )
-            assert x["reaction"] == P.reaction_for(x["score"]) or abs(x["score"] - 55) < 1
+            # The shown score is the ½ model + ½ code blend as a whole number (rounded, or
+            # floored when rounding would cross into another reaction's band).
+            exact = 0.5 * x["score_model"] + 0.5 * x["score_code"]
+            assert x["score"] in (round(exact), int(exact))
+            assert x["reaction"] == P.reaction_for(x["score"])  # the label and the number agree
             assert x["would"].keys() >= {"like", "comment", "share", "save"}
             assert not persona_safety.keyword_flags(x["opinion"])
         assert r["summary"].endswith(("isn’t sure.", "would skip it.", "are in."))
