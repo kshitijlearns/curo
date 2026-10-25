@@ -242,6 +242,17 @@ def test_a_is_the_share_weighted_persona_score_worked_example():
     )
 
 
+def test_the_shown_score_never_rounds_across_a_reaction_band():
+    from curo.services.persona_reactions import shown_score
+
+    assert shown_score(74.6, P.reaction_for(74.6)) == 74  # "watch", not 75 = "watch_all"
+    assert shown_score(75.2, "watch_all") == 75
+    assert shown_score(61.5, "watch") == 62
+    for tenths in range(0, 1001):
+        exact = tenths / 10
+        assert P.reaction_for(shown_score(exact, P.reaction_for(exact))) == P.reaction_for(exact)
+
+
 def test_code_fit_rewards_topic_requests_and_loved_formats():
     emb = MockEmbeddingProvider()
     fit = P.PersonaFit(

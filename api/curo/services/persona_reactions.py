@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
@@ -205,6 +206,10 @@ def _run(creator_id: UUID, rows: list[dict], target: Target) -> None:
                                      target.format, fit(r))  # fmt: skip
             score = P.blend(float(m.score), 100 * code, weight)
             reaction = P.reaction_for(score)
+            if reaction != m.reaction:
+                # The code check moved them to another band: their words must say what the
+                # reaction shown says, so the line comes from the template for that reaction.
+                m = m.model_copy(update={"opinion": persona_text.opinion_for(b, reaction)})
             log.info(
                 "persona score %s %s: model=%s code=%.1f blend=%.1f (%s)",
                 r["short_name"], target.type, m.score, 100 * code, score, parts,
@@ -264,7 +269,7 @@ def out(opinions: list[dict], rows: list[dict]) -> dict[str, Any]:
                 "reaction_label": P.REACTION_WORDS[o["reaction"]],
                 "mood": mood,
                 "badge": P.BADGE[mood],
-                "score": round(float(o["score"])),
+                "score": shown_score(float(o["score"]), o["reaction"]),
                 "score_model": None if o["score_model"] is None else float(o["score_model"]),
                 "score_code": float(o["score_code"]),
                 "would": o["would"],
@@ -282,6 +287,13 @@ def out(opinions: list[dict], rows: list[dict]) -> dict[str, Any]:
         "audience": round(P.audience_part(scores, fits), 4) if items else None,
         "label": P.LABEL,
     }
+
+
+def shown_score(exact: float, reaction: str) -> int:
+    """The whole-number score shown: rounded, unless rounding would cross into another
+    reaction's band (74.6 under "Would watch" shows 74, not 75)."""
+    shown = round(exact)
+    return shown if P.reaction_for(shown) == reaction else math.floor(exact)
 
 
 def blended_scores(opinions: list[dict]) -> dict[str, float]:

@@ -237,6 +237,21 @@ def _bare(phrase: str) -> str:
     return re.sub(r"^your\s+", "", phrase.strip(), flags=re.IGNORECASE)
 
 
+def opinion_for(p: PersonaBrief, reaction: str) -> str:
+    """A first-person line that says what the reaction says (no numbers)."""
+    love = _bare((p.loves or ["your reels"])[0])
+    want = (p.wants_more or ["a clearer payoff"])[0]
+    opinion = {
+        "watch_all": f"I’d watch this to the end: it’s the {love} I come for.",
+        "watch": f"I’d watch this. It’s close to the {love} I like.",
+        "scroll_past": f"I might scroll past. I come for {love}, and this feels further away.",
+        "skip": "I’d skip this one. It isn’t what I follow you for.",
+    }[reaction]
+    if reaction != "watch_all":
+        opinion += f" Show me {want} and you’ve got me."
+    return _short(opinion, 280)
+
+
 def reaction_template(
     p: PersonaBrief, idea: str, draft: str | None, target: str
 ) -> PersonaReaction:
@@ -249,16 +264,8 @@ def reaction_template(
     jitter = _hash(p.key, idea, target) % 17 - 8
     score = max(5, min(95, 48 + 12 * min(hits, 3) - 14 * min(misses, 2) + jitter))
     reaction = reaction_for(score)
-    love = _bare((p.loves or ["your reels"])[0])
     want = (p.wants_more or ["a clearer payoff"])[0]
-    opinion = {
-        "watch_all": f"I’d watch this to the end: it’s the {love} I come for.",
-        "watch": f"I’d watch this. It’s close to the {love} I like.",
-        "scroll_past": f"I might scroll past. I come for {love}, and this feels further away.",
-        "skip": "I’d skip this one. It isn’t what I follow you for.",
-    }[reaction]
-    if reaction != "watch_all":
-        opinion += f" Show me {want} and you’ve got me."
+    opinion = opinion_for(p, reaction)
     return PersonaReaction(
         key=p.key,
         reaction=reaction,  # type: ignore[arg-type]
