@@ -455,3 +455,187 @@ copy is **T23** and the follower idea is **T24** (D213).
 ## E. Demo mode
 The Vercel deploy plays back fixtures (D211); the recording now covers the first-run flow,
 the recap (with its share image), all recaps and follower ideas.
+
+---
+
+# v2.2: Follower Personas
+
+Source: `CURO_Follower_Personas_Prompt.md` (wins over v2 and v2.1 where they differ). Built in one
+go on branch `v2.2-personas`. Decisions D223 onwards.
+
+Every creator gets **exactly 4 Follower Personas**: characters that summarise the main groups
+of people commenting on their reels. They appear in the Creator Recap ("Meet your followers"),
+at the top of Home ("What your followers think of you", replacing "What your followers will
+love"), above the Studio composer (each persona reacts to every idea and draft) and in the
+Simulator (the 1,000 AI followers are drawn from them). Every persona surface carries the label
+**"Built from your public comments. Personas are summaries, not real people."**
+
+## A. What a persona is
+A summary of a cluster of comments, never one commenter: no handles are stored, shown or used;
+every quote is generated or paraphrased. Fields: `name` (2–3 kind words), `short_name`, `share`
+(of engaged comments, code), `tagline`, `comes_for` (2–4), `loves` (2–4, with evidence),
+`wants_more` (1–3), `turn_offs` (1–3, with evidence), `engagement_style`, `language` (mix),
+`voice`, `typical_comment` (paraphrased), `confidence` (low / medium / high), avatar
+(`avatar_seed`, `color`, mood). Never inferred or stated: age, gender, religion, caste,
+ethnicity, sexuality, health, income bracket, political views, exact location. Topics people
+mention ("mentions Mumbai and Pune") are fine at group level. Likes are aggregate: "reels they
+comment on also get…", never "they liked".
+
+## B. The avatar (`PersonaAvatar`)
+SVG + React, props `{seed, color, mood, size, animated, state}`. 18–40 dots of three sizes on a
+**seeded, jittered sunflower spiral** (mulberry32), denser and darker in the middle (opacity
+40–100%). One algorithm in two copies, `web/src/lib/avatar.ts` and
+`api/curo/services/persona_avatar.py` (share card), both checked against one fixture, so a
+persona looks the same everywhere and across months. Colours by share order: blue `#5B73F2`,
+lavender `#C3BFF2`, pink `#F2D4E2`, ink `#242424`; light colours get a hairline `#E4E4EC` ring
+on white; ink sits on a white disc on dark slides. Moods move the dots, never a face:
+
+| Mood | Static pose (reduced motion) | Motion |
+|---|---|---|
+| neutral | calm round cluster | — |
+| love | the cluster flattens and its middle lifts into an upward arc | one pulse |
+| like | drifts up a little, 4% larger | — |
+| unsure | dots spread out 25%, slightly dimmer | slow sway |
+| skip | shifts sideways, shrinks to 85%, dims to 45% | — |
+| thinking | dots pulled towards a ring | slow orbit |
+| listening | cluster at 92% | gentle breathing |
+
+Sketch of every mood in every colour, generated from the same code by
+`tools/avatar_sketch.py`:
+
+![Persona avatar moods](docs/personas/avatar-moods.svg)
+
+Motion uses the app's `--spring` easing; `prefers-reduced-motion` or `animated={false}` shows
+the static poses. Sizes 24 / 40 / 64 / 120 px. `role="img"`, `aria-label="The Festive Planner,
+31% of your comments, mood: love"`. Preview: **`/dev/avatars`**.
+
+## C. Building them: job `build_personas`
+Resumable steps (v2 job rules):
+1. **Collect** non-bot comments (not the creator's own) on the creator's reels; all of them,
+   weighted towards the last 90 days (weight 1.0 inside, 0.35 older).
+2. **Embed** "text · theme · intent · language" per comment with the embedding provider,
+   cached in **`comment_embeddings`** (one row per comment; the model is recorded).
+3. **Cluster into exactly 4** on [embedding ⊕ behaviour features: intent, language, the reel's
+   sub-cluster and format, tags-a-friend], scikit-learn k-means, k = 4, 8 seeds; the kept
+   result is the one that agrees most with the others (mean adjusted Rand index). Every group
+   ≥ 8% (weighted): a smaller group merges into its nearest centroid and the largest group
+   splits in two until all four pass.
+4. **Profile in code** (`services/personas.py`): share; top themes and intents; language mix;
+   sentiment (positive − negative share); the sub-clusters and formats they over-index on
+   (share of their comments ÷ share of all comments); the like/share/comment rate of those
+   reels against the creator's median; turn-offs (formats most under-indexed relative to how
+   often those reels appear); places and topics mentioned (group level); favourite reels (most
+   comments from the group, top 4); n comments and reels; confidence.
+5. **T25 write follower personas** (Claude Sonnet, all four in one call): names, tagline,
+   comes_for, loves, wants_more, turn_offs, engagement style, voice, typical comment
+   (paraphrased). The no-new-numbers check and the **sensitive-attribute check** (keyword list
+   + **T29**, a cheap Haiku classifier) run on every field; one regeneration, then a template
+   from the facts. Names must be distinct and kind (code enforces distinct).
+6. **Match to the last build** by centroid cosine ≥ 0.8 (best one-to-one assignment): a match
+   keeps its id, name, colour and seed; an unmatched group becomes a new persona (a free
+   colour, a new seed) and the one it replaces is retired ("A new group is showing up" in the
+   next recap).
+7. **T26 persona thoughts** (Sonnet, all four in one call): `thought` (first person,
+   ≤ 140 chars), `mood`, `loves[2]`, `wants_more[≤2]`; same checks; template fallback.
+8. **Store** `follower_personas` (updated in place: a persona keeps its id for life, so
+   opinions, chats, history and AI agents stay linked), a `persona_history` row per persona and
+   month, and a `persona_builds` row.
+
+**When:** inside the first recap (a fast build on the comments read so far, at most 600
+comments and 3 seeds, then a full refine job in the background); monthly before
+`build_recap`; mid-month when 150+ new comments arrived since the last build (scheduler tick,
+identities kept). **Thin data:** < 40 usable comments or < 5 reels with comments → 4 **starter
+personas** from niche templates plus the creator's own topics and comment language, labelled
+"Early guess: gets sharper as people comment", confidence low. 40–150 → medium, > 150 → high
+(a persona with < 15 comments of its own drops one step). Shown as a 3-dot meter.
+**Cost:** one embedding batch (new comments only) + 2 Sonnet calls + Haiku checks per build,
+recorded in `usage_ledger` with feature `personas` (new column `feature`); free on every plan.
+
+## D. Recap
+After `creator_type`, before `share_card`: `followers_intro`, `persona_1`…`persona_4` (big
+avatar in `love`, name, "**31%** of your comments", tagline, comes for, the T26 thought),
+`followers_summary` (2×2 grid; tap → the detail sheet after the recap closes). Backgrounds: the
+lavender and pink personas use their colour (ink text passes AA); the blue and ink personas use
+white with their coloured dots, because body text on blue fails AA (D216). Monthly:
+`followers_shift` when a share moved ≥ 5 points or a persona is new. Cap 18 slides with the
+persona sequence (never dropped when personas exist; starter personas carry "Early guess" on
+each slide). Share card: a row of 4 avatars with short names under the creator type (names
+only). T23 gets the persona facts; persona lines come from T26 and pass the validator.
+
+## E. Home
+Order: **1 What your followers think of you · 2 Creator Recap · 3 Opportunity areas ·
+4 Trending for you**. "What your followers will love" is removed everywhere (UI, endpoint,
+`follower_ideas` table dropped in 0018, T24, its job, scheduler tick, tests). Persona cards
+(carousel, snap, peek, dots, keyboard): avatar 64 (mood from current sentiment), name, share
+chip, confidence dots, the thought in a speech bubble, a 5-step **mood meter in words** ("Not
+feeling it" → "Big fan", from sentiment and engagement lift), 2 love chips, 1–2 wants-more chips
+with **Make this** (Studio seeded with the request, persona preselected), evidence line ("From
+214 comments across 18 reels · updated 3 Oct."), footer label. Summary line above: "**3 of 4**
+of your follower groups are loving your recent reels." Skeletons with breathing avatars while
+building; starter personas say "Early guess". **Detail sheet** (bottom sheet; side panel on
+desktop): large avatar, tagline, share, confidence, comes for, loves (with evidence), turn-offs
+(with evidence), how they engage, favourite reels (up to 4), typical comment (labelled
+paraphrased), language mix, 6-month history, Chat. `GET /v1/home` lists the 4 sections in
+order, each with its own endpoint.
+
+## F. Studio
+A **persona row** above the composer on every step (40 px avatars, short names; full name on
+hover). States: creator typing → `listening`; scoring → `thinking`; after → each persona's
+mood + a reaction badge (CURO icons + Love / Like / Unsure / Skip). The overall verdict is
+unchanged in spirit, but **A becomes the share-weighted persona score**:
+
+    A = Σ share_i × persona_score_i / Σ share_i        (persona_score_i on 0–1)
+    persona_score_i = 0.5 × model_score_i + 0.5 × code_fit_i   (PERSONA_MODEL_WEIGHT; both logged)
+    code_fit_i = clamp(0.30 + 0.40 × topic_i + 0.20 × asks_i + 0.10 × format_love_i
+                       − 0.25 × format_turn_off_i)
+
+`topic_i` = the idea's best similarity to the persona's favourite reels or centroid (scaled
+0.1 → 0, 0.5 → 1); `asks_i` = the idea answers one of the persona's requests; the format terms
+come from their over- and under-indexed formats. While choosing 3 of 15 candidates the code fit
+alone is used (no model calls); the 3 shown ideas, the validate chat and each later draft get
+**T27 persona reactions** (one Sonnet call for all 4: reaction, score 0–100, would {like,
+comment, share, save (simulated)}, opinion ≤ 280, win_them_over ≤ 120, evidence_ids), blended
+as above, and A and the score are recomputed from the blend, so the verdict and the avatars
+agree by construction. Summary line: "**3 of 4** follower groups are in. The Budget Stylist
+isn't sure." Tapping an avatar opens a popover (a bottom sheet on mobile; focus moves in, Esc
+closes): reaction, persona score, would-they chips (save "simulated"), their words, one change
++ **Apply** (sent to the Studio chat as a revision), evidence chips, **Ask more** (persona
+chat). Later steps re-run T27 on the current draft once per content version. **Cache** in
+`persona_opinions` per (project, target, version, persona); reopening never calls the model.
+**Credits:** included in the project credit; the revision counter moves only when content
+changes (reactions never count by themselves). Ledger feature `studio_personas`. No personas
+yet → 4 breathing placeholders, "Your follower personas are being built…", and A uses the old
+audience-demand calculation. Final draft: "Who this is for: The Festive Planner ♥, …".
+
+## G. Persona chat (T28)
+From the detail sheet, the Studio popover and the Simulator. In character but honest ("I'm a
+summary of your comments, so I can't tell you that"), never claims to be a real follower, no
+new numbers, safety-checked (template fallback), streamed as SSE. Counts towards Ask Curo's
+monthly cap (Free 10, Pro 100); the Simulator's 10 agent messages stay separate.
+`persona_messages`.
+
+## H. Simulator
+The 1,000 agents are drawn from the 4 personas by share (the personas replace T17's segments;
+T17 is retired): T18 writes each agent as a variation of its persona (traits within the
+persona's range, from its engagement style), `audience_personas.persona_id`. Labels "Agent 12 ·
+Festive Planner" with the colour dot. New block **"How each follower group reacted"**: avatar
+(mood from the results), watched-to-end %, like / comment / share / save rates (calibrated;
+saves simulated), a one-line takeaway; tap → that persona's Simulator opinion (T27 on the
+results). Calibration fits factors per persona when at least 3 past reels give that persona's
+agents a rate, else the overall factor. A simulation linked to a Studio project shows Studio's
+predicted reaction beside the measured one.
+
+## I. Data (migration 0018)
+`follower_personas` (as specified, evidence inside `profile`, plus `n_comments`, `n_reels`,
+`retired_at`), `persona_history`, `persona_builds`, `persona_opinions` (+ `project_id`),
+`persona_messages`, `comment_embeddings`; `audience_personas.persona_id`;
+`persona_calibrations.segment` (per-persona factors; `''` = overall); `usage_ledger.feature`;
+`drop table follower_ideas`. Endpoints: `GET /v1/personas`, `GET /v1/personas/{id}`,
+`GET /v1/personas/{id}/history`, `POST /v1/personas/{id}/chat` (SSE),
+`POST|GET /v1/projects/{id}/persona-reactions(?version=)`, `GET /v1/home`.
+
+## J. Task numbers
+The prompt's T18–T21 are taken (v2: T18 write_personas, T19 agent_reactions, T20 thread_round,
+T21 explain_simulation), so v2.2 adds **T25 write_follower_personas, T26 persona_thoughts,
+T27 persona_reactions, T28 persona_chat** and **T29 check_sensitive** (the cheap classifier).
+The prompt's "T16 recap copy" is our T23; its "T17" (follower ideas) is our T24, now removed.

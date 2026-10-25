@@ -242,6 +242,7 @@ def simulate(ctx: JobContext, sim: dict) -> dict[str, int]:
         meta.duration_s,
         data.baselines_7d.get("views"),
         ctx.progress,
+        project_id=sim["project_id"],
     )
     previous_engagement = None
     if sim["parent_simulation_id"]:

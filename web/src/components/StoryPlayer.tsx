@@ -9,7 +9,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { Icon } from './Icon';
+import { PersonaAvatar } from './PersonaAvatar';
 import { apiText, type S } from '@/lib/api';
+import type { Mood, PersonaColor } from '@/lib/avatar';
 
 const COLOURS: Record<string, string> = {
   blue: '#5B73F2',
@@ -76,6 +78,27 @@ function Confetti() {
 }
 
 type Slide = S['RecapSlide'];
+
+// v2.2: "Meet your followers".
+type PersonaFact = { id: string; name: string; short_name: string; share_pct: number; color: PersonaColor; avatar_seed: number };
+const PERSONA_LABEL = 'Built from your public comments. Personas are summaries, not real people.';
+const EARLY_GUESS = 'Early guess: gets sharper as people comment';
+
+/** An intro avatar: floats in after the ones before it, neutral, then turns to love. */
+function FloatIn({ p, index, reduced }: { p: PersonaFact; index: number; reduced: boolean }) {
+  const [mood, setMood] = useState<Mood>(reduced ? 'love' : 'neutral');
+  useEffect(() => {
+    if (reduced) return;
+    const t = window.setTimeout(() => setMood('love'), 700 + index * 450);
+    return () => window.clearTimeout(t);
+  }, [index, reduced]);
+  return (
+    <div className="float-in" style={{ animationDelay: reduced ? '0s' : `${index * 450}ms` }}>
+      <PersonaAvatar seed={p.avatar_seed} color={p.color} mood={mood} size={64} name={p.name} share={p.share_pct / 100} animated={!reduced} />
+      <span className="small">{p.short_name}</span>
+    </div>
+  );
+}
 
 function Body({
   slide,
@@ -216,6 +239,81 @@ function Body({
           <p className="sub">{f.level_line}</p>
           <p className="sub">{f.archetype_line}</p>
           {recap.archetype_runner_up ? <p className="note">With a dash of {recap.archetype_runner_up}.</p> : null}
+        </>
+      );
+    case 'followers_intro':
+      return (
+        <>
+          <h2>{copy.headline}</h2>
+          <p className="sub">Now meet the people who watch you.</p>
+          <div className="persona-float" aria-label="Your four follower personas">
+            {(f.personas as PersonaFact[]).map((p, k) => (
+              <FloatIn key={p.id} p={p} index={k} reduced={reduced} />
+            ))}
+          </div>
+          {f.early_guess ? <p className="note">{EARLY_GUESS}</p> : null}
+          <p className="note">{PERSONA_LABEL}</p>
+        </>
+      );
+    case 'persona_1':
+    case 'persona_2':
+    case 'persona_3':
+    case 'persona_4':
+      return (
+        <>
+          <PersonaAvatar seed={f.avatar_seed} color={f.color} mood="love" size={120} name={f.name} share={f.share_pct / 100} animated={!reduced} />
+          <span className="big" style={{ fontSize: 36 }}>
+            {f.name}
+          </span>
+          <p className="sub">
+            <strong>{f.share_pct}%</strong> of your comments
+          </p>
+          <p className="sub">{f.tagline}</p>
+          {(f.comes_for as string[])?.length ? <p className="note">Comes for: {(f.comes_for as string[]).join(' · ')}</p> : null}
+          <blockquote className="story-thought">“{f.thought}”</blockquote>
+          {f.early_guess ? <span className="pill" style={{ alignSelf: 'flex-start', background: COLOURS.white, color: '#242424' }}>{EARLY_GUESS}</span> : null}
+          <p className="note">{PERSONA_LABEL}</p>
+        </>
+      );
+    case 'followers_summary':
+      return (
+        <>
+          <h2>{copy.headline}</h2>
+          <div className="persona-grid" style={{ position: 'relative', zIndex: 3, pointerEvents: 'auto' }}>
+            {(f.personas as PersonaFact[]).map((p) => (
+              <button
+                key={p.id}
+                onClick={() => {
+                  // Its detail sheet opens on Home once the recap closes.
+                  try {
+                    sessionStorage.setItem('curo.openPersona', p.id);
+                  } catch {
+                    /* private mode */
+                  }
+                  onClose();
+                }}
+                aria-label={`${p.name}, ${p.share_pct}% of your comments. Open after the recap`}
+              >
+                <PersonaAvatar seed={p.avatar_seed} color={p.color} mood="like" size={64} decorative animated={!reduced} />
+                <strong>{p.short_name}</strong>
+                <span>{p.share_pct}%</span>
+              </button>
+            ))}
+          </div>
+          {sub}
+          <p className="note">{PERSONA_LABEL}</p>
+        </>
+      );
+    case 'followers_shift':
+      return (
+        <>
+          <PersonaAvatar seed={f.avatar_seed} color={f.color} mood="like" size={64} decorative animated={!reduced} />
+          {head}
+          {(f.display as string[]).map((d) => (
+            <p key={d} className="sub">
+              {d}
+            </p>
+          ))}
         </>
       );
     case 'share_card':

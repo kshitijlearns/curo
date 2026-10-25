@@ -278,7 +278,57 @@ def generate_round(project: dict, data: sc.StudioData, prompt: str | None) -> di
                 "avoided": avoided,
             },
         )
+    react_to_ideas(project, data, chosen, ids)
     return {"round": rnd, "ideas": ids, "candidates": len(out.candidates), "kept": len(cands)}
+
+
+def _idea_target(c: ideas.Candidate, target_id: UUID, project_id: UUID | None):
+    from curo.services.persona_reactions import Target
+
+    return Target(
+        "idea",
+        target_id,
+        1,
+        " ".join(x for x in (c.text, c.description, c.angle) if x),
+        None,
+        c.format,
+        vector=c.vector,
+        project_id=project_id,
+    )
+
+
+def react_to_ideas(project: dict, data: sc.StudioData, chosen: list, ids: list[str]) -> None:
+    """v2.2: each shown idea gets the 4 personas' reactions (T27); A and the idea's score are
+    recomputed from their blended scores, so the verdict and the avatars agree."""
+    from curo.services import persona_reactions
+
+    if not data.ctx.personas:
+        return
+    with service_connection() as conn:
+        rows = persona_reactions.active_rows(conn, project["creator_id"])
+    for s, idea_id in zip(chosen, ids, strict=True):
+        target = _idea_target(s.candidate, UUID(idea_id), project["id"])
+        try:
+            opinions = persona_reactions.react(
+                project["creator_id"], rows, target, "studio_personas"
+            )
+        except Exception:
+            import logging
+
+            logging.getLogger("curo.personas").exception("persona reactions for an idea failed")
+            continue
+        s2 = ideas.score(s.candidate, data.ctx, persona_reactions.blended_scores(opinions))
+        s2.slot = s.slot
+        with service_connection() as conn:
+            conn.execute(
+                "update public.ideas set score = %s, parts = %s, why = %s where id = %s",
+                (
+                    s2.score,
+                    Jsonb({k: {"value": p.value, "facts": p.facts} for k, p in s2.parts.items()}),
+                    ideas.why_line(s2),
+                    idea_id,
+                ),
+            )
 
 
 def _insert_idea(
@@ -344,10 +394,42 @@ def score_own(data: sc.StudioData, text: str) -> ideas.Scored:
 
 def validate(creator_id: UUID, text: str) -> dict[str, Any]:
     """The Studio tab's validate chat: verdict band, two reasons, tweaks with their gains."""
+    import uuid
+
+    from curo.services import persona_reactions
+
     with service_connection() as conn:
         data = sc.load(conn, creator_id)
     s = score_own(data, text)
+    # Tweaks are compared on the code-side score, the same scale they're re-scored on.
     shown = ideas.tweaks(s, data.ctx, rescorer(data))
+    personas = None
+    if data.ctx.personas:
+        # Cached per text and persona build: validating the same idea again never calls the
+        # model, and a rebuilt persona gives a fresh take.
+        with service_connection() as conn:
+            rows = persona_reactions.active_rows(conn, creator_id)
+            build = conn.execute(
+                "select max(version) as v from public.persona_builds where creator_id = %s",
+                (creator_id,),
+            ).fetchone()["v"]
+        key = uuid.uuid5(
+            uuid.NAMESPACE_URL, f"curo:validate:{creator_id}:{build}:{text.strip().lower()}"
+        )
+        opinions = persona_reactions.react(
+            creator_id, rows, _idea_target(s.candidate, key, None), "studio_personas"
+        )
+        slot = s.slot
+        s = ideas.score(s.candidate, data.ctx, persona_reactions.blended_scores(opinions))
+        s.slot = slot
+        out = persona_reactions.out(opinions, rows)
+        personas = {
+            "status": "ready",
+            "target_type": "idea",
+            "target_id": key,
+            "target_version": 1,
+            **out,
+        }
     with service_connection() as conn:
         _event(
             conn,
@@ -363,6 +445,7 @@ def validate(creator_id: UUID, text: str) -> dict[str, Any]:
         "shares": ideas.shares(s.values),
         "reasons": ideas.reasons(s),
         "tweaks": [{"text": t.text, "gain": t.gain} for t in shown],
+        "personas": personas,
     }
 
 
@@ -408,8 +491,9 @@ def create_project(
         s = score_own(data, idea_text)
         texts = {e.id: e.text for e in sc.evidence_pack(data)}
         with service_connection() as conn:
-            _insert_idea(conn, project["id"], s, 0, None, "creator", texts)
+            idea_id = _insert_idea(conn, project["id"], s, 0, None, "creator", texts)
             _touch(conn, project["id"], step="idea", title=s.candidate.text)
+        react_to_ideas(project, data, [s], [idea_id])  # v2.2: its score agrees with the personas
         return project["id"], None
     job_id = queue_step(project, "ideas") if opportunity_id else None
     return project["id"], job_id
@@ -1168,3 +1252,72 @@ def save_project(project_id: UUID, step: str | None) -> None:
             "draft_saved",
             {"project_id": str(project_id), "step": step},
         )
+
+
+# ====================================================================== persona reactions (v2.2)
+
+
+def _idea_text(idea: dict) -> str:
+    return " ".join(x for x in (idea["text"], idea["description"], idea["angle"]) if x)
+
+
+VERSIONED = {
+    "script": "script_versions",
+    "storyboard": "storyboard_versions",
+    "caption": "captions",
+}
+
+
+def persona_target(
+    conn,
+    project: dict,
+    target_type: str | None = None,
+    target_id: UUID | None = None,
+    version: int | None = None,
+):
+    """What the personas react to: a named idea, else the project's current draft (the chosen
+    caption, else the storyboard, else the script, else the chosen idea). None before an idea.
+    ``version``: an earlier version of that draft (only its id is needed to read the cache)."""
+    from curo.services.persona_reactions import Target
+
+    pid = project["id"]
+    if version is not None and target_type in VERSIONED:
+        row = conn.execute(
+            f"select id from public.{VERSIONED[target_type]} where project_id = %s and version = %s",
+            (pid, version),
+        ).fetchone()
+        if row is None:
+            return None
+        return Target(target_type, row["id"], version, "", project_id=pid)
+    if target_type == "idea" and target_id:
+        idea = conn.execute(
+            "select * from public.ideas where id = %s and project_id = %s", (target_id, pid)
+        ).fetchone()
+        if idea is None:
+            return None
+        return Target("idea", idea["id"], 1, _idea_text(idea), None, idea["format"], project_id=pid)
+    idea, s, b, c = current(conn, pid)
+    if idea is None:
+        return None
+    base = _idea_text(idea)
+    fmt = idea["format"]
+    if c and (target_type in (None, "caption")):
+        opts = c["options"] or []
+        chosen = opts[c["chosen"]] if c["chosen"] is not None and c["chosen"] < len(opts) else None
+        text = (chosen or (opts[0] if opts else {})).get("text", "")
+        tags = " ".join(f"#{t}" for t in c["hashtags"] or [])
+        return Target(
+            "caption", c["id"], c["version"], base, f"{text} {tags}".strip(), fmt, project_id=pid
+        )
+    if b and (target_type in (None, "storyboard")):
+        frames = " / ".join(
+            " ".join(
+                x for x in (f.get("shot_type"), f.get("instruction"), f.get("onscreen_text")) if x
+            )
+            for f in b["frames"] or []
+        )
+        return Target("storyboard", b["id"], b["version"], base, frames, fmt, project_id=pid)
+    if s and (target_type in (None, "script")):
+        script_text = " ".join(beat["text"] for beat in s["beats"] or [])
+        return Target("script", s["id"], s["version"], base, script_text, fmt, project_id=pid)
+    return Target("idea", idea["id"], 1, base, None, fmt, project_id=pid)

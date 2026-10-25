@@ -1,11 +1,15 @@
-"""The Simulator's AI audience (v2, PLAN_V2 §4.5): personas, calibration and one run.
+"""The Simulator's AI audience (v2, PLAN_V2 §4.5; v2.2 §8): personas, calibration and one run.
 
-* ``ensure_personas``: once per creator a month — T17 splits the audience into 4–8 segments
-  from their comment themes (never handles), T18 writes SIM_AGENTS personas across them.
-* ``ensure_calibration``: once per persona version — 200 agents watch 5 of the creator's past
-  reels (their stored T1 understanding); the agents' rates against the real ones give k_m.
+* ``ensure_personas``: once per Follower Persona build — the 1,000 agents are drawn from the
+  creator's 4 Follower Personas by share (T18 writes each agent as a variation of its persona;
+  ``audience_personas.persona_id``). The personas replaced T17's segments.
+* ``ensure_calibration``: once per agent version — 200 agents watch 5 of the creator's past
+  reels (their stored T1 understanding); the agents' rates against the real ones give k_m,
+  overall and per persona (a persona falls back to the overall factor without enough reels).
 * ``run_audience``: SIM_AGENTS agents watch the new video in batches (T19), the engaged ones
-  read the top comments (T20), and the result is predicted, scored and explained (T21).
+  read the top comments (T20), the result is predicted, scored and explained (T21), and each
+  persona's agents are summarised in "How each follower group reacted" with that persona's own
+  opinion (T27 on its results).
 
 Every AI text a creator reads goes through the number validator; agent comments carry no
 numbers at all. Nothing branches on MOCK_MODE: the provider factory picks the model.
@@ -18,21 +22,19 @@ from uuid import UUID
 
 from psycopg.types.json import Jsonb
 
-from curo import clock, providers
+from curo import providers
 from curo.config import get_settings
 from curo.db import service_connection
+from curo.jobs import personas as persona_jobs
 from curo.jobs.hashtags import creator_niche
 from curo.schemas.tasks import (
-    T17,
     T18,
     T19,
     T20,
     T21,
     AgentBrief,
-    AudienceTheme,
     Reaction,
     Segment,
-    T17Input,
     T18Input,
     T19Input,
     T20Input,
@@ -42,24 +44,72 @@ from curo.schemas.tasks import (
     Timeline,
 )
 from curo.services import agents as crowd
-from curo.services import validator
+from curo.services import persona_reactions, validator
+from curo.services import personas as P
 
 CALIBRATION_AGENTS = 200
 CALIBRATION_REELS = 5
+MIN_PERSONA_REELS = 3  # past reels a persona needs for its own calibration factor
 THREAD_COMMENTS = 10
 FEED_COMMENTS = 30
+TRAITS = ("patience", "liker", "commenter", "sharer", "saver")
 
 
-def version_now() -> str:
-    return f"{clock.now():%Y-%m}"
+# ------------------------------------------------------------------ personas → agents
 
 
-# ------------------------------------------------------------------ personas
+def segment_key(persona_id: object) -> str:
+    return "p" + str(persona_id).replace("-", "")[:12]
+
+
+def persona_segment(row: dict) -> Segment:
+    """A Follower Persona as the Simulator draws agents from it: its traits are the middle of
+    its agents' range, from how its group engages (code)."""
+    prof = row["profile"] or {}
+    ev = prof.get("evidence") or {}
+    intents = {
+        i["intent"]: (i["share"] if i["share"] is not None else 0.6)
+        for i in ev.get("intents") or []
+    }
+    lifts = ev.get("lifts") or {}
+    positive = ev.get("positive")
+    meter = ev.get("meter") or 3
+    talk = sum(intents.get(k, 0) for k in ("question", "request", "thats_me", "disagreement"))
+    traits = {
+        "patience": P.clamp(0.35 + 0.08 * meter),
+        "liker": P.clamp(0.35 + 0.45 * (positive if positive is not None else 0.6)),
+        "commenter": P.clamp(0.15 + 0.6 * talk),
+        "sharer": P.clamp(
+            0.12
+            + 0.7 * max(ev.get("tags_friend") or 0, intents.get("tags_friend", 0))
+            + (0.1 if (lifts.get("shares") or 0) > 1.2 else 0)
+        ),
+        "saver": P.clamp(0.12 + 0.7 * intents.get("plans_to_save", 0)),
+    }
+    interests = [*prof.get("comes_for", []), *prof.get("loves", [])]
+    top = (ev.get("intents") or [{"intent": None}])[0]["intent"]
+    return Segment(
+        key=segment_key(row["id"]),
+        label=row["short_name"][:40],
+        share=max(0.0001, float(row["share"])),
+        description=row["tagline"][:300],
+        interests=[i[:60] for i in interests][:6],
+        intent=top,
+        traits={k: round(v, 3) for k, v in traits.items()},
+    )
 
 
 def ensure_personas(creator_id: UUID) -> str:
-    """The creator's persona version for this month, built if missing."""
-    version = version_now()
+    """The agents' version for the creator's current Follower Personas, written if missing."""
+    with service_connection() as conn:
+        rows = persona_jobs.active(conn, creator_id)
+        build = persona_jobs.latest_build(conn, creator_id)
+    if len(rows) < P.K or build is None:
+        persona_jobs.build_now(creator_id, "simulator")
+        with service_connection() as conn:
+            rows = persona_jobs.active(conn, creator_id)
+            build = persona_jobs.latest_build(conn, creator_id)
+    version = f"fp{build['version']}"
     with service_connection() as conn:
         have = conn.execute(
             "select count(*) as n from public.audience_personas where creator_id = %s and version = %s",
@@ -67,72 +117,31 @@ def ensure_personas(creator_id: UUID) -> str:
         ).fetchone()["n"]
         if have:
             return version
-        creator = conn.execute(
-            """
-            select c.account_id, a.followers from public.creators c
-              join public.accounts a on a.id = c.account_id where c.id = %s
-            """,
-            (creator_id,),
+        account = conn.execute(
+            "select account_id from public.creators where id = %s", (creator_id,)
         ).fetchone()
-        themes = (
-            conn.execute(
-                """
-                select t.label, t.share,
-                       array(select c.text from public.comments c
-                              where c.id = any(t.sample_comment_ids) limit 3) as samples
-                  from public.comment_themes t where t.account_id = %s
-                 order by t.share desc, t.label limit 12
-                """,
-                (creator["account_id"],),
-            ).fetchall()
-            if creator
-            else []
-        )
-        langs = (
-            conn.execute(
-                """
-                select c.language, count(*) as n from public.comments c
-                  join public.reels r on r.id = c.reel_id
-                 where r.account_id = %s and c.language is not null and not c.is_creator
-                 group by c.language
-                """,
-                (creator["account_id"],),
-            ).fetchall()
-            if creator
-            else []
-        )
-        niche = creator_niche(conn, creator["account_id"]) if creator else "lifestyle"
-    total = sum(x["n"] for x in langs) or 1
+        niche = creator_niche(conn, account["account_id"]) if account else None
+    segs = [persona_segment(r) for r in rows]
+    persona_of = {segment_key(r["id"]): r["id"] for r in rows}
     llm = providers.get_llm()
-    seg_out = llm.run(
-        T17,
-        T17Input(
-            niche=niche,
-            themes=[
-                AudienceTheme(
-                    key=f"theme{i}",
-                    label=t["label"],
-                    share=float(t["share"]),
-                    samples=[s for s in (t["samples"] or [])][:3],
-                )
-                for i, t in enumerate(themes)
-            ],
-            language_mix={x["language"]: round(x["n"] / total, 2) for x in langs},
-            followers=creator["followers"] if creator else None,
-        ),
-    )
     n = get_settings().sim_agents
-    counts = crowd.allocate(seg_out.segments, n)
-    rows, next_no = [], 1
-    for seg in seg_out.segments:
+    counts = crowd.allocate(segs, n)
+    agents, next_no = [], 1
+    for seg in segs:
         out = llm.run(
-            T18, T18Input(segment=seg, niche=niche, count=counts[seg.key], first_agent_no=next_no)
+            T18,
+            T18Input(
+                segment=seg,
+                niche=niche or "lifestyle",
+                count=counts[seg.key],
+                first_agent_no=next_no,
+            ),
         )
         for p in out.personas[: counts[seg.key]]:
-            rows.append((seg, p))
+            agents.append((seg, p))
         next_no += counts[seg.key]
     with service_connection() as conn:
-        for seg in seg_out.segments:
+        for seg in segs:
             conn.execute(
                 """
                 insert into public.audience_segments
@@ -154,8 +163,8 @@ def ensure_personas(creator_id: UUID) -> str:
             cur.executemany(
                 """
                 insert into public.audience_personas
-                  (creator_id, version, agent_no, segment, persona_text, traits)
-                values (%s, %s, %s, %s, %s, %s) on conflict do nothing
+                  (creator_id, version, agent_no, segment, persona_text, traits, persona_id)
+                values (%s, %s, %s, %s, %s, %s, %s) on conflict do nothing
                 """,
                 [
                     (
@@ -164,17 +173,10 @@ def ensure_personas(creator_id: UUID) -> str:
                         p.agent_no,
                         seg.key,
                         p.persona_text,
-                        Jsonb(
-                            {
-                                "patience": p.patience,
-                                "liker": p.liker,
-                                "commenter": p.commenter,
-                                "sharer": p.sharer,
-                                "saver": p.saver,
-                            }
-                        ),
+                        Jsonb({k: getattr(p, k) for k in TRAITS}),
+                        persona_of[seg.key],
                     )
-                    for seg, p in rows
+                    for seg, p in agents
                 ],
             )
     return version
@@ -195,12 +197,17 @@ def load_agents(conn, creator_id: UUID, version: str) -> tuple[list[AgentBrief],
             segment_label=segs[p["segment"]]["label"] if p["segment"] in segs else p["segment"],
             persona_text=p["persona_text"],
             interests=list(segs[p["segment"]]["interests"]) if p["segment"] in segs else [],
+            intent=p["intent"],
+            persona_id=str(p["persona_id"]) if p["persona_id"] else None,
             **{k: float(v) for k, v in p["traits"].items()},
         )
         for p in conn.execute(
             """
-            select agent_no, segment, persona_text, traits from public.audience_personas
-             where creator_id = %s and version = %s order by agent_no
+            select a.agent_no, a.segment, a.persona_text, a.traits, a.persona_id,
+                   f.profile->'evidence'->'intents'->0->>'intent' as intent
+              from public.audience_personas a
+              left join public.follower_personas f on f.id = a.persona_id
+             where a.creator_id = %s and a.version = %s order by a.agent_no
             """,
             (creator_id, version),
         ).fetchall()
@@ -284,52 +291,222 @@ def past_engagement(reels: list[dict]) -> list[float]:
     return out
 
 
+def _factor(r: dict) -> crowd.Factor:
+    return crowd.Factor(
+        r["metric"],
+        float(r["factor"]) if r["factor"] is not None else None,
+        float(r["low"]) if r["low"] is not None else None,
+        float(r["high"]) if r["high"] is not None else None,
+        r["n"],
+    )
+
+
 def ensure_calibration(
     creator_id: UUID, version: str, usual_views: float | None
-) -> dict[str, crowd.Factor]:
+) -> dict[str, dict[str, crowd.Factor]]:
+    """Factors per segment ('' = overall, the fallback) and metric."""
     with service_connection() as conn:
         rows = conn.execute(
             "select * from public.persona_calibrations where creator_id = %s and version = %s",
             (creator_id, version),
         ).fetchall()
         if rows:
-            return {
-                r["metric"]: crowd.Factor(
-                    r["metric"],
-                    float(r["factor"]) if r["factor"] is not None else None,
-                    float(r["low"]) if r["low"] is not None else None,
-                    float(r["high"]) if r["high"] is not None else None,
-                    r["n"],
-                )
-                for r in rows
-            }
+            out: dict[str, dict[str, crowd.Factor]] = {}
+            for r in rows:
+                out.setdefault(r["segment"], {})[r["metric"]] = _factor(r)
+            return out
         account_id = conn.execute(
             "select account_id from public.creators where id = %s", (creator_id,)
         ).fetchone()["account_id"]
         agents, _ = load_agents(conn, creator_id, version)
         reels = [r for r in past_reels(conn, account_id) if r["transcript"]][:CALIBRATION_REELS]
-    # A spread of the audience: every fifth agent, up to 200.
+    # A spread of the audience: every fifth agent, up to 200 (each persona in proportion).
     step = max(1, len(agents) // CALIBRATION_AGENTS)
     sample = agents[::step][:CALIBRATION_AGENTS]
-    pairs: dict[str, list[tuple[float | None, float | None]]] = {m: [] for m in crowd.METRICS}
+    seg_of = {a.agent_no: a.segment for a in sample}
+    keys = sorted({a.segment for a in sample})
+    pairs: dict[str, dict[str, list]] = {k: {m: [] for m in crowd.METRICS} for k in ["", *keys]}
     for r in reels:
         tl = crowd.timeline(r["transcript"], r["caption"] or "")
-        got = crowd.rates(react(f"calibrate:{creator_id}:{version}:{r['id']}", tl, sample))
+        got_all = react(f"calibrate:{creator_id}:{version}:{r['id']}", tl, sample)
         real = real_rates(r, usual_views)
-        for m in crowd.METRICS:
-            pairs[m].append((real[m], got.rate(m)))
-    factors = crowd.calibrate(pairs)
+        for k in ["", *keys]:
+            got = crowd.rates([x for x in got_all if not k or seg_of.get(x.agent_no) == k])
+            for m in crowd.METRICS:
+                pairs[k][m].append((real[m], got.rate(m)))
+    factors = {k: crowd.calibrate(v) for k, v in pairs.items()}
     with service_connection() as conn:
-        for f in factors.values():
-            conn.execute(
-                """
-                insert into public.persona_calibrations
-                  (creator_id, version, metric, factor, low, high, n)
-                values (%s, %s, %s, %s, %s, %s, %s) on conflict do nothing
-                """,
-                (creator_id, version, f.metric, f.k, f.low, f.high, f.n),
-            )
+        for k, fs in factors.items():
+            for f in fs.values():
+                conn.execute(
+                    """
+                    insert into public.persona_calibrations
+                      (creator_id, version, segment, metric, factor, low, high, n)
+                    values (%s, %s, %s, %s, %s, %s, %s, %s) on conflict do nothing
+                    """,
+                    (creator_id, version, k, f.metric, f.k, f.low, f.high, f.n),
+                )
     return factors
+
+
+def factors_for(factors: dict[str, dict[str, crowd.Factor]], key: str) -> dict[str, crowd.Factor]:
+    """A persona's own factor per metric where it has enough past reels, else the overall."""
+    overall = factors.get("", {})
+    own = factors.get(key, {})
+    return {
+        m: own[m] if m in own and own[m].k is not None and own[m].n >= MIN_PERSONA_REELS else f
+        for m, f in overall.items()
+    }
+
+
+# ------------------------------------------------------------------ "How each follower group reacted"
+
+
+def _pct(x: float | None) -> str:
+    return "—" if x is None else f"{round(100 * x)}%"
+
+
+def group_results(
+    reactions: list[Reaction],
+    agents: list[AgentBrief],
+    tl: Timeline,
+    factors: dict[str, dict[str, crowd.Factor]],
+    personas: list[dict],
+) -> list[dict]:
+    """One row per persona: its agents' watched-to-end share and calibrated rates (saves are
+    simulated), a mood from its engagement against the whole audience, and a takeaway."""
+    seg_of = {a.agent_no: a.segment for a in agents}
+    duration = tl.duration_s or max((r.watch_until_s for r in reactions), default=0) or 1
+    overall = crowd.rates(reactions)
+    overall_pred = {p.metric: p.rate for p in crowd.predict(overall, factors.get("", {}), None)}
+    overall_e = crowd.engagement(overall_pred)
+    out = []
+    for row in personas:
+        key = segment_key(row["id"])
+        mine = [r for r in reactions if seg_of.get(r.agent_no) == key]
+        if not mine:
+            continue
+        got = crowd.rates(mine)
+        own = factors_for(factors, key)
+        preds = {p.metric: p for p in crowd.predict(got, own, None)}
+        rates = {m: preds[m].rate for m in ("likes", "comments", "shares", "saves")}
+        to_end = sum(1 for r in mine if not r.skipped and r.watch_until_s >= 0.9 * duration) / len(
+            mine
+        )
+        e = crowd.engagement(rates)
+        ratio = (e / overall_e) if e is not None and overall_e else None
+        if ratio is None:
+            mood = "neutral"
+        else:
+            mood = (
+                "love"
+                if ratio >= 1.15
+                else "like"
+                if ratio >= 0.95
+                else "unsure"
+                if ratio >= 0.75
+                else "skip"
+            )
+        early = sum(1 for r in mine if r.skipped) / len(mine)
+        if mood == "love":
+            takeaway = f"Your strongest group for this reel: {_pct(to_end)} watched to the end."
+        elif mood == "like":
+            takeaway = f"On board: {_pct(to_end)} watched to the end."
+        elif tl.payoff_s and tl.payoff_s > 2:
+            takeaway = (
+                f"{_pct(early)} scrolled on early; the result only shows at {tl.payoff_s:g} s."
+            )
+        else:
+            takeaway = f"Less into this one: {_pct(early)} scrolled on early."
+        out.append(
+            {
+                "persona_id": str(row["id"]),
+                "name": row["name"],
+                "short_name": row["short_name"],
+                "color": row["color"],
+                "avatar_seed": row["avatar_seed"],
+                "share": float(row["share"]),
+                "agents": len(mine),
+                "watched_to_end": round(to_end, 4),
+                "rates": {m: (None if v is None else round(v, 5)) for m, v in rates.items()},
+                "saves_simulated": True,
+                "calibration": "own"
+                if any(own[m] is not factors.get("", {}).get(m) for m in own)
+                else "overall",
+                "mood": mood,
+                "takeaway": takeaway,
+                "facts": [
+                    f"{_pct(to_end)} of this group's agents watched to the end.",
+                    f"{_pct(early)} of this group's agents scrolled on early.",
+                    *(
+                        f"Simulated {m} rate in this group: {_pct(v)}."
+                        for m, v in rates.items()
+                        if v is not None
+                    ),
+                ],
+            }
+        )
+    return out
+
+
+def persona_opinions(
+    creator_id: UUID, simulation_id: UUID, groups: list[dict], personas: list[dict], idea: str
+) -> None:
+    """Each persona's own take on its simulated results (T27, cached per simulation)."""
+    by_id = {g["persona_id"]: g for g in groups}
+    rows = [r for r in personas if str(r["id"]) in by_id]
+    if not rows:
+        return
+    draft = "\n".join(
+        f"{by_id[str(r['id'])]['name']}: " + " ".join(by_id[str(r["id"])]["facts"]) for r in rows
+    )
+    target = persona_reactions.Target(
+        type="simulation", id=simulation_id, version=1, idea=idea, draft=draft
+    )
+    opinions = persona_reactions.react(creator_id, rows, target, "personas")
+    by_persona = {str(o["persona_id"]): o for o in opinions}
+    for g in groups:
+        o = by_persona.get(g["persona_id"])
+        if o:
+            g["opinion"] = {
+                "reaction": o["reaction"],
+                "reaction_label": P.REACTION_WORDS[o["reaction"]],
+                "opinion": o["opinion"],
+                "win_them_over": o["win_them_over"],
+            }
+
+
+def studio_compare(project_id: UUID | None, groups: list[dict]) -> list[str]:
+    """ "In Studio, the Budget Stylist was unsure; in the simulation, 61% of them watched to the
+    end." — from the project's newest persona reactions."""
+    if project_id is None:
+        return []
+    with service_connection() as conn:
+        rows = conn.execute(
+            """
+            select distinct on (o.persona_id) o.persona_id, o.reaction
+              from public.persona_opinions o
+             where o.project_id = %s and o.target_type <> 'simulation'
+             order by o.persona_id, o.created_at desc
+            """,
+            (project_id,),
+        ).fetchall()
+    said = {str(r["persona_id"]): r["reaction"] for r in rows}
+    words = {
+        "watch_all": "loved it",
+        "watch": "was in",
+        "scroll_past": "was unsure",
+        "skip": "would skip it",
+    }
+    out = []
+    for g in groups:
+        if g["persona_id"] in said:
+            g["studio_reaction"] = said[g["persona_id"]]
+            out.append(
+                f"In Studio, {g['name']} {words[said[g['persona_id']]]}; in the simulation, "
+                f"{_pct(g['watched_to_end'])} of them watched to the end."
+            )
+    return out
 
 
 # ------------------------------------------------------------------ one run
@@ -343,6 +520,7 @@ def run_audience(
     duration_s: float | None,
     usual_views: float | None,
     progress=None,
+    project_id: UUID | None = None,
 ) -> dict[str, Any]:
     if progress:
         progress(step="audience")
@@ -355,6 +533,16 @@ def run_audience(
         ).fetchone()["account_id"]
         past_e = past_engagement(past_reels(conn, account_id))
         segs = segments(conn, creator_id, version)
+        personas = conn.execute(
+            """
+            select f.* from public.follower_personas f
+             where f.id in (select a.persona_id from public.audience_personas a
+                             where a.creator_id = %s and a.version = %s)
+             order by f.slot
+            """,
+            (creator_id, version),
+        ).fetchall()
+    colour_of = {segment_key(r["id"]): r["color"] for r in personas}
     tl = crowd.timeline(t1, caption, duration_s)
     if progress:
         progress(step="agents")
@@ -385,28 +573,43 @@ def run_audience(
             if a.liked:
                 likes_on[a.reply_to] = likes_on.get(a.reply_to, 0) + 1
             if a.reply_text:
+                seg = segment_of.get(a.agent_no, "")
                 threads.setdefault(a.reply_to, []).append(
                     {
                         "agent_no": a.agent_no,
-                        "segment": labels.get(segment_of.get(a.agent_no, ""), ""),
+                        "segment": labels.get(seg, ""),
+                        "color": colour_of.get(seg),
                         "text": a.reply_text,
                     }
                 )
 
     got = crowd.rates(reactions)
     curve = crowd.skip_curve(reactions, tl.duration_s)
-    preds = crowd.predict(got, factors, usual_views)
+    overall = factors.get("", {})
+    preds = crowd.predict(got, overall, usual_views)
     calibrated = {p.metric: p.rate for p in preds}
     e = crowd.engagement(calibrated)
     score = crowd.engagement_score(e, past_e)
     fact_lines = crowd.facts(got, curve, reactions, tl, labels, segment_of)
     explain = explain_run(fact_lines, tl.duration_s)
+    groups = group_results(reactions, agents, tl, factors, personas)
+    idea = caption or "This reel"
+    try:
+        persona_opinions(creator_id, simulation_id, groups, personas, idea)
+    except Exception:  # the run's numbers stand without the personas' words
+        import logging
+
+        logging.getLogger("curo.personas").exception("simulation persona opinions failed")
+    compare = studio_compare(project_id, groups)
+    for g in groups:
+        g.pop("facts", None)
 
     feed = sorted(commented, key=lambda r: (-likes_on.get(r.agent_no, 0), r.agent_no))
     comments = [
         {
             "agent_no": r.agent_no,
             "segment": labels.get(segment_of[r.agent_no], segment_of[r.agent_no]),
+            "color": colour_of.get(segment_of[r.agent_no]),
             "text": r.comment_text,
             "likes": likes_on.get(r.agent_no, 0),
             "replies": threads.get(r.agent_no, []),
@@ -449,6 +652,8 @@ def run_audience(
             {"key": s.key, "label": s.label, "share": s.share, "description": s.description}
             for s in segs
         ],
+        "personas": groups,
+        "studio_compare": compare,
         "predictions": [
             {
                 "metric": p.metric,
@@ -462,7 +667,7 @@ def run_audience(
             }
             for p in preds
         ],
-        "calibration": {m: {"factor": _r(f.k), "reels": f.n} for m, f in sorted(factors.items())},
+        "calibration": {m: {"factor": _r(f.k), "reels": f.n} for m, f in sorted(overall.items())},
         "engagement": _r(e),
         "engagement_score": score,
         "past_reels_scored": len(past_e),
@@ -470,6 +675,7 @@ def run_audience(
         "explain": explain,
         "comments": comments,
         "label": "Simulated by CURO's AI audience. Not real comments.",
+        "persona_label": P.LABEL,
     }
 
 

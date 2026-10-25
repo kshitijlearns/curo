@@ -511,6 +511,9 @@ class Validation(BaseModel):
     shares: IdeaShares
     reasons: list[Reason]
     tweaks: list[TweakOut]
+    personas: PersonaReactionsOut | None = Field(
+        None, description="v2.2: each Follower Persona's own take (A is their weighted score)"
+    )
 
 
 class ReelInsights(BaseModel):
@@ -701,11 +704,13 @@ class AgentReply(BaseModel):
     agent_no: int
     segment: str
     text: str
+    color: str | None = None  # v2.2: the agent's Follower Persona colour (a small dot)
 
 
 class AgentComment(BaseModel):
     agent_no: int
-    segment: str  # shown as "Agent 12 · Festive planner"; never a handle or an avatar
+    segment: str  # shown as "Agent 12 · Festive Planner"; never a handle or an avatar
+    color: str | None = None
     text: str
     likes: int = 0
     replies: list[AgentReply] = Field(default_factory=list)
@@ -716,6 +721,33 @@ class AudienceSegmentOut(BaseModel):
     label: str
     share: float
     description: str
+
+
+class SimPersonaOpinion(BaseModel):
+    reaction: str
+    reaction_label: str
+    opinion: str
+    win_them_over: str | None = None
+
+
+class SimPersonaResult(BaseModel):
+    """v2.2: how one Follower Persona's agents reacted (rates calibrated; saves simulated)."""
+
+    persona_id: UUID
+    name: str
+    short_name: str
+    color: str
+    avatar_seed: int
+    share: float
+    agents: int
+    watched_to_end: float
+    rates: dict[str, float | None]
+    saves_simulated: bool = True
+    calibration: Literal["own", "overall"]
+    mood: str
+    takeaway: str
+    opinion: SimPersonaOpinion | None = None
+    studio_reaction: str | None = None
 
 
 class SimAudienceResult(BaseModel):
@@ -738,6 +770,9 @@ class SimAudienceResult(BaseModel):
     explain: AudienceExplain
     comments: list[AgentComment]
     label: str
+    personas: list[SimPersonaResult] = Field(default_factory=list)  # v2.2
+    studio_compare: list[str] = Field(default_factory=list)
+    persona_label: str | None = None
 
 
 class AgentOut(BaseModel):
@@ -952,11 +987,163 @@ class Recap(RecapSummary):
     archetype_evidence: dict[str, Any] = Field(default_factory=dict)
 
 
-class FollowerIdeaOut(BaseModel):
+# --------------------------------------------------------------------------- Follower Personas (v2.2)
+
+PersonaColor = Literal["blue", "lavender", "pink", "ink"]
+PersonaMood = Literal["neutral", "love", "like", "unsure", "skip", "thinking", "listening"]
+Confidence = Literal["low", "medium", "high"]
+
+
+class PersonaThoughtOut(BaseModel):
+    thought: str
+    mood: PersonaMood
+    loves: list[str] = Field(default_factory=list)
+    wants_more: list[str] = Field(default_factory=list)
+
+
+class PersonaCard(BaseModel):
+    """One persona on Home (and everywhere it's shown small)."""
+
+    id: UUID
+    slot: int
+    name: str
+    short_name: str
+    tagline: str
+    share: float
+    share_pct: int
+    color: PersonaColor
+    avatar_seed: int
+    confidence: Confidence
+    is_starter: bool
+    mood: PersonaMood = Field(description="The avatar's mood from current sentiment (code)")
+    meter: int = Field(ge=1, le=5, description="5-step mood meter, 1 = not feeling it")
+    meter_word: str
+    thought: PersonaThoughtOut
+    n_comments: int
+    n_reels: int
+    evidence_line: str = Field(description="From 214 comments across 18 reels · updated 3 Oct.")
+    updated_at: datetime
+
+
+class PersonasOut(BaseModel):
+    status: Literal["ready", "building"]
+    summary: str | None = None  # "3 of 4 of your follower groups are loving your recent reels."
+    early_guess: bool = False
+    label: str
+    personas: list[PersonaCard] = Field(default_factory=list)
+
+
+class PersonaTrait(BaseModel):
+    text: str
+    evidence: str | None = None
+
+
+class PersonaReel(BaseModel):
     id: UUID
     title: str
-    why: str
-    segment: str | None = None
-    score: float
-    parts: dict[str, float] = Field(default_factory=dict)
-    evidence: dict[str, Any] = Field(default_factory=dict)
+    comments: int = Field(description="This group's comments on it")
+    tone: int
+
+
+class LanguageShare(BaseModel):
+    language: str
+    name: str
+    share: float | None = None
+
+
+class PersonaHistoryPoint(BaseModel):
+    period: date
+    share: float
+    mood: str
+    sentiment: float | None = None
+    n_comments: int
+
+
+class PersonaDetail(PersonaCard):
+    comes_for: list[str]
+    loves: list[PersonaTrait]
+    wants_more: list[str]
+    turn_offs: list[PersonaTrait]
+    engagement_style: str
+    voice: str
+    typical_comment: str = Field(description="Paraphrased, never a real comment")
+    language: list[LanguageShare]
+    places: list[str] = Field(default_factory=list)
+    favourite_reels: list[PersonaReel] = Field(default_factory=list)
+    facts: list[str] = Field(default_factory=list)
+    history: list[PersonaHistoryPoint] = Field(default_factory=list)
+    label: str
+
+
+class PersonaWould(BaseModel):
+    like: bool = False
+    comment: bool = False
+    share: bool = False
+    save: bool = False
+
+
+class PersonaReactionOut(BaseModel):
+    persona_id: UUID
+    name: str
+    short_name: str
+    color: PersonaColor
+    avatar_seed: int
+    share: float
+    is_starter: bool
+    reaction: Literal["watch_all", "watch", "scroll_past", "skip"]
+    reaction_label: str
+    mood: PersonaMood
+    badge: Literal["Love", "Like", "Unsure", "Skip"]
+    score: int = Field(ge=0, le=100, description="This persona's score: the model/code blend")
+    score_model: float | None = None
+    score_code: float
+    would: PersonaWould
+    opinion: str
+    win_them_over: str | None = None
+    evidence: list[str] = Field(default_factory=list)
+
+
+class PersonaReactionsIn(BaseModel):
+    target_type: Literal["idea", "script", "storyboard", "caption"] | None = Field(
+        None, description="Default: the project's current draft"
+    )
+    target_id: UUID | None = None
+
+
+class PersonaReactionsOut(BaseModel):
+    status: Literal["ready", "building", "none"]
+    target_type: str | None = None
+    target_id: UUID | None = None
+    target_version: int | None = None
+    reactions: list[PersonaReactionOut] = Field(default_factory=list)
+    summary: str | None = None
+    audience: float | None = Field(
+        None, description="A in the idea score: Σ share × score / Σ share"
+    )
+    label: str
+
+
+class PersonaChatIn(BaseModel):
+    message: str = Field(min_length=1, max_length=500)
+    context_type: Literal["home", "studio", "simulator"] = "home"
+    context_id: UUID | None = None
+
+
+class PersonaMessageOut(BaseModel):
+    id: UUID
+    role: Literal["user", "persona"]
+    content: str
+    created_at: datetime
+
+
+class HomeSection(BaseModel):
+    id: Literal["personas", "recap", "opportunities", "trends"]
+    title: str
+    endpoint: str
+
+
+class HomeOut(BaseModel):
+    sections: list[HomeSection]
+
+
+Validation.model_rebuild()

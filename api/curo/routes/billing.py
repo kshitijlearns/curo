@@ -179,6 +179,7 @@ class CreatorCost(BaseModel):
 
 
 class FeatureCost(BaseModel):
+    feature: str | None = None  # personas, studio_personas, persona_chat (v2.2), else by task
     task: str | None
     provider: str
     cost_usd: float
@@ -224,9 +225,9 @@ def admin_costs(user: User = Depends(current_user)) -> CostsOut:
         ).fetchall()
         features = conn.execute(
             """
-            select task, provider, sum(cost_usd) as cost, count(*) as calls
+            select feature, task, provider, sum(cost_usd) as cost, count(*) as calls
               from public.usage_ledger where created_at >= %s and created_at < %s
-             group by task, provider order by cost desc nulls last, task
+             group by feature, task, provider order by cost desc nulls last, feature, task
             """,
             (start, end),
         ).fetchall()
@@ -246,6 +247,7 @@ def admin_costs(user: User = Depends(current_user)) -> CostsOut:
         ],
         features=[
             FeatureCost(
+                feature=f["feature"],
                 task=f["task"],
                 provider=f["provider"],
                 cost_usd=round(float(f["cost"] or 0), 4),

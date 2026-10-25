@@ -4,9 +4,10 @@
     python tools/record_web_demo.py # writes web/public/demo/fixtures.json
 
 The web app plays these back when it is deployed without a backend (demo mode, D211):
-every screen shows real CURO output — Home, an opportunity, the Studio steps, the Simulator
-with its AI audience and an agent chat, Saved and Settings — from the synthetic @curo.demo
-dataset. Nothing here is a real person's data.
+every screen shows real CURO output — Home (with the Follower Personas), an opportunity, the
+Studio steps with the personas' reactions, the Simulator with its AI audience and an agent
+chat, persona chats, Saved and Settings — from the synthetic @curo.demo dataset. Nothing here
+is a real person's data.
 """
 
 from __future__ import annotations
@@ -47,6 +48,24 @@ def wait(job_id: str) -> None:
     raise SystemExit("job timed out")
 
 
+def persona_chat(persona_id: str, message: str) -> str:
+    """The persona's whole answer from its event stream."""
+    req = urllib.request.Request(
+        f"{API}/v1/personas/{persona_id}/chat",
+        data=json.dumps({"message": message}).encode(),
+        method="POST",
+    )
+    req.add_header("Content-Type", "application/json")
+    req.add_header("Authorization", f"Bearer {TOKEN}")
+    with urllib.request.urlopen(req, timeout=300) as res:
+        raw = res.read().decode("utf-8")
+    for block in raw.strip().split("\n\n"):
+        lines = dict(line.split(": ", 1) for line in block.splitlines() if ": " in line)
+        if lines.get("event") == "done":
+            return json.loads(lines["data"])["text"]
+    return ""
+
+
 def main() -> None:
     global TOKEN
     code = call("POST", "/auth/otp", {"email": EMAIL})["dev_code"]
@@ -60,6 +79,11 @@ def main() -> None:
         return get[path]
 
     keep("/me")
+    keep("/home")
+    # v2.2: the Follower Personas, each one's detail sheet.
+    personas = keep("/personas")["personas"]
+    for p in personas:
+        keep(f"/personas/{p['id']}")
     opps = keep("/opportunities")
     for o in opps:
         keep(f"/opportunities/{o['id']}")
@@ -81,17 +105,36 @@ def main() -> None:
     fx["project_started"] = started
     stages = fx["project_stages"] = {}
     stages["ideas"] = call("GET", f"/projects/{pid}")
+    reactions = fx["persona_reactions"] = {}
+    for i, one in enumerate(stages["ideas"]["rounds"][-1]["ideas"]):
+        r = call(
+            "POST",
+            f"/projects/{pid}/persona-reactions",
+            {"target_type": "idea", "target_id": one["id"]},
+        )
+        reactions[f"idea:{one['id']}"] = r
+        if i == 0:
+            reactions["ideas"] = r
     idea = stages["ideas"]["rounds"][-1]["ideas"][0]
     call("POST", f"/projects/{pid}/ideas/{idea['id']}/select", {})
     wait(
         call("POST", f"/projects/{pid}/script", {"direction": None, "regenerate": False})["job_id"]
     )
     stages["script"] = call("GET", f"/projects/{pid}")
+    reactions["script"] = call(
+        "POST", f"/projects/{pid}/persona-reactions", {"target_type": "script"}
+    )
     wait(call("POST", f"/projects/{pid}/storyboard", {})["job_id"])
     stages["storyboard"] = call("GET", f"/projects/{pid}")
+    reactions["storyboard"] = call(
+        "POST", f"/projects/{pid}/persona-reactions", {"target_type": "storyboard"}
+    )
     wait(call("POST", f"/projects/{pid}/captions", {})["job_id"])
     call("PUT", f"/projects/{pid}/caption", {"chosen": 2})
     stages["caption"] = call("GET", f"/projects/{pid}")
+    reactions["caption"] = call(
+        "POST", f"/projects/{pid}/persona-reactions", {"target_type": "caption"}
+    )
 
     # Simulator: the first take, then the re-recorded take as a re-run.
     sims = fx["simulations"] = {}
@@ -131,9 +174,19 @@ def main() -> None:
                 out = call("POST", f"/simulations/{sim['id']}/agents/{no}/chat", {"message": q})
                 replies[q] = out["answer"]
 
+    # Persona chat: a recorded answer per kind of question, per persona.
+    chats = fx["persona_chat"] = {}
+    asks = {
+        "next": "What do you want next?",
+        "why": "Why do you scroll past?",
+        "share": "What would make you share a reel?",
+        "honest": "How many of you are there exactly?",
+    }
+    for p in personas:
+        chats[p["id"]] = {k: persona_chat(p["id"], q) for k, q in asks.items()}
+
     keep("/saved")
-    # v2.1: the Creator Recap (first + any monthly), its share card, and follower ideas.
-    keep("/follower-ideas")
+    # v2.1: the Creator Recap (first + any monthly) and its share card.
     fx["recaps"] = call("GET", "/recaps")
     fx["recap"] = {}
     fx["share_image"] = {}

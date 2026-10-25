@@ -28,7 +28,9 @@ export const useProject = (id: string | null) =>
     queryFn: () => api<S['Project']>(`/projects/${id}`),
     enabled: !!id,
     // A new project's first three ideas are written in the background: poll until they land.
-    refetchInterval: (q) => (q.state.data && (q.state.data.rounds ?? []).length === 0 ? 1500 : false),
+    // (A project started from the creator's own idea has that idea and no round: no polling.)
+    refetchInterval: (q) =>
+      q.state.data && (q.state.data.rounds ?? []).length === 0 && !q.state.data.idea ? 1500 : false,
   });
 
 export const useSimulation = (id: string | null) =>
@@ -81,8 +83,47 @@ export const useRecap = (id: string | null) =>
     enabled: !!id,
   });
 
-export const useFollowerIdeas = () =>
-  useQuery({ queryKey: ['follower-ideas'], queryFn: () => api<S['FollowerIdeaOut'][]>('/follower-ideas') });
+// ---------------------------------------------------------------- v2.2: Follower Personas
+
+export const usePersonas = () =>
+  useQuery({
+    queryKey: ['personas'],
+    queryFn: () => api<S['PersonasOut']>('/personas'),
+    // While the first build runs, the cards breathe as skeletons and fill in when ready.
+    refetchInterval: (q) => (q.state.data?.status === 'building' ? 3000 : false),
+  });
+
+export const usePersona = (id: string | null) =>
+  useQuery({
+    queryKey: ['persona', id],
+    queryFn: () => api<S['PersonaDetail']>(`/personas/${id}`),
+    enabled: !!id,
+  });
+
+/** The personas' reactions to a project's current draft (or one idea): cached on the server
+ *  per version, so asking again never calls the model twice. */
+export const usePersonaReactions = (
+  projectId: string | null,
+  key: string | null,
+  target?: { target_type: 'idea' | 'script' | 'storyboard' | 'caption'; target_id?: string },
+) =>
+  useQuery({
+    queryKey: ['persona-reactions', projectId, key],
+    queryFn: () =>
+      api<S['PersonaReactionsOut']>(`/projects/${projectId}/persona-reactions`, { body: target ?? {} }),
+    enabled: !!projectId && !!key,
+    staleTime: Infinity,
+  });
+
+export const usePersonaChatHistory = (id: string | null, context: string, contextId: string | null) =>
+  useQuery({
+    queryKey: ['persona-chat', id, context, contextId],
+    queryFn: () =>
+      api<S['PersonaMessageOut'][]>(
+        `/personas/${id}/chat?context_type=${context}${contextId ? `&context_id=${contextId}` : ''}`,
+      ),
+    enabled: !!id,
+  });
 
 export const useOnboardingStatus = (enabled = true) =>
   useQuery({

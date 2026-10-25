@@ -241,9 +241,9 @@ def recompute_learning(ctx: JobContext) -> dict[str, Any]:
             "select id from public.creators where account_id = %s", (account_id,)
         ).fetchone()
         learned = memory.save_learned(conn, creator["id"]) if creator else []
-    from curo.jobs.follower_ideas import queue_follower_ideas
+    from curo.jobs.personas import queue_for_account
 
-    queue_follower_ideas(account_id, f"learning:{ctx.job_id}")
+    queue_for_account(account_id, f"learning:{ctx.job_id}")
     # A new creator shouldn't wait for the nightly run to see opportunity areas.
     with service_connection() as conn:
         fresh = conn.execute(

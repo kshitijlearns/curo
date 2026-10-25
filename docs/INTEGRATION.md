@@ -133,7 +133,7 @@ day, so a change in the vendor's output is caught before it reaches creators."
 - Contract test: `python tools/record_contracts.py gemini-video path/to/a-reel.mp4` with a few
   of your own reels (talking, voiceover, music only). Budget: about 300 tokens per second.
 
-## 5 · LLMProvider → Claude (T2–T8, T10–T24)
+## 5 · LLMProvider → Claude (T2–T8, T10–T16, T18–T23, T25–T29)
 
 **The tasks**
 
@@ -269,14 +269,37 @@ scheduler with exactly one replica) plus Railway's Redis, all with the same envi
 `API_ORIGIN` pointing at the API. Vercel is planned but not built yet: `docs/DEPLOY_VERCEL.md`
 (D200).
 
-## 10a · Creator Recap and follower ideas (v2.1)
+## 10a · Creator Recap (v2.1)
 
-- T23 (recap copy, one call per recap) and T24 (one call per follower idea, up to 5) run on
-  `CLAUDE_MODEL_MAIN`; every line is checked by the validator, so a real model can only reword.
-  Record a few with `tools/record_contracts.py claude T23 …` before switching.
+- T23 (recap copy, one call per recap) runs on `CLAUDE_MODEL_MAIN`; every line is checked by
+  the validator, so a real model can only reword. Record a few with
+  `tools/record_contracts.py claude T23 …` before switching.
 - `WEB_URL` is printed on the share card (default `curo-sand.vercel.app`).
-- Cost: about one Claude call per recap and five per weekly idea rebuild, recorded in
-  `usage_ledger` (tasks `T23`, `T24`); recaps never use credits.
+- Cost: about one Claude call per recap, recorded in `usage_ledger` (task `T23`); recaps never
+  use credits. ("What your followers will love" and its T24 were removed in v2.2.)
+
+## 10b · Follower Personas (v2.2)
+
+- **Tasks:** T25 write follower personas (all 4 in one call) and T26 persona thoughts (one
+  call) per build; T27 persona reactions (one call per idea or draft version, all 4 personas);
+  T28 persona chat (one call per message) — all on `CLAUDE_MODEL_MAIN` (Sonnet). T29, the
+  sensitive-attribute classifier, runs on `CLAUDE_MODEL_FAST` (Haiku) after the keyword list.
+  Every output is checked for new numbers and sensitive attributes; a failure is regenerated
+  once, then replaced by a template from code facts, so a real model can only reword.
+- **Embeddings:** each comment is embedded once ("text · theme · intent · language") and cached
+  in `comment_embeddings` with its model; switching the embedding model re-embeds comments on
+  the next build (vectors from different models are never compared).
+- **Before switching:** record a few real answers with
+  `tools/record_contracts.py claude T25 …` (and T26–T29) from inputs captured with
+  `CAPTURE_TASK_INPUTS`; check names are kind and distinct and no field names an attribute.
+- **Settings:** `PERSONA_MODEL_WEIGHT` (default 0.5: a persona's score is half the model's,
+  half the code fit); `PERSONA_REFRESH_COMMENTS` (default 150 new comments → a mid-month
+  rebuild).
+- **Cost:** one embedding batch (new comments only) + 2 Sonnet calls + Haiku checks per build
+  (about $0.03–0.05 per creator per month), `usage_ledger.feature = 'personas'`; Studio
+  reactions about $0.01–0.02 per run (`studio_personas`, inside the project credit; never a
+  revision on their own); persona chat `persona_chat`, one Ask Curo message each. Personas are
+  free on every plan. `/admin/costs` groups by feature.
 
 ## 11 · Payments → Razorpay (or Stripe)
 

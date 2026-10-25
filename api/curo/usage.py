@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import logging
 import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
 from contextvars import ContextVar
 from uuid import UUID
 
@@ -17,6 +19,18 @@ from curo.services.billing import cost_usd
 
 log = logging.getLogger(__name__)
 current_creator: ContextVar[UUID | None] = ContextVar("current_creator", default=None)
+# The product feature a call belongs to (personas, studio_personas, persona_chat…); calls
+# outside one are grouped by their task on the admin page.
+current_feature: ContextVar[str | None] = ContextVar("current_feature", default=None)
+
+
+@contextmanager
+def feature(name: str) -> Iterator[None]:
+    token = current_feature.set(name)
+    try:
+        yield
+    finally:
+        current_feature.reset(token)
 
 
 def tokens(text: str) -> int:
@@ -68,8 +82,8 @@ def record(
                 """
                 insert into public.usage_ledger
                   (creator_id, provider, model, task, tokens_in, tokens_out, results, cost_usd,
-                   ref_id, created_at)
-                values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                   ref_id, created_at, feature)
+                values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     creator_id or current_creator.get(),
@@ -82,6 +96,7 @@ def record(
                     cost_usd(model, tokens_in, tokens_out, results),
                     ref_id,
                     clock.now(),
+                    current_feature.get(),
                 ),
             )
     except Exception:

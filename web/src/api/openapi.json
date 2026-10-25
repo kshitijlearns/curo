@@ -114,6 +114,17 @@
             "title": "Agent No",
             "type": "integer"
           },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
           "likes": {
             "default": 0,
             "title": "Likes",
@@ -197,6 +208,17 @@
           "agent_no": {
             "title": "Agent No",
             "type": "integer"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
           },
           "segment": {
             "title": "Segment",
@@ -1144,6 +1166,17 @@
             "title": "Cost Usd",
             "type": "number"
           },
+          "feature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feature"
+          },
           "provider": {
             "title": "Provider",
             "type": "string"
@@ -1167,58 +1200,6 @@
           "calls"
         ],
         "title": "FeatureCost",
-        "type": "object"
-      },
-      "FollowerIdeaOut": {
-        "properties": {
-          "evidence": {
-            "additionalProperties": true,
-            "title": "Evidence",
-            "type": "object"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "parts": {
-            "additionalProperties": {
-              "type": "number"
-            },
-            "title": "Parts",
-            "type": "object"
-          },
-          "score": {
-            "title": "Score",
-            "type": "number"
-          },
-          "segment": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Segment"
-          },
-          "title": {
-            "title": "Title",
-            "type": "string"
-          },
-          "why": {
-            "title": "Why",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "title",
-          "why",
-          "score"
-        ],
-        "title": "FollowerIdeaOut",
         "type": "object"
       },
       "FrameOutApi": {
@@ -1385,6 +1366,51 @@
           "checks"
         ],
         "title": "HealthOut",
+        "type": "object"
+      },
+      "HomeOut": {
+        "properties": {
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/HomeSection"
+            },
+            "title": "Sections",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sections"
+        ],
+        "title": "HomeOut",
+        "type": "object"
+      },
+      "HomeSection": {
+        "properties": {
+          "endpoint": {
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "id": {
+            "enum": [
+              "personas",
+              "recap",
+              "opportunities",
+              "trends"
+            ],
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "endpoint"
+        ],
+        "title": "HomeSection",
         "type": "object"
       },
       "IdeaOut": {
@@ -1717,6 +1743,35 @@
           "created_at"
         ],
         "title": "JobOut",
+        "type": "object"
+      },
+      "LanguageShare": {
+        "properties": {
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share"
+          }
+        },
+        "required": [
+          "language",
+          "name"
+        ],
+        "title": "LanguageShare",
         "type": "object"
       },
       "Me": {
@@ -2308,6 +2363,896 @@
           "text"
         ],
         "title": "OwnScriptIn",
+        "type": "object"
+      },
+      "PersonaCard": {
+        "description": "One persona on Home (and everywhere it's shown small).",
+        "properties": {
+          "avatar_seed": {
+            "title": "Avatar Seed",
+            "type": "integer"
+          },
+          "color": {
+            "enum": [
+              "blue",
+              "lavender",
+              "pink",
+              "ink"
+            ],
+            "title": "Color",
+            "type": "string"
+          },
+          "confidence": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "evidence_line": {
+            "description": "From 214 comments across 18 reels \u00b7 updated 3 Oct.",
+            "title": "Evidence Line",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_starter": {
+            "title": "Is Starter",
+            "type": "boolean"
+          },
+          "meter": {
+            "description": "5-step mood meter, 1 = not feeling it",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Meter",
+            "type": "integer"
+          },
+          "meter_word": {
+            "title": "Meter Word",
+            "type": "string"
+          },
+          "mood": {
+            "description": "The avatar's mood from current sentiment (code)",
+            "enum": [
+              "neutral",
+              "love",
+              "like",
+              "unsure",
+              "skip",
+              "thinking",
+              "listening"
+            ],
+            "title": "Mood",
+            "type": "string"
+          },
+          "n_comments": {
+            "title": "N Comments",
+            "type": "integer"
+          },
+          "n_reels": {
+            "title": "N Reels",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "share": {
+            "title": "Share",
+            "type": "number"
+          },
+          "share_pct": {
+            "title": "Share Pct",
+            "type": "integer"
+          },
+          "short_name": {
+            "title": "Short Name",
+            "type": "string"
+          },
+          "slot": {
+            "title": "Slot",
+            "type": "integer"
+          },
+          "tagline": {
+            "title": "Tagline",
+            "type": "string"
+          },
+          "thought": {
+            "$ref": "#/components/schemas/PersonaThoughtOut"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slot",
+          "name",
+          "short_name",
+          "tagline",
+          "share",
+          "share_pct",
+          "color",
+          "avatar_seed",
+          "confidence",
+          "is_starter",
+          "mood",
+          "meter",
+          "meter_word",
+          "thought",
+          "n_comments",
+          "n_reels",
+          "evidence_line",
+          "updated_at"
+        ],
+        "title": "PersonaCard",
+        "type": "object"
+      },
+      "PersonaChatIn": {
+        "properties": {
+          "context_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Id"
+          },
+          "context_type": {
+            "default": "home",
+            "enum": [
+              "home",
+              "studio",
+              "simulator"
+            ],
+            "title": "Context Type",
+            "type": "string"
+          },
+          "message": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "PersonaChatIn",
+        "type": "object"
+      },
+      "PersonaDetail": {
+        "properties": {
+          "avatar_seed": {
+            "title": "Avatar Seed",
+            "type": "integer"
+          },
+          "color": {
+            "enum": [
+              "blue",
+              "lavender",
+              "pink",
+              "ink"
+            ],
+            "title": "Color",
+            "type": "string"
+          },
+          "comes_for": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Comes For",
+            "type": "array"
+          },
+          "confidence": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "engagement_style": {
+            "title": "Engagement Style",
+            "type": "string"
+          },
+          "evidence_line": {
+            "description": "From 214 comments across 18 reels \u00b7 updated 3 Oct.",
+            "title": "Evidence Line",
+            "type": "string"
+          },
+          "facts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Facts",
+            "type": "array"
+          },
+          "favourite_reels": {
+            "items": {
+              "$ref": "#/components/schemas/PersonaReel"
+            },
+            "title": "Favourite Reels",
+            "type": "array"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/PersonaHistoryPoint"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_starter": {
+            "title": "Is Starter",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "language": {
+            "items": {
+              "$ref": "#/components/schemas/LanguageShare"
+            },
+            "title": "Language",
+            "type": "array"
+          },
+          "loves": {
+            "items": {
+              "$ref": "#/components/schemas/PersonaTrait"
+            },
+            "title": "Loves",
+            "type": "array"
+          },
+          "meter": {
+            "description": "5-step mood meter, 1 = not feeling it",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Meter",
+            "type": "integer"
+          },
+          "meter_word": {
+            "title": "Meter Word",
+            "type": "string"
+          },
+          "mood": {
+            "description": "The avatar's mood from current sentiment (code)",
+            "enum": [
+              "neutral",
+              "love",
+              "like",
+              "unsure",
+              "skip",
+              "thinking",
+              "listening"
+            ],
+            "title": "Mood",
+            "type": "string"
+          },
+          "n_comments": {
+            "title": "N Comments",
+            "type": "integer"
+          },
+          "n_reels": {
+            "title": "N Reels",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "places": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Places",
+            "type": "array"
+          },
+          "share": {
+            "title": "Share",
+            "type": "number"
+          },
+          "share_pct": {
+            "title": "Share Pct",
+            "type": "integer"
+          },
+          "short_name": {
+            "title": "Short Name",
+            "type": "string"
+          },
+          "slot": {
+            "title": "Slot",
+            "type": "integer"
+          },
+          "tagline": {
+            "title": "Tagline",
+            "type": "string"
+          },
+          "thought": {
+            "$ref": "#/components/schemas/PersonaThoughtOut"
+          },
+          "turn_offs": {
+            "items": {
+              "$ref": "#/components/schemas/PersonaTrait"
+            },
+            "title": "Turn Offs",
+            "type": "array"
+          },
+          "typical_comment": {
+            "description": "Paraphrased, never a real comment",
+            "title": "Typical Comment",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "voice": {
+            "title": "Voice",
+            "type": "string"
+          },
+          "wants_more": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Wants More",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "slot",
+          "name",
+          "short_name",
+          "tagline",
+          "share",
+          "share_pct",
+          "color",
+          "avatar_seed",
+          "confidence",
+          "is_starter",
+          "mood",
+          "meter",
+          "meter_word",
+          "thought",
+          "n_comments",
+          "n_reels",
+          "evidence_line",
+          "updated_at",
+          "comes_for",
+          "loves",
+          "wants_more",
+          "turn_offs",
+          "engagement_style",
+          "voice",
+          "typical_comment",
+          "language",
+          "label"
+        ],
+        "title": "PersonaDetail",
+        "type": "object"
+      },
+      "PersonaHistoryPoint": {
+        "properties": {
+          "mood": {
+            "title": "Mood",
+            "type": "string"
+          },
+          "n_comments": {
+            "title": "N Comments",
+            "type": "integer"
+          },
+          "period": {
+            "format": "date",
+            "title": "Period",
+            "type": "string"
+          },
+          "sentiment": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sentiment"
+          },
+          "share": {
+            "title": "Share",
+            "type": "number"
+          }
+        },
+        "required": [
+          "period",
+          "share",
+          "mood",
+          "n_comments"
+        ],
+        "title": "PersonaHistoryPoint",
+        "type": "object"
+      },
+      "PersonaMessageOut": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "user",
+              "persona"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "content",
+          "created_at"
+        ],
+        "title": "PersonaMessageOut",
+        "type": "object"
+      },
+      "PersonaReactionOut": {
+        "properties": {
+          "avatar_seed": {
+            "title": "Avatar Seed",
+            "type": "integer"
+          },
+          "badge": {
+            "enum": [
+              "Love",
+              "Like",
+              "Unsure",
+              "Skip"
+            ],
+            "title": "Badge",
+            "type": "string"
+          },
+          "color": {
+            "enum": [
+              "blue",
+              "lavender",
+              "pink",
+              "ink"
+            ],
+            "title": "Color",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "is_starter": {
+            "title": "Is Starter",
+            "type": "boolean"
+          },
+          "mood": {
+            "enum": [
+              "neutral",
+              "love",
+              "like",
+              "unsure",
+              "skip",
+              "thinking",
+              "listening"
+            ],
+            "title": "Mood",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "opinion": {
+            "title": "Opinion",
+            "type": "string"
+          },
+          "persona_id": {
+            "format": "uuid",
+            "title": "Persona Id",
+            "type": "string"
+          },
+          "reaction": {
+            "enum": [
+              "watch_all",
+              "watch",
+              "scroll_past",
+              "skip"
+            ],
+            "title": "Reaction",
+            "type": "string"
+          },
+          "reaction_label": {
+            "title": "Reaction Label",
+            "type": "string"
+          },
+          "score": {
+            "description": "This persona's score: the model/code blend",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "integer"
+          },
+          "score_code": {
+            "title": "Score Code",
+            "type": "number"
+          },
+          "score_model": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score Model"
+          },
+          "share": {
+            "title": "Share",
+            "type": "number"
+          },
+          "short_name": {
+            "title": "Short Name",
+            "type": "string"
+          },
+          "win_them_over": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Win Them Over"
+          },
+          "would": {
+            "$ref": "#/components/schemas/PersonaWould"
+          }
+        },
+        "required": [
+          "persona_id",
+          "name",
+          "short_name",
+          "color",
+          "avatar_seed",
+          "share",
+          "is_starter",
+          "reaction",
+          "reaction_label",
+          "mood",
+          "badge",
+          "score",
+          "score_code",
+          "would",
+          "opinion"
+        ],
+        "title": "PersonaReactionOut",
+        "type": "object"
+      },
+      "PersonaReactionsIn": {
+        "properties": {
+          "target_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "target_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "idea",
+                  "script",
+                  "storyboard",
+                  "caption"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Default: the project's current draft",
+            "title": "Target Type"
+          }
+        },
+        "title": "PersonaReactionsIn",
+        "type": "object"
+      },
+      "PersonaReactionsOut": {
+        "properties": {
+          "audience": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A in the idea score: \u03a3 share \u00d7 score / \u03a3 share",
+            "title": "Audience"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "reactions": {
+            "items": {
+              "$ref": "#/components/schemas/PersonaReactionOut"
+            },
+            "title": "Reactions",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "building",
+              "none"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "target_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Type"
+          },
+          "target_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Version"
+          }
+        },
+        "required": [
+          "status",
+          "label"
+        ],
+        "title": "PersonaReactionsOut",
+        "type": "object"
+      },
+      "PersonaReel": {
+        "properties": {
+          "comments": {
+            "description": "This group's comments on it",
+            "title": "Comments",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "tone": {
+            "title": "Tone",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "comments",
+          "tone"
+        ],
+        "title": "PersonaReel",
+        "type": "object"
+      },
+      "PersonaThoughtOut": {
+        "properties": {
+          "loves": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Loves",
+            "type": "array"
+          },
+          "mood": {
+            "enum": [
+              "neutral",
+              "love",
+              "like",
+              "unsure",
+              "skip",
+              "thinking",
+              "listening"
+            ],
+            "title": "Mood",
+            "type": "string"
+          },
+          "thought": {
+            "title": "Thought",
+            "type": "string"
+          },
+          "wants_more": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Wants More",
+            "type": "array"
+          }
+        },
+        "required": [
+          "thought",
+          "mood"
+        ],
+        "title": "PersonaThoughtOut",
+        "type": "object"
+      },
+      "PersonaTrait": {
+        "properties": {
+          "evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "PersonaTrait",
+        "type": "object"
+      },
+      "PersonaWould": {
+        "properties": {
+          "comment": {
+            "default": false,
+            "title": "Comment",
+            "type": "boolean"
+          },
+          "like": {
+            "default": false,
+            "title": "Like",
+            "type": "boolean"
+          },
+          "save": {
+            "default": false,
+            "title": "Save",
+            "type": "boolean"
+          },
+          "share": {
+            "default": false,
+            "title": "Share",
+            "type": "boolean"
+          }
+        },
+        "title": "PersonaWould",
+        "type": "object"
+      },
+      "PersonasOut": {
+        "properties": {
+          "early_guess": {
+            "default": false,
+            "title": "Early Guess",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "personas": {
+            "items": {
+              "$ref": "#/components/schemas/PersonaCard"
+            },
+            "title": "Personas",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "building"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          }
+        },
+        "required": [
+          "status",
+          "label"
+        ],
+        "title": "PersonasOut",
         "type": "object"
       },
       "PlanOut": {
@@ -3600,9 +4545,27 @@
             "title": "Past Reels Scored",
             "type": "integer"
           },
+          "persona_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Persona Label"
+          },
           "persona_version": {
             "title": "Persona Version",
             "type": "string"
+          },
+          "personas": {
+            "items": {
+              "$ref": "#/components/schemas/SimPersonaResult"
+            },
+            "title": "Personas",
+            "type": "array"
           },
           "predictions": {
             "items": {
@@ -3634,6 +4597,13 @@
               "$ref": "#/components/schemas/SkipPoint"
             },
             "title": "Skip Curve",
+            "type": "array"
+          },
+          "studio_compare": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Studio Compare",
             "type": "array"
           },
           "watched": {
@@ -3948,6 +4918,150 @@
           "evidence"
         ],
         "title": "SimItem",
+        "type": "object"
+      },
+      "SimPersonaOpinion": {
+        "properties": {
+          "opinion": {
+            "title": "Opinion",
+            "type": "string"
+          },
+          "reaction": {
+            "title": "Reaction",
+            "type": "string"
+          },
+          "reaction_label": {
+            "title": "Reaction Label",
+            "type": "string"
+          },
+          "win_them_over": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Win Them Over"
+          }
+        },
+        "required": [
+          "reaction",
+          "reaction_label",
+          "opinion"
+        ],
+        "title": "SimPersonaOpinion",
+        "type": "object"
+      },
+      "SimPersonaResult": {
+        "description": "v2.2: how one Follower Persona's agents reacted (rates calibrated; saves simulated).",
+        "properties": {
+          "agents": {
+            "title": "Agents",
+            "type": "integer"
+          },
+          "avatar_seed": {
+            "title": "Avatar Seed",
+            "type": "integer"
+          },
+          "calibration": {
+            "enum": [
+              "own",
+              "overall"
+            ],
+            "title": "Calibration",
+            "type": "string"
+          },
+          "color": {
+            "title": "Color",
+            "type": "string"
+          },
+          "mood": {
+            "title": "Mood",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "opinion": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SimPersonaOpinion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "persona_id": {
+            "format": "uuid",
+            "title": "Persona Id",
+            "type": "string"
+          },
+          "rates": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Rates",
+            "type": "object"
+          },
+          "saves_simulated": {
+            "default": true,
+            "title": "Saves Simulated",
+            "type": "boolean"
+          },
+          "share": {
+            "title": "Share",
+            "type": "number"
+          },
+          "short_name": {
+            "title": "Short Name",
+            "type": "string"
+          },
+          "studio_reaction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Studio Reaction"
+          },
+          "takeaway": {
+            "title": "Takeaway",
+            "type": "string"
+          },
+          "watched_to_end": {
+            "title": "Watched To End",
+            "type": "number"
+          }
+        },
+        "required": [
+          "persona_id",
+          "name",
+          "short_name",
+          "color",
+          "avatar_seed",
+          "share",
+          "agents",
+          "watched_to_end",
+          "rates",
+          "calibration",
+          "mood",
+          "takeaway"
+        ],
+        "title": "SimPersonaResult",
         "type": "object"
       },
       "SimPrevious": {
@@ -4865,6 +5979,17 @@
           "parts": {
             "$ref": "#/components/schemas/IdeaParts"
           },
+          "personas": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonaReactionsOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "v2.2: each Follower Persona's own take (A is their weighted score)"
+          },
           "reasons": {
             "items": {
               "$ref": "#/components/schemas/Reason"
@@ -5587,10 +6712,10 @@
         ]
       }
     },
-    "/v1/follower-ideas": {
+    "/v1/home": {
       "get": {
-        "description": "What your followers will love: the top 5, best first.",
-        "operationId": "follower_ideas_v1_follower_ideas_get",
+        "description": "Home's sections, in order (v2.2 \u00a75.1); each loads from its own endpoint.",
+        "operationId": "home_v1_home_get",
         "parameters": [
           {
             "in": "header",
@@ -5614,11 +6739,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/FollowerIdeaOut"
-                  },
-                  "title": "Response Follower Ideas V1 Follower Ideas Get",
-                  "type": "array"
+                  "$ref": "#/components/schemas/HomeOut"
                 }
               }
             },
@@ -5635,9 +6756,9 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Follower Ideas",
+        "summary": "Home",
         "tags": [
-          "recap"
+          "personas"
         ]
       }
     },
@@ -6526,6 +7647,331 @@
         ]
       }
     },
+    "/v1/personas": {
+      "get": {
+        "operationId": "personas_v1_personas_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonasOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Personas",
+        "tags": [
+          "personas"
+        ]
+      }
+    },
+    "/v1/personas/{persona_id}": {
+      "get": {
+        "operationId": "persona_v1_personas__persona_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "persona_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Persona Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonaDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Persona",
+        "tags": [
+          "personas"
+        ]
+      }
+    },
+    "/v1/personas/{persona_id}/chat": {
+      "get": {
+        "operationId": "chat_history_v1_personas__persona_id__chat_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "persona_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Persona Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "context_type",
+            "required": false,
+            "schema": {
+              "default": "home",
+              "pattern": "^(home|studio|simulator)$",
+              "title": "Context Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "context_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Context Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PersonaMessageOut"
+                  },
+                  "title": "Response Chat History V1 Personas  Persona Id  Chat Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Chat History",
+        "tags": [
+          "personas"
+        ]
+      },
+      "post": {
+        "operationId": "chat_v1_personas__persona_id__chat_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "persona_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Persona Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonaChatIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {}
+            },
+            "description": "The reply, streamed"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Chat",
+        "tags": [
+          "personas"
+        ]
+      }
+    },
+    "/v1/personas/{persona_id}/history": {
+      "get": {
+        "operationId": "history_v1_personas__persona_id__history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "persona_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Persona Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PersonaHistoryPoint"
+                  },
+                  "title": "Response History V1 Personas  Persona Id  History Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "History",
+        "tags": [
+          "personas"
+        ]
+      }
+    },
     "/v1/projects": {
       "post": {
         "description": "A new project, from an opportunity (its first three ideas start straight away) or from\nan idea the creator validated.",
@@ -7049,6 +8495,191 @@
         "summary": "Select",
         "tags": [
           "studio"
+        ]
+      }
+    },
+    "/v1/projects/{project_id}/persona-reactions": {
+      "get": {
+        "description": "The cached reactions only (never calls the model).",
+        "operationId": "get_reactions_v1_projects__project_id__persona_reactions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Version"
+            }
+          },
+          {
+            "in": "query",
+            "name": "target_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(idea|script|storyboard|caption)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Target Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "target_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Target Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonaReactionsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Reactions",
+        "tags": [
+          "personas"
+        ]
+      },
+      "post": {
+        "description": "Each persona's reaction to the current draft: cached per version, else T27 now. Part\nof the project's credit; never counted as a revision by itself.",
+        "operationId": "run_reactions_v1_projects__project_id__persona_reactions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/PersonaReactionsIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonaReactionsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Reactions",
+        "tags": [
+          "personas"
         ]
       }
     },

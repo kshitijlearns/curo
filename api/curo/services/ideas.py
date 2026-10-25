@@ -13,7 +13,11 @@ part is 0–1 and carries the facts it came from, which become the idea's "why" 
   sub-cluster, weighted by how near it is), format (the creator's reels in that format) and
   hook type (its pattern card), mixed across metrics with the Simulator's "both audiences"
   weights (views 30%, shares 25%, likes 25%, comments 20%). Usual = half credit, 1.5× = full.
-* A, audience: 0.6 × how much of the audience asks for it (a matching request or question
+* A, audience (v2.2): the share-weighted score of the creator's 4 Follower Personas,
+  A = Σ share_i × persona_score_i / Σ share_i. While 15 candidates are ranked, each persona
+  score is the code fit (services/personas.code_fit); for the ideas shown it is the blend of
+  T27's score and the code fit, so the verdict and the persona avatars agree. Without
+  personas yet: 0.6 × how much of the audience asks for it (a matching request or question
   theme; 5% of comments = full) + 0.4 × the expected lift on the behaviour it aims for.
 * T, trend: for a dated event, 0.6 × the timing window (if the idea is about it) + 0.4 ×
   momentum of a rising tag it rides or a trend card it adapts; otherwise that momentum alone
@@ -33,6 +37,8 @@ from dataclasses import dataclass, field
 from datetime import date
 
 import numpy as np
+
+from curo.services import personas as P
 
 WEIGHTS = {"H": 0.40, "A": 0.30, "T": 0.20, "N": 0.10}
 PART_NAMES = {"H": "Your history", "A": "Audience", "T": "Trend", "N": "Novelty"}
@@ -157,6 +163,7 @@ class Context:
     trend: TrendFact
     recent: list[list[float]]  # the creator's last 10 reels (caption vectors)
     trend_angles: list[TrendAngle] = field(default_factory=list)
+    personas: list[P.PersonaFit] = field(default_factory=list)  # v2.2: A's inputs
 
 
 @dataclass
@@ -328,7 +335,15 @@ def matched_themes(c: Candidate, ctx: Context) -> list[ThemeFact]:
     return sorted(out, key=lambda t: -t.share)
 
 
-def part_a(c: Candidate, ctx: Context) -> Part:
+def persona_scores(c: Candidate, ctx: Context) -> dict[str, float]:
+    """Each persona's code fit for the candidate (0–1)."""
+    text = f"{c.text} {c.angle} {c.description}"
+    return {p.id: P.code_fit(c.vector, text, c.format, p)[0] for p in ctx.personas}
+
+
+def part_a(c: Candidate, ctx: Context, scores: dict[str, float] | None = None) -> Part:
+    if ctx.personas:
+        return persona_part(ctx, scores or persona_scores(c, ctx))
     themes = matched_themes(c, ctx)
     asks = max((min(1.0, t.share / FULL_ASK_SHARE) for t in themes), default=0.0)
     metric = TARGET_METRIC[c.target]
@@ -344,6 +359,17 @@ def part_a(c: Candidate, ctx: Context) -> Part:
             f"{METRIC_WORDS[metric]}."
         )
     return Part(round(0.6 * asks + 0.4 * lift_credit(lift), 3), facts)
+
+
+def persona_part(ctx: Context, scores: dict[str, float]) -> Part:
+    """A from the persona scores, with the "3 of 4 follower groups are in" line as its fact."""
+    value = P.audience_part(scores, ctx.personas)
+    rows = [
+        (p.name, P.reaction_for(100 * scores[p.id]), p.share)
+        for p in sorted(ctx.personas, key=lambda p: -p.share)
+        if p.id in scores
+    ]
+    return Part(round(value, 3), [P.summary(rows)] if rows else [])
 
 
 def _phrase(label: str) -> str:
@@ -433,10 +459,11 @@ def part_n(c: Candidate, ctx: Context) -> Part:
     return Part(round(value, 3), [fact] if fact else [])
 
 
-def score(c: Candidate, ctx: Context) -> Scored:
+def score(c: Candidate, ctx: Context, persona: dict[str, float] | None = None) -> Scored:
+    """``persona``: blended persona scores (0–1), once T27 has run for this idea."""
     parts = {
         "H": part_h(c, ctx),
-        "A": part_a(c, ctx),
+        "A": part_a(c, ctx, persona),
         "T": part_t(c, ctx),
         "N": part_n(c, ctx),
     }
@@ -545,7 +572,7 @@ def _reason(s: Scored, part: str) -> dict[str, str]:
 def _absence(part: str) -> str:
     return {
         "H": "None of your sub-clusters is close to it",
-        "A": "No comment theme on your recent reels matches it",
+        "A": "No follower group is in yet",
         "T": "No dated event or rising tag in it",
         "N": "Similar to one of your last 10 reels",
     }[part]

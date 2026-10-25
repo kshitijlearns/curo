@@ -8,6 +8,9 @@ results can be traced and re-run. Mocks return the same schemas. Prompts live in
 T1–T4 understand reels (Phase 3), T5 names opportunities (Phase 5), T6–T8 and T11–T13 are
 the Studio (Phase 6); T10 writes explanations; T15 proposes the Simulator's edits (Phase 7);
 T14 is Ask Curo (Phase 8), a conversation with tools rather than one structured answer.
+v2 adds T16 (trend cards) and T18–T22 (the Simulator's AI audience), v2.1 T23 (recap copy),
+v2.2 T25–T29 (Follower Personas). T17 (audience segments) and T24 (follower ideas) were
+retired in v2.2: the personas replaced both.
 """
 
 from __future__ import annotations
@@ -586,35 +589,22 @@ class T16Output(BaseModel):
 
 # ------------------------------------------------------------------ registry
 
-# ------------------------------------------------------------------ T17–T22 · the AI audience (v2)
-
-
-class AudienceTheme(BaseModel):
-    key: str
-    label: str
-    share: float  # of the creator's recent comments
-    samples: list[str] = Field(default_factory=list, max_length=5)
-
-
-class T17Input(BaseModel):
-    """Segment the audience: comment themes, language mix and tone → 4–8 segments."""
-
-    niche: str
-    themes: list[AudienceTheme] = Field(default_factory=list)
-    language_mix: dict[str, float] = Field(default_factory=dict)
-    followers: int | None = None
+# ------------------------------------------------------------------ T18–T22 · the AI audience (v2)
 
 
 class Segment(BaseModel):
+    """One of the creator's 4 Follower Personas, as the Simulator's agents are drawn from it
+    (v2.2 §8; the personas replaced T17's segments)."""
+
     key: str = Field(pattern=r"^[a-z0-9_]{2,40}$")
-    label: str = Field(max_length=40)  # "Festive planner"; never a handle or a real name
+    label: str = Field(max_length=40)  # "Festive Planner"; never a handle or a real name
     share: float = Field(gt=0, le=1)
     description: str = Field(max_length=300)
     interests: list[str] = Field(default_factory=list, max_length=6)
-
-
-class T17Output(BaseModel):
-    segments: list[Segment] = Field(min_length=4, max_length=8)
+    intent: str | None = None  # the persona's most common comment intent
+    # The persona's behaviour, the middle of its agents' range (0–1): patience, liker,
+    # commenter, sharer, saver.
+    traits: dict[str, float] = Field(default_factory=dict)
 
 
 class T18Input(BaseModel):
@@ -669,6 +659,8 @@ class AgentBrief(BaseModel):
     saver: float
     liker: float
     interests: list[str] = Field(default_factory=list)
+    intent: str | None = None  # the persona's main comment intent
+    persona_id: str | None = None
 
 
 class T19Input(BaseModel):
@@ -785,22 +777,175 @@ class T23Output(BaseModel):
     slides: list[RecapLine]
 
 
-# ------------------------------------------------------------------ T24 · a follower idea (v2.1)
+# ------------------------------------------------------------------ T25–T29 · Follower Personas (v2.2)
+
+Mood = Literal["neutral", "love", "like", "unsure", "skip", "thinking", "listening"]
+PersonaReactionKind = Literal["watch_all", "watch", "scroll_past", "skip"]
+SensitiveAttribute = Literal[
+    "age",
+    "gender",
+    "religion",
+    "caste",
+    "ethnicity",
+    "sexuality",
+    "health",
+    "income",
+    "politics",
+    "location",
+]
 
 
-class T24Input(BaseModel):
-    """Name and explain one "What your followers will love" idea from its evidence."""
+class PersonaGroupIn(BaseModel):
+    """One comment cluster's facts (code). Numbers may only come from ``facts``."""
 
-    kind: Literal["request", "proven", "segment"]
-    topic: str
-    segment: str | None = None
-    facts: list[str] = Field(min_length=1, max_length=6)  # the numbers it may quote
-    examples: list[str] = Field(default_factory=list, max_length=3)  # comment text, no handles
+    key: str  # "g1"…"g4", in share order
+    facts: list[str] = Field(min_length=1, max_length=14)
+    data: dict[str, Any] = Field(default_factory=dict)  # the same facts, structured
+    # Comments near the group's middle, handles removed: material to paraphrase, never to copy.
+    samples: list[str] = Field(default_factory=list, max_length=5)
+    keep_name: str | None = None  # a persona matched to last month keeps its name
+    keep_short_name: str | None = None
 
 
-class T24Output(BaseModel):
-    title: str = Field(max_length=60)
-    why: str = Field(max_length=160)
+class T25Input(BaseModel):
+    """Write the 4 Follower Personas from their groups' facts, in one call."""
+
+    niche: str
+    main_language: str | None = None  # e.g. "hinglish": Hinglish lines are fine then
+    groups: list[PersonaGroupIn] = Field(min_length=4, max_length=4)
+
+
+class WrittenPersona(BaseModel):
+    key: str
+    name: str = Field(min_length=3, max_length=40)  # 2–3 kind words, e.g. "The Festive Planner"
+    short_name: str = Field(min_length=2, max_length=24)
+    tagline: str = Field(max_length=90)
+    comes_for: list[str] = Field(min_length=2, max_length=4)
+    loves: list[str] = Field(min_length=2, max_length=4)  # loves[i] describes love fact i
+    wants_more: list[str] = Field(min_length=1, max_length=3)
+    turn_offs: list[str] = Field(min_length=1, max_length=3)  # turn_offs[i] ↔ turn-off fact i
+    engagement_style: str = Field(max_length=160)
+    voice: str = Field(max_length=140)
+    typical_comment: str = Field(max_length=140)  # paraphrased, never a real comment
+
+
+class T25Output(BaseModel):
+    personas: list[WrittenPersona] = Field(min_length=4, max_length=4)
+
+
+class ThoughtIn(BaseModel):
+    key: str
+    name: str
+    voice: str
+    language: str | None = None
+    facts: list[str] = Field(min_length=1, max_length=14)
+    mood_hint: Mood = "neutral"  # from code: sentiment and engagement lift
+    loves: list[str] = Field(default_factory=list, max_length=4)
+    wants_more: list[str] = Field(default_factory=list, max_length=3)
+    top_reels: list[str] = Field(default_factory=list, max_length=4)  # titles
+
+
+class T26Input(BaseModel):
+    """What each persona thinks of the creator, in one call."""
+
+    handle: str
+    personas: list[ThoughtIn] = Field(min_length=1, max_length=4)
+
+
+class PersonaThought(BaseModel):
+    key: str
+    thought: str = Field(min_length=3, max_length=140)  # first person, in the persona's voice
+    mood: Mood
+    loves: list[str] = Field(min_length=1, max_length=2)
+    wants_more: list[str] = Field(default_factory=list, max_length=2)
+
+
+class T26Output(BaseModel):
+    thoughts: list[PersonaThought]
+
+
+class EvidenceRef(BaseModel):
+    id: str
+    text: str
+
+
+class PersonaBrief(BaseModel):
+    """A persona as T27 and T28 read it."""
+
+    key: str
+    name: str
+    voice: str = ""
+    facts: list[str] = Field(default_factory=list, max_length=14)
+    comes_for: list[str] = Field(default_factory=list)
+    loves: list[str] = Field(default_factory=list)
+    wants_more: list[str] = Field(default_factory=list)
+    turn_offs: list[str] = Field(default_factory=list)
+    typical_comment: str = ""
+    evidence: list[EvidenceRef] = Field(default_factory=list, max_length=8)
+
+
+class T27Input(BaseModel):
+    """Each persona's own take on an idea or draft (or a Simulator result), in one call."""
+
+    target_type: Literal["idea", "script", "storyboard", "caption", "simulation"]
+    idea: str
+    draft: str | None = None  # the current script, storyboard or caption, or the results
+    format: str | None = None
+    personas: list[PersonaBrief] = Field(min_length=1, max_length=4)
+
+
+class Would(BaseModel):
+    like: bool = False
+    comment: bool = False
+    share: bool = False
+    save: bool = False  # always shown as "simulated"
+
+
+class PersonaReaction(BaseModel):
+    key: str
+    reaction: PersonaReactionKind
+    score: int = Field(ge=0, le=100)
+    would: Would
+    opinion: str = Field(min_length=3, max_length=280)  # first person, 1–3 sentences
+    win_them_over: str = Field(max_length=120)
+    evidence_ids: list[str] = Field(default_factory=list, max_length=4)
+
+
+class T27Output(BaseModel):
+    reactions: list[PersonaReaction]
+
+
+class PersonaChatTurn(BaseModel):
+    role: Literal["user", "persona"]
+    content: str
+
+
+class T28Input(BaseModel):
+    """Talk to a persona: in character, honest about being a summary, no new numbers."""
+
+    persona: PersonaBrief
+    context: str | None = None  # the current draft or simulation, when there is one
+    history: list[PersonaChatTurn] = Field(default_factory=list, max_length=20)
+    question: str = Field(min_length=1, max_length=500)
+
+
+class T28Output(BaseModel):
+    answer: str = Field(min_length=1, max_length=600)
+
+
+class T29Input(BaseModel):
+    """The cheap classifier pass: does any text state or imply a sensitive attribute?"""
+
+    texts: list[str] = Field(min_length=1, max_length=40)
+
+
+class SensitiveFlag(BaseModel):
+    index: int
+    attribute: SensitiveAttribute
+
+
+class T29Output(BaseModel):
+    flags: list[SensitiveFlag] = Field(default_factory=list)
 
 
 T1 = TaskSpec("T1", 1, "watch_video", "video", T1Input, T1Output)
@@ -818,14 +963,17 @@ T13 = TaskSpec("T13", 1, "route_revision", "fast", T13Input, T13Output)
 T14 = TaskSpec("T14", 1, "ask_curo", "main", T14Input, ChatChunk)
 T15 = TaskSpec("T15", 1, "propose_edits", "main", T15Input, T15Output)
 T16 = TaskSpec("T16", 1, "name_trend", "main", T16Input, T16Output)
-T17 = TaskSpec("T17", 1, "segment_audience", "fast", T17Input, T17Output)
 T18 = TaskSpec("T18", 1, "write_personas", "fast", T18Input, T18Output)
 T19 = TaskSpec("T19", 1, "agent_reactions", "agents", T19Input, T19Output)
 T20 = TaskSpec("T20", 1, "thread_round", "agents", T20Input, T20Output)
 T21 = TaskSpec("T21", 1, "explain_simulation", "main", T21Input, T21Output)
 T22 = TaskSpec("T22", 1, "agent_chat", "main", T22Input, T22Output)
 T23 = TaskSpec("T23", 1, "write_recap_copy", "main", T23Input, T23Output)
-T24 = TaskSpec("T24", 1, "name_follower_idea", "main", T24Input, T24Output)
+T25 = TaskSpec("T25", 1, "write_follower_personas", "main", T25Input, T25Output)
+T26 = TaskSpec("T26", 1, "persona_thoughts", "main", T26Input, T26Output)
+T27 = TaskSpec("T27", 1, "persona_reactions", "main", T27Input, T27Output)
+T28 = TaskSpec("T28", 1, "persona_chat", "main", T28Input, T28Output)
+T29 = TaskSpec("T29", 1, "check_sensitive", "fast", T29Input, T29Output)
 
 TASKS: dict[str, TaskSpec] = {
     t.id: t
@@ -845,13 +993,16 @@ TASKS: dict[str, TaskSpec] = {
         T14,
         T15,
         T16,
-        T17,
         T18,
         T19,
         T20,
         T21,
         T22,
         T23,
-        T24,
+        T25,
+        T26,
+        T27,
+        T28,
+        T29,
     )
 }

@@ -122,6 +122,9 @@ class Settings(BaseSettings):
     payment_provider: Literal["mock", "razorpay"] = "mock"
     admin_emails: str = ""  # comma-separated: who sees /admin/costs
     web_url: str = "curo-sand.vercel.app"  # printed on the recap share card
+    # Follower Personas (v2.2): the model's share of a persona score (the rest is code fit).
+    persona_model_weight: float = 0.5
+    persona_refresh_comments: int = 150  # new comments that trigger a mid-month rebuild
     cron_secret: str = ""  # POST /v1/cron/tick needs "Authorization: Bearer <CRON_SECRET>"
     claude_model_agents: str = "claude-haiku-5-5"
 

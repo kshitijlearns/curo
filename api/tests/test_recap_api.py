@@ -1,5 +1,6 @@
-"""v2.1 first run end to end on mocks: anonymous session → username → recap → save the
-account → Home's four sections; plus the monthly recap and the account-taken path."""
+"""v2.1 first run end to end on mocks: anonymous session → username → recap (v2.2: with
+"Meet your followers") → save the account → Home's four sections; plus the monthly recap and
+the account-taken path."""
 
 from datetime import timedelta
 
@@ -36,9 +37,23 @@ def test_first_run_anonymous_to_recap_to_saved_account_to_home(db):
 
         recap = client.get("/v1/recaps/latest", headers=h).json()
         assert recap["kind"] == "first" and recap["period_label"] == "Your story so far"
-        assert recap["is_new"] and 5 <= len(recap["slides"]) <= 12
+        assert recap["is_new"] and 5 <= len(recap["slides"]) <= 18
         ids = [s["slide_id"] for s in recap["slides"]]
-        assert ids[0] == "intro" and ids[-3:] == ["creator_type", "share_card", "next_up"]
+        # v2.2: the persona sequence comes right after the creator-type reveal.
+        assert ids[0] == "intro" and ids[-9:] == [
+            "creator_type",
+            "followers_intro",
+            "persona_1",
+            "persona_2",
+            "persona_3",
+            "persona_4",
+            "followers_summary",
+            "share_card",
+            "next_up",
+        ]
+        personas = [s["facts"] for s in recap["slides"] if s["slide_id"].startswith("persona_")]
+        assert sum(p["share_pct"] for p in personas) == 100
+        assert [p["color"] for p in personas] == ["blue", "lavender", "pink", "ink"]
         assert recap["creator_level"] == "The Rising Voice" and recap["archetype"]
         for s in recap["slides"]:
             line = f"{s['copy']['headline']} {s['copy']['subline']}"
@@ -55,6 +70,7 @@ def test_first_run_anonymous_to_recap_to_saved_account_to_home(db):
         assert (
             "@curo.demo" in svg.text and 'width="1080"' in svg.text and "gradient" not in svg.text
         )
+        assert "Your followers" in svg.text and personas[0]["short_name"] in svg.text
 
         seen = client.post(f"/v1/recaps/{recap['id']}/viewed", headers=h).json()
         assert seen["is_new"] is False and seen["viewed_at"]
@@ -70,15 +86,20 @@ def test_first_run_anonymous_to_recap_to_saved_account_to_home(db):
         assert me["account"]["username"] == "curo.demo"
         assert client.get("/v1/recaps", headers=h2).json()[0]["id"] == recap["id"]
 
-        # Home's four sections all answer.
-        assert client.get("/v1/opportunities", headers=h2).status_code == 200
-        assert client.get("/v1/trends", headers=h2).status_code == 200
-        ideas = client.get("/v1/follower-ideas", headers=h2).json()
-        assert 1 <= len(ideas) <= 5
-        assert [i["score"] for i in ideas] == sorted((i["score"] for i in ideas), reverse=True)
-        for i in ideas:
-            assert i["title"] and i["why"] and i["segment"]
-            assert not new_numbers(i["why"], i["evidence"]["facts"]), i
+        # Home's four sections, in order, all answer (v2.2: the personas first).
+        home = client.get("/v1/home", headers=h2).json()
+        assert [x["id"] for x in home["sections"]] == [
+            "personas",
+            "recap",
+            "opportunities",
+            "trends",
+        ]
+        for x in home["sections"]:
+            assert client.get(x["endpoint"], headers=h2).status_code == 200
+        cards = client.get("/v1/personas", headers=h2).json()
+        assert cards["status"] == "ready" and len(cards["personas"]) == 4
+        # "What your followers will love" is gone.
+        assert client.get("/v1/follower-ideas", headers=h2).status_code == 404
 
 
 def test_a_handle_already_on_curo_offers_sign_in_instead(db):

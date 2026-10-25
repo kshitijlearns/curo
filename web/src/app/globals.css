@@ -1073,3 +1073,460 @@ textarea.field {
     display: none;
   }
 }
+
+/* ------------------------------------------------------------------ v2.2: persona avatars */
+
+.pa {
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
+}
+.pa-g {
+  transform-box: view-box;
+  transform-origin: 50px 50px;
+}
+.pa-dot {
+  transition:
+    transform 700ms var(--spring),
+    opacity 500ms var(--settle),
+    r 500ms var(--settle);
+}
+.pa-static .pa-dot {
+  transition: none;
+}
+.pa-anim.pa-love {
+  animation: pa-pulse 900ms var(--spring) 1;
+}
+.pa-anim.pa-unsure {
+  animation: pa-sway 3.2s ease-in-out infinite alternate;
+}
+.pa-anim.pa-thinking {
+  animation: pa-orbit 9s linear infinite;
+}
+.pa-anim.pa-listening {
+  animation: pa-breathe 2.4s ease-in-out infinite alternate;
+}
+@keyframes pa-pulse {
+  40% {
+    transform: scale(1.12);
+  }
+}
+@keyframes pa-sway {
+  from {
+    transform: rotate(-4deg);
+  }
+  to {
+    transform: rotate(4deg);
+  }
+}
+@keyframes pa-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes pa-breathe {
+  from {
+    transform: scale(0.97);
+  }
+  to {
+    transform: scale(1.04);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pa-g {
+    animation: none !important;
+  }
+  .pa-dot {
+    transition: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------ v2.2: Follower Personas */
+
+.persona-summary {
+  margin: -2px 6px 10px;
+  font-size: 15px;
+}
+.persona-label {
+  margin: 0;
+}
+.persona-card {
+  display: flex;
+  flex-direction: column;
+}
+.persona-top {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+  border-radius: 16px;
+}
+.persona-top:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 4px;
+}
+.early {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+.thought {
+  position: relative;
+  margin: 14px 0 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: var(--gray);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.thought::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 26px;
+  width: 14px;
+  height: 14px;
+  background: var(--gray);
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+.conf-dots {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}
+.conf-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gray);
+  box-shadow: inset 0 0 0 1px rgba(36, 36, 36, 0.25);
+}
+.conf-dots i.on {
+  background: var(--ink);
+  box-shadow: none;
+}
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.meter-steps {
+  display: flex;
+  gap: 3px;
+}
+.meter-steps i {
+  width: 22px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--gray);
+}
+.meter-steps i.on {
+  background: var(--blue);
+}
+.want {
+  background: var(--white);
+  border: 1px solid var(--gray);
+  border-radius: 14px;
+  padding: 8px 10px;
+  gap: 8px;
+}
+button.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: var(--blue);
+  white-space: nowrap;
+}
+.skeleton-card {
+  min-height: 150px;
+}
+
+.persona-sheet h3 {
+  font-size: 16px;
+}
+.persona-hero {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin: 12px 0 4px;
+}
+.persona-block {
+  border-top: 1px solid var(--gray);
+  margin-top: 14px;
+  padding-top: 12px;
+}
+.persona-block h3 {
+  margin: 0 0 6px;
+}
+ul.plain {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.evidence {
+  display: block;
+  margin-top: 2px;
+}
+.fav-reels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.fav {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4px;
+  aspect-ratio: 3 / 4;
+  border-radius: 16px;
+  padding: 10px;
+}
+.fav.tone-0 {
+  background: var(--lavender);
+}
+.fav.tone-1 {
+  background: var(--pink);
+}
+.fav.tone-2 {
+  background: var(--gray);
+}
+.fav.tone-3 {
+  background: var(--white);
+  border: 1px solid var(--gray);
+}
+.history {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+}
+.hist {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.persona-chat .bubble {
+  max-width: 90%;
+}
+
+/* The Studio persona row, above the composer */
+.persona-row {
+  position: relative;
+  padding: 0 16px 8px;
+}
+.persona-row-note {
+  margin: 0 4px 6px;
+  text-align: center;
+}
+.persona-row-inner {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  background: var(--white);
+  border: 1px solid var(--gray);
+  border-radius: 22px;
+  padding: 8px 6px;
+}
+.persona-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  border-radius: 14px;
+  padding: 2px;
+}
+.persona-slot:focus-visible,
+.persona-slot.active {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+}
+.persona-slot:disabled {
+  cursor: default;
+}
+.persona-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 9px;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: var(--gray);
+  color: var(--ink);
+}
+.badge-love {
+  background: var(--pink);
+}
+.badge-like {
+  background: var(--lavender);
+}
+.badge-skip {
+  background: var(--white);
+  border: 1px solid var(--gray);
+}
+.popover-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  background: rgba(36, 36, 36, 0.25);
+}
+.persona-pop {
+  position: absolute;
+  z-index: 40;
+  left: 16px;
+  right: 16px;
+  bottom: calc(100% + 6px);
+  max-height: 62dvh;
+  overflow-y: auto;
+  background: var(--white);
+  border-radius: 24px;
+  padding: 16px;
+  box-shadow: 0 0 0 1px var(--gray);
+  animation: rise 320ms var(--enter);
+}
+@media (max-width: 560px) {
+  /* A bottom sheet on phones */
+  .persona-pop {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 80dvh;
+    border-radius: 28px 28px 0 0;
+    padding: 20px 18px 28px;
+  }
+}
+.pop-reaction {
+  font-weight: 600;
+  font-size: 17px;
+  margin: 0;
+}
+.would {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 13px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.would.yes {
+  background: var(--lavender);
+}
+.would.no {
+  background: var(--white);
+  border: 1px solid var(--gray);
+  color: var(--muted);
+}
+.would em {
+  font-weight: 400;
+  font-style: normal;
+}
+.evidence-chip {
+  background: var(--gray);
+  border-radius: 12px;
+  padding: 6px 10px;
+}
+.who {
+  margin-top: 14px;
+  background: var(--white);
+}
+
+/* Simulator: per-persona rows */
+.group-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+  padding: 10px 0;
+  border-top: 1px solid var(--gray);
+}
+.dot-blue,
+.dot-lavender,
+.dot-pink,
+.dot-ink {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.dot-blue {
+  background: var(--blue);
+}
+.dot-lavender {
+  background: var(--lavender);
+  box-shadow: inset 0 0 0 1px var(--gray);
+}
+.dot-pink {
+  background: var(--pink);
+  box-shadow: inset 0 0 0 1px var(--gray);
+}
+.dot-ink {
+  background: var(--ink);
+}
+
+/* Recap: Meet your followers */
+.persona-float {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin: 8px 0;
+}
+.float-in {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  animation: float-in 700ms var(--spring) both;
+}
+@keyframes float-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.9);
+  }
+}
+.story-thought {
+  margin: 4px 0;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.45;
+}
+.persona-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.persona-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--ink);
+}
+@media (prefers-reduced-motion: reduce) {
+  .float-in,
+  .persona-pop {
+    animation: none;
+  }
+}

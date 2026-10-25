@@ -67,7 +67,7 @@ test-api: ## Python tests (needs Docker's db or the embedded Postgres from `make
 	cd api && ../$(PY) -m pytest
 
 test-app: ## app type-check, lint and tests
-	cd web && npm run typecheck
+	cd web && npm run typecheck && npm test
 
 lint: ## lint + format check, Python and app
 	$(PY) -m ruff check api worker tools

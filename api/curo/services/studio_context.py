@@ -38,6 +38,14 @@ FESTIVAL_HORIZON = 30
 OTHER_FESTIVALS_DAYS = 120  # an idea about a festival further off still counts as about it
 
 
+def persona_fits(conn, creator_id: UUID) -> list:
+    """The creator's 4 Follower Personas as the idea scorer reads them (none while building)."""
+    from curo.services import persona_reactions
+
+    rows = persona_reactions.active_rows(conn, creator_id)
+    return [persona_reactions.fit(r) for r in rows] if len(rows) == 4 else []
+
+
 @dataclass
 class StudioData:
     creator_id: UUID
@@ -290,6 +298,8 @@ def load(conn, creator_id: UUID, opportunity_id: UUID | None = None) -> StudioDa
         trend=trend,
         trend_angles=trend_angles,
         recent=recent,
+        # v2.2: A is the share-weighted persona score once the 4 personas exist.
+        personas=persona_fits(conn, creator_id),
     )
 
     # ---------------------------------------------------------------- voice, length, examples

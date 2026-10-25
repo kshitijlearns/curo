@@ -12,12 +12,16 @@ export function Section({
   label,
   onRetry,
   error,
+  intro,
+  footer,
 }: {
   title: string;
   children: React.ReactNode;
   label?: string;
   onRetry?: () => void;
   error?: unknown;
+  intro?: React.ReactNode; // a line between the title and the cards
+  footer?: React.ReactNode;
 }) {
   const [all, setAll] = useState(false);
   const count = Children.count(children);
@@ -31,6 +35,7 @@ export function Section({
           </button>
         ) : null}
       </div>
+      {intro}
       {error ? (
         <div className="card pink" role="alert">
           <p>This section didn’t load.</p>
@@ -45,6 +50,7 @@ export function Section({
       ) : (
         <Carousel label={label ?? title}>{children}</Carousel>
       )}
+      {footer}
     </section>
   );
 }

@@ -1431,6 +1431,155 @@ replace polling later without changing the screens (INTEGRATION.md §9).
 The web app has no test runner yet, so the story player's keyboard controls (← → space Esc),
 tap/hold/swipe and reduced motion were checked by hand in the browser; colour contrast is a
 Python unit test. `prefers-reduced-motion` turns off auto-advance, count-ups and confetti.
+(v2.2 adds a web test runner: D239.)
+
+## v2.2 · Follower Personas (`CURO_Follower_Personas_Prompt.md`, PLAN_V2 v2.2)
+
+### D223 · Built in one go, on branch v2.2-personas — settled (deviation)
+The prompt asks to stop and report after each of its 9 phases. As with v2.1 (D212), the owner
+asked for the whole build straight through; every phase was built and checked in order and is
+reported together in the pull request.
+
+### D224 · Task numbers T25–T29; T17 and T24 retired — settled (deviation)
+The prompt's T18–T21 are taken (v2: T18 write_personas, T19 agent_reactions, T20 thread_round,
+T21 explain_simulation). The persona tasks are **T25 write_follower_personas, T26
+persona_thoughts, T27 persona_reactions, T28 persona_chat**, plus **T29 check_sensitive** (the
+"second cheap classifier pass" the prompt describes but doesn't number). The prompt's "T16
+recap copy" is our T23; its "T17" (follower ideas) is our T24, removed with the feature. T17
+(segment_audience) is retired too: the Simulator's agents are now drawn from the 4 personas
+(D233), so nothing segments the audience any more. Each new task has a schema, a prompt file, a
+mock and validator coverage.
+
+### D225 · A persona keeps its id for life — settled (deviation)
+The table is as specified (unique creator, slot, version), but a matched persona is **updated
+in place** (new version, slot, share, text) instead of inserted as a new row each month; an
+unmatched one is retired (`retired_at`), never deleted. So opinions, chats, history, the AI
+agents (`audience_personas.persona_id`) and Home's links stay attached to the same persona
+across rebuilds. Added columns: `retired_at`, `n_comments`, `n_reels`, `topic_vector` (D231);
+`persona_builds` records each build (reason, fast, starter, counts, labelled share, stability);
+`persona_history` carries `creator_id` (for RLS) and `version`.
+
+### D226 · The clustering — settled
+Features: the comment's embedding (unit length) ⊕ intent ⊕ language ⊕ the reel's sub-cluster ⊕
+its format ⊕ tags-a-friend, behaviour blocks scaled (0.55, 0.3, 0.3, 0.3, 0.4) so meaning and
+behaviour both count. Weights: 1.0 for the last 90 days, 0.35 older. k-means (k = 4, 8 seeds;
+3 for the fast build); the kept run is the one with the highest mean adjusted Rand index
+against the others (ties: lower inertia). Minimum share 8%: merge the smallest into its nearest
+centroid and split the largest (k = 2) until all pass; if that can't get there, the small group
+takes the nearest comments of groups that can spare them, so the rule always holds. Groups are
+numbered by share. Identity: centroids (embedding space only) matched one-to-one (Hungarian) at
+cosine ≥ 0.8.
+
+### D227 · Profiles, confidence and the mood meter — settled
+Per group, in code: share and n; intents (of labelled comments); themes; language mix;
+sentiment (positive − negative share of the last 90 days); loves = formats and sub-clusters
+the group over-indexes on (index ≥ 1.15, ≥ 5 comments), turn-offs = under-indexed (≤ 0.75) where
+those reels hold ≥ 10% of all comments; lifts = the comment-weighted mean of reel rate ÷ the
+creator's median, per metric (unknown stays out); places (from the topics list, ≥ 3
+mentions); favourite reels (most group comments). Confidence: < 40 usable comments → low
+(starter), ≤ 150 → medium, > 150 → high; a persona with < 15 comments drops a step. Mood meter
+1–5 from 0.65 × sentiment + 0.35 × lift ("Not feeling it", "Lukewarm", "Interested", "Fan",
+"Big fan"); the avatar's mood follows it (skip, unsure, neutral, like, love).
+
+### D228 · When personas are built — settled (deviation in detail)
+Inside `build_recap`: the first recap runs a **fast build** (≤ 600 newest comments, 3 seeds)
+before its facts; a monthly recap builds first when nothing was built this month (creator's
+time zone). After that, `needs_build` decides: a fast build is refined once more comments are
+in; a build made before the comments were labelled (< 50% labelled) is refined once ≥ 80% are;
+a starter build is replaced once the data passes the threshold; and 150+ new comments since the
+last build trigger a mid-month rebuild (daily scheduler tick). The label and learning jobs call
+it, replacing the follower-ideas hooks. A persona build failure never fails the recap.
+
+### D229 · Starter personas — settled
+Thin data (< 40 usable comments or < 5 reels with comments): four templates per niche (Loyal
+Fan, Idea Saver, Curious Asker, Friend Tagger) with niche nouns, the creator's top sub-cluster
+in "comes for", their comment language, and shares from the niche's intent mix across CURO
+creators (≥ 100 labelled comments; else the template shares). Labelled "Early guess: gets
+sharper as people comment", confidence low, no avatar mood beyond neutral.
+
+### D230 · The sensitive-attribute check — settled
+Two passes on every persona text (T25–T28 outputs): a word-bounded keyword list per attribute
+(`services/persona_safety.py`, written to avoid everyday meanings: "ethnic wear", "rich
+colours", "poor lighting", Hindi "aap" pass) and T29 (Haiku) for implications. Any flag (or a
+new number) → regenerate once → the template from code facts. Templates never contain digits
+or number words, so they always pass. The Simulator's mock agent sketches were rewritten
+without life stage, gender or place.
+
+### D231 · A persona's score and A in the idea score — settled
+`code_fit = clamp(0.30 + 0.40 × topic + 0.20 × asks + 0.10 × loved format − 0.25 × turn-off
+format)`, topic = the best cosine of the idea to the persona's `topic_vector` (its favourite
+reels' titles + what it comes for and loves) or its centroid, scaled 0.1 → 0, 0.5 → 1. A
+persona's score = `PERSONA_MODEL_WEIGHT` (0.5) × T27's score + the rest × code fit; both are
+stored and logged. **A = Σ share × persona score / Σ share.** Ranking 15 candidates uses code
+fit only (no model calls); the 3 shown ideas and the validate chat get T27, and A and the
+score are recomputed from the blend. The reaction word comes from the blended score (≥ 75
+watch it all, ≥ 55 watch, ≥ 35 might scroll past, else skip), so the verdict, the avatars and
+the words agree by construction. Tweaks in the validate chat are compared on the code-side
+score, the scale they're re-scored on. Without 4 personas, A is the v2 audience demand.
+
+### D232 · Reactions: caching, re-runs and revisions — settled (deviation)
+Cache key: (persona, target type, target id, version) in `persona_opinions` (+ `project_id`).
+Targets: an idea (version 1), or the project's current script, storyboard or caption (their
+own version numbers); the validate chat uses a uuid5 of (creator, persona build, text). The
+web app asks for reactions whenever the version key changes, so they re-run once per content
+version. **Reactions never count as a revision by themselves**: the content change that made
+the new version (a `*_revise`) already counted once — counting the re-run too would charge the
+creator twice for one change. Ledger feature `studio_personas`.
+
+### D233 · The Simulator draws its agents from the personas — settled
+`audience_segments` rows are now the 4 personas (key `p` + id prefix, label = short name);
+agent version `fp<build version>`, so a persona rebuild means new agents and a new calibration.
+Each persona's traits (patience, liker, commenter, sharer, saver) come from its engagement in
+code and are the middle of its agents' range (± 0.15). Calibration rows gain `segment`
+('' = overall): a persona uses its own factor for a metric when ≥ 3 past reels gave its agents
+a rate, else the overall one. The per-persona block and each persona's own take (T27 on its
+results, target type `simulation`) are computed in the simulation job, so no new endpoint was
+needed; a linked Studio project adds the comparison lines.
+
+### D234 · Persona chat — settled
+T28 with the same checks; the answer is generated whole, checked, then streamed sentence by
+sentence (same SSE events as Ask Curo: delta, done, error). Each message spends one Ask Curo
+message (`out_of_credits` in the stream when none are left); the Simulator's 10 agent messages
+are separate. History: the last 10 messages of that persona and context.
+
+### D235 · Recap persona slides — settled (deviation in colours)
+Order: creator_type → followers_intro → persona_1…4 → followers_summary → (monthly)
+followers_shift → share_card → next_up. Cap 18 with the sequence (never dropped; other slides
+are dropped first as before). A persona slide's background is its colour where ink text passes
+AA (lavender, pink); the blue and ink personas use white with their coloured dots, because
+body text on blue fails AA (D216). followers_shift compares the share with last month's
+`persona_history` (≥ 5 points) or flags a persona that wasn't there. Tapping a persona on the
+summary slide closes the recap and opens its detail sheet on Home.
+
+### D236 · Home and its endpoint — settled
+`GET /v1/home` lists the 4 sections (id, title, endpoint) in order; each loads on its own as
+before. "What your followers will love" is removed everywhere (UI, `GET /v1/follower-ideas`,
+the `follower_ideas` table, T24, its job and scheduler tick, tests; D219 is superseded).
+"Make this" on a persona's request opens Studio seeded with the request, and that persona's
+popover opens once its take is in.
+
+### D237 · The avatar algorithm — settled
+mulberry32 seeded spiral (18–40 dots, three sizes, opacity 40–100%), in TypeScript and Python
+against one fixture; light colours draw with their opacity range lifted (0.6 + 0.4 × opacity)
+and a hairline ring so they read on white; the ink avatar sits on a white disc on dark
+backgrounds. Motion: the dots spring between poses (`--spring`), group animations per mood;
+`prefers-reduced-motion` and `animated={false}` show the static poses.
+
+### D238 · Cost tracking by feature — settled
+`usage_ledger.feature` (personas, studio_personas, persona_chat) set by a context manager
+around the work; `/admin/costs` groups by feature and task. Comment embeddings are recorded as
+task `embedding`.
+
+### D239 · A web test runner — settled
+Vitest + Testing Library (jsdom) for the UI tests the prompt requires: the avatar (all moods,
+reduced motion, labels, parity with the Python algorithm), Home's order and cards, the Studio
+row's states and its popover (keyboard focus, Esc). `npm test`, in CI and `./dev.ps1 test`.
+The end-to-end journey (onboarding → recap → Home → Studio → Simulator) is an API test on the
+mocks (`tests/test_personas_api.py`); a browser-driven E2E is left for later.
+
+### D240 · Demo mode records the personas — settled
+`tools/record_web_demo.py` now records Home's personas and detail sheets, the reactions for
+each idea and each Studio stage, and a few persona chat answers; the demo plays them back.
 
 ## Schema additions (beyond the MVP doc's key columns; built in Phase 2, in `db/migrations/`)
 
@@ -1478,3 +1627,4 @@ Python unit test. `prefers-reduced-motion` turns off auto-advance, count-ups and
 | `audience_segments`, `audience_personas`, `persona_calibrations`, `simulation_agents`, `agent_chats`; `simulations.timeline`, `engagement_score`, `persona_version` | The AI audience (D205) — migration 0015 |
 | `plans`, `subscriptions`, `credit_ledger`, `usage_ledger`; `creators.is_admin`; `projects.revisions` | Plans, credits and costs (D208) — migration 0016 |
 | `recaps`, `follower_ideas`; `auth.users.is_anonymous` (local shim) | The Creator Recap, "What your followers will love", anonymous first-run sessions (D214–D219) — migration 0017 |
+| `follower_personas`, `persona_history`, `persona_builds`, `persona_opinions`, `persona_messages`, `comment_embeddings`; `audience_personas.persona_id`; `persona_calibrations.segment`; `usage_ledger.feature`; `follower_ideas` dropped | Follower Personas (D223–D240) — migration 0018 |

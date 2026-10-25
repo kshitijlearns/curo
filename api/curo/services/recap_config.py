@@ -80,19 +80,29 @@ MILESTONES = [100, 500, 1_000, 5_000, 10_000, 25_000, 50_000, 100_000, 250_000, 
 # ------------------------------------------------------------------ the story
 
 MIN_SLIDES, MAX_SLIDES = 5, 12
+MAX_SLIDES_WITH_PERSONAS = 18  # v2.2: "Meet your followers" is never dropped
 FIRST_RECAP_DAYS = 90
-# The arc: a hook, then wins, then audience, then style, then the reveal.
+# v2.2: right after the creator-type reveal, before the share card.
+PERSONA_SEQUENCE = (
+    "followers_intro", "persona_1", "persona_2", "persona_3", "persona_4", "followers_summary",
+    "followers_shift",
+)  # fmt: skip
+PERSONA_SHIFT_POINTS = 0.05  # a share change that earns followers_shift (monthly)
+# The arc: a hook, then wins, then audience, then style, then the reveal, then the followers.
 ORDER = [
     "intro", "posting", "streak", "views_total", "beyond_followers", "top_reel", "most_talked",
     "most_shared", "growth", "vs_last_month", "audience_voice", "language_mix", "best_time",
-    "superpower", "top_topic", "creator_type", "share_card", "next_up",
+    "superpower", "top_topic", "creator_type", *PERSONA_SEQUENCE, "share_card", "next_up",
 ]  # fmt: skip
 ALWAYS = ("intro", "creator_type", "share_card", "next_up")
 # When there are too many, these middle slides go first (least essential first).
 DROP_FIRST = ["language_mix", "streak", "most_shared", "best_time", "top_topic",
               "vs_last_month", "most_talked", "audience_voice", "superpower",
               "beyond_followers", "growth", "top_reel", "views_total", "posting"]  # fmt: skip
-LONG_SLIDES = {"audience_voice", "creator_type", "share_card", "superpower"}  # 8 s, not 6 s
+LONG_SLIDES = {
+    "audience_voice", "creator_type", "share_card", "superpower", "persona_1", "persona_2",
+    "persona_3", "persona_4", "followers_summary",
+}  # 8 s, not 6 s  # fmt: skip
 MILESTONE_SLIDES = {"views_total", "top_reel", "growth", "creator_type"}  # confetti
 
 # Full-bleed backgrounds rotate through the palette. Body text must pass WCAG AA (4.5:1), so
@@ -104,6 +114,14 @@ BACKGROUNDS = [
     ("gray", "ink"),
     ("white", "ink"),
 ]
+# A persona slide's background is the persona's colour where ink text passes AA (lavender,
+# pink); the blue and ink personas sit on white with their coloured dots (D216).
+PERSONA_BACKGROUNDS = {
+    "blue": ("white", "ink"),
+    "lavender": ("lavender", "ink"),
+    "pink": ("pink", "ink"),
+    "ink": ("white", "ink"),
+}
 COLOURS = {
     "blue": "#5B73F2",
     "lavender": "#C3BFF2",

@@ -225,7 +225,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/follower-ideas": {
+    "/v1/home": {
         parameters: {
             query?: never;
             header?: never;
@@ -233,10 +233,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Follower Ideas
-         * @description What your followers will love: the top 5, best first.
+         * Home
+         * @description Home's sections, in order (v2.2 §5.1); each loads from its own endpoint.
          */
-        get: operations["follower_ideas_v1_follower_ideas_get"];
+        get: operations["home_v1_home_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -508,6 +508,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/personas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Personas */
+        get: operations["personas_v1_personas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/personas/{persona_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Persona */
+        get: operations["persona_v1_personas__persona_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/personas/{persona_id}/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Chat History */
+        get: operations["chat_history_v1_personas__persona_id__chat_get"];
+        put?: never;
+        /** Chat */
+        post: operations["chat_v1_personas__persona_id__chat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/personas/{persona_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** History */
+        get: operations["history_v1_personas__persona_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/projects": {
         parameters: {
             query?: never;
@@ -651,6 +720,31 @@ export interface paths {
         put?: never;
         /** Select */
         post: operations["select_v1_projects__project_id__ideas__idea_id__select_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/projects/{project_id}/persona-reactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Reactions
+         * @description The cached reactions only (never calls the model).
+         */
+        get: operations["get_reactions_v1_projects__project_id__persona_reactions_get"];
+        put?: never;
+        /**
+         * Run Reactions
+         * @description Each persona's reaction to the current draft: cached per version, else T27 now. Part
+         *     of the project's credit; never counted as a revision by itself.
+         */
+        post: operations["run_reactions_v1_projects__project_id__persona_reactions_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1148,6 +1242,8 @@ export interface components {
         AgentComment: {
             /** Agent No */
             agent_no: number;
+            /** Color */
+            color?: string | null;
             /**
              * Likes
              * @default 0
@@ -1185,6 +1281,8 @@ export interface components {
         AgentReply: {
             /** Agent No */
             agent_no: number;
+            /** Color */
+            color?: string | null;
             /** Segment */
             segment: string;
             /** Text */
@@ -1518,34 +1616,12 @@ export interface components {
             calls: number;
             /** Cost Usd */
             cost_usd: number;
+            /** Feature */
+            feature?: string | null;
             /** Provider */
             provider: string;
             /** Task */
             task: string | null;
-        };
-        /** FollowerIdeaOut */
-        FollowerIdeaOut: {
-            /** Evidence */
-            evidence?: {
-                [key: string]: unknown;
-            };
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Parts */
-            parts?: {
-                [key: string]: number;
-            };
-            /** Score */
-            score: number;
-            /** Segment */
-            segment?: string | null;
-            /** Title */
-            title: string;
-            /** Why */
-            why: string;
         };
         /** FrameOutApi */
         FrameOutApi: {
@@ -1617,6 +1693,23 @@ export interface components {
             status: string;
             /** Version */
             version: string;
+        };
+        /** HomeOut */
+        HomeOut: {
+            /** Sections */
+            sections: components["schemas"]["HomeSection"][];
+        };
+        /** HomeSection */
+        HomeSection: {
+            /** Endpoint */
+            endpoint: string;
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "personas" | "recap" | "opportunities" | "trends";
+            /** Title */
+            title: string;
         };
         /** IdeaOut */
         IdeaOut: {
@@ -1746,6 +1839,15 @@ export interface components {
             status: "queued" | "running" | "succeeded" | "failed";
             /** Type */
             type: string;
+        };
+        /** LanguageShare */
+        LanguageShare: {
+            /** Language */
+            language: string;
+            /** Name */
+            name: string;
+            /** Share */
+            share?: number | null;
         };
         /** Me */
         Me: {
@@ -2006,6 +2108,382 @@ export interface components {
         OwnScriptIn: {
             /** Text */
             text: string;
+        };
+        /**
+         * PersonaCard
+         * @description One persona on Home (and everywhere it's shown small).
+         */
+        PersonaCard: {
+            /** Avatar Seed */
+            avatar_seed: number;
+            /**
+             * Color
+             * @enum {string}
+             */
+            color: "blue" | "lavender" | "pink" | "ink";
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "low" | "medium" | "high";
+            /**
+             * Evidence Line
+             * @description From 214 comments across 18 reels · updated 3 Oct.
+             */
+            evidence_line: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Starter */
+            is_starter: boolean;
+            /**
+             * Meter
+             * @description 5-step mood meter, 1 = not feeling it
+             */
+            meter: number;
+            /** Meter Word */
+            meter_word: string;
+            /**
+             * Mood
+             * @description The avatar's mood from current sentiment (code)
+             * @enum {string}
+             */
+            mood: "neutral" | "love" | "like" | "unsure" | "skip" | "thinking" | "listening";
+            /** N Comments */
+            n_comments: number;
+            /** N Reels */
+            n_reels: number;
+            /** Name */
+            name: string;
+            /** Share */
+            share: number;
+            /** Share Pct */
+            share_pct: number;
+            /** Short Name */
+            short_name: string;
+            /** Slot */
+            slot: number;
+            /** Tagline */
+            tagline: string;
+            thought: components["schemas"]["PersonaThoughtOut"];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** PersonaChatIn */
+        PersonaChatIn: {
+            /** Context Id */
+            context_id?: string | null;
+            /**
+             * Context Type
+             * @default home
+             * @enum {string}
+             */
+            context_type: "home" | "studio" | "simulator";
+            /** Message */
+            message: string;
+        };
+        /** PersonaDetail */
+        PersonaDetail: {
+            /** Avatar Seed */
+            avatar_seed: number;
+            /**
+             * Color
+             * @enum {string}
+             */
+            color: "blue" | "lavender" | "pink" | "ink";
+            /** Comes For */
+            comes_for: string[];
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "low" | "medium" | "high";
+            /** Engagement Style */
+            engagement_style: string;
+            /**
+             * Evidence Line
+             * @description From 214 comments across 18 reels · updated 3 Oct.
+             */
+            evidence_line: string;
+            /** Facts */
+            facts?: string[];
+            /** Favourite Reels */
+            favourite_reels?: components["schemas"]["PersonaReel"][];
+            /** History */
+            history?: components["schemas"]["PersonaHistoryPoint"][];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Starter */
+            is_starter: boolean;
+            /** Label */
+            label: string;
+            /** Language */
+            language: components["schemas"]["LanguageShare"][];
+            /** Loves */
+            loves: components["schemas"]["PersonaTrait"][];
+            /**
+             * Meter
+             * @description 5-step mood meter, 1 = not feeling it
+             */
+            meter: number;
+            /** Meter Word */
+            meter_word: string;
+            /**
+             * Mood
+             * @description The avatar's mood from current sentiment (code)
+             * @enum {string}
+             */
+            mood: "neutral" | "love" | "like" | "unsure" | "skip" | "thinking" | "listening";
+            /** N Comments */
+            n_comments: number;
+            /** N Reels */
+            n_reels: number;
+            /** Name */
+            name: string;
+            /** Places */
+            places?: string[];
+            /** Share */
+            share: number;
+            /** Share Pct */
+            share_pct: number;
+            /** Short Name */
+            short_name: string;
+            /** Slot */
+            slot: number;
+            /** Tagline */
+            tagline: string;
+            thought: components["schemas"]["PersonaThoughtOut"];
+            /** Turn Offs */
+            turn_offs: components["schemas"]["PersonaTrait"][];
+            /**
+             * Typical Comment
+             * @description Paraphrased, never a real comment
+             */
+            typical_comment: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Voice */
+            voice: string;
+            /** Wants More */
+            wants_more: string[];
+        };
+        /** PersonaHistoryPoint */
+        PersonaHistoryPoint: {
+            /** Mood */
+            mood: string;
+            /** N Comments */
+            n_comments: number;
+            /**
+             * Period
+             * Format: date
+             */
+            period: string;
+            /** Sentiment */
+            sentiment?: number | null;
+            /** Share */
+            share: number;
+        };
+        /** PersonaMessageOut */
+        PersonaMessageOut: {
+            /** Content */
+            content: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "persona";
+        };
+        /** PersonaReactionOut */
+        PersonaReactionOut: {
+            /** Avatar Seed */
+            avatar_seed: number;
+            /**
+             * Badge
+             * @enum {string}
+             */
+            badge: "Love" | "Like" | "Unsure" | "Skip";
+            /**
+             * Color
+             * @enum {string}
+             */
+            color: "blue" | "lavender" | "pink" | "ink";
+            /** Evidence */
+            evidence?: string[];
+            /** Is Starter */
+            is_starter: boolean;
+            /**
+             * Mood
+             * @enum {string}
+             */
+            mood: "neutral" | "love" | "like" | "unsure" | "skip" | "thinking" | "listening";
+            /** Name */
+            name: string;
+            /** Opinion */
+            opinion: string;
+            /**
+             * Persona Id
+             * Format: uuid
+             */
+            persona_id: string;
+            /**
+             * Reaction
+             * @enum {string}
+             */
+            reaction: "watch_all" | "watch" | "scroll_past" | "skip";
+            /** Reaction Label */
+            reaction_label: string;
+            /**
+             * Score
+             * @description This persona's score: the model/code blend
+             */
+            score: number;
+            /** Score Code */
+            score_code: number;
+            /** Score Model */
+            score_model?: number | null;
+            /** Share */
+            share: number;
+            /** Short Name */
+            short_name: string;
+            /** Win Them Over */
+            win_them_over?: string | null;
+            would: components["schemas"]["PersonaWould"];
+        };
+        /** PersonaReactionsIn */
+        PersonaReactionsIn: {
+            /** Target Id */
+            target_id?: string | null;
+            /**
+             * Target Type
+             * @description Default: the project's current draft
+             */
+            target_type?: ("idea" | "script" | "storyboard" | "caption") | null;
+        };
+        /** PersonaReactionsOut */
+        PersonaReactionsOut: {
+            /**
+             * Audience
+             * @description A in the idea score: Σ share × score / Σ share
+             */
+            audience?: number | null;
+            /** Label */
+            label: string;
+            /** Reactions */
+            reactions?: components["schemas"]["PersonaReactionOut"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ready" | "building" | "none";
+            /** Summary */
+            summary?: string | null;
+            /** Target Id */
+            target_id?: string | null;
+            /** Target Type */
+            target_type?: string | null;
+            /** Target Version */
+            target_version?: number | null;
+        };
+        /** PersonaReel */
+        PersonaReel: {
+            /**
+             * Comments
+             * @description This group's comments on it
+             */
+            comments: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Tone */
+            tone: number;
+        };
+        /** PersonaThoughtOut */
+        PersonaThoughtOut: {
+            /** Loves */
+            loves?: string[];
+            /**
+             * Mood
+             * @enum {string}
+             */
+            mood: "neutral" | "love" | "like" | "unsure" | "skip" | "thinking" | "listening";
+            /** Thought */
+            thought: string;
+            /** Wants More */
+            wants_more?: string[];
+        };
+        /** PersonaTrait */
+        PersonaTrait: {
+            /** Evidence */
+            evidence?: string | null;
+            /** Text */
+            text: string;
+        };
+        /** PersonaWould */
+        PersonaWould: {
+            /**
+             * Comment
+             * @default false
+             */
+            comment: boolean;
+            /**
+             * Like
+             * @default false
+             */
+            like: boolean;
+            /**
+             * Save
+             * @default false
+             */
+            save: boolean;
+            /**
+             * Share
+             * @default false
+             */
+            share: boolean;
+        };
+        /** PersonasOut */
+        PersonasOut: {
+            /**
+             * Early Guess
+             * @default false
+             */
+            early_guess: boolean;
+            /** Label */
+            label: string;
+            /** Personas */
+            personas?: components["schemas"]["PersonaCard"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ready" | "building";
+            /** Summary */
+            summary?: string | null;
         };
         /** PlanOut */
         PlanOut: {
@@ -2505,8 +2983,12 @@ export interface components {
             label: string;
             /** Past Reels Scored */
             past_reels_scored: number;
+            /** Persona Label */
+            persona_label?: string | null;
             /** Persona Version */
             persona_version: string;
+            /** Personas */
+            personas?: components["schemas"]["SimPersonaResult"][];
             /** Predictions */
             predictions: components["schemas"]["AudiencePrediction"][];
             /** Previous Engagement Score */
@@ -2515,6 +2997,8 @@ export interface components {
             segments: components["schemas"]["AudienceSegmentOut"][];
             /** Skip Curve */
             skip_curve: components["schemas"]["SkipPoint"][];
+            /** Studio Compare */
+            studio_compare?: string[];
             /** Watched */
             watched: number;
         };
@@ -2615,6 +3099,63 @@ export interface components {
             text: string;
             /** Value */
             value: string;
+        };
+        /** SimPersonaOpinion */
+        SimPersonaOpinion: {
+            /** Opinion */
+            opinion: string;
+            /** Reaction */
+            reaction: string;
+            /** Reaction Label */
+            reaction_label: string;
+            /** Win Them Over */
+            win_them_over?: string | null;
+        };
+        /**
+         * SimPersonaResult
+         * @description v2.2: how one Follower Persona's agents reacted (rates calibrated; saves simulated).
+         */
+        SimPersonaResult: {
+            /** Agents */
+            agents: number;
+            /** Avatar Seed */
+            avatar_seed: number;
+            /**
+             * Calibration
+             * @enum {string}
+             */
+            calibration: "own" | "overall";
+            /** Color */
+            color: string;
+            /** Mood */
+            mood: string;
+            /** Name */
+            name: string;
+            opinion?: components["schemas"]["SimPersonaOpinion"] | null;
+            /**
+             * Persona Id
+             * Format: uuid
+             */
+            persona_id: string;
+            /** Rates */
+            rates: {
+                [key: string]: number | null;
+            };
+            /**
+             * Saves Simulated
+             * @default true
+             */
+            saves_simulated: boolean;
+            /** Share */
+            share: number;
+            /** Short Name */
+            short_name: string;
+            /** Studio Reaction */
+            studio_reaction?: string | null;
+            /** Takeaway */
+            takeaway: string;
+            /** Watched To End */
+            watched_to_end: number;
         };
         /** SimPrevious */
         SimPrevious: {
@@ -2935,6 +3476,8 @@ export interface components {
         /** Validation */
         Validation: {
             parts: components["schemas"]["IdeaParts"];
+            /** @description v2.2: each Follower Persona's own take (A is their weighted score) */
+            personas?: components["schemas"]["PersonaReactionsOut"] | null;
             /** Reasons */
             reasons: components["schemas"]["Reason"][];
             /** Score */
@@ -3373,7 +3916,7 @@ export interface operations {
             };
         };
     };
-    follower_ideas_v1_follower_ideas_get: {
+    home_v1_home_get: {
         parameters: {
             query?: never;
             header?: {
@@ -3390,7 +3933,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["FollowerIdeaOut"][];
+                    "application/json": components["schemas"]["HomeOut"];
                 };
             };
             /** @description Validation Error */
@@ -3920,6 +4463,176 @@ export interface operations {
             };
         };
     };
+    personas_v1_personas_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonasOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    persona_v1_personas__persona_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                persona_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonaDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    chat_history_v1_personas__persona_id__chat_get: {
+        parameters: {
+            query?: {
+                context_type?: string;
+                context_id?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                persona_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonaMessageOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    chat_v1_personas__persona_id__chat_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                persona_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PersonaChatIn"];
+            };
+        };
+        responses: {
+            /** @description The reply, streamed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    history_v1_personas__persona_id__history_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                persona_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonaHistoryPoint"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_v1_projects_post: {
         parameters: {
             query?: never;
@@ -4190,6 +4903,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Project"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_reactions_v1_projects__project_id__persona_reactions_get: {
+        parameters: {
+            query?: {
+                version?: number | null;
+                target_type?: string | null;
+                target_id?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonaReactionsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_reactions_v1_projects__project_id__persona_reactions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PersonaReactionsIn"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonaReactionsOut"];
                 };
             };
             /** @description Validation Error */
