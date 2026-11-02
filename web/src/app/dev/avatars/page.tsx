@@ -20,11 +20,11 @@ export default function Avatars() {
   const [seedShift, setSeedShift] = useState(0);
   return (
     <div className="app">
-      <BackHeader title="Persona avatars" onBack={() => router.push('/')} sub="Dot-cluster characters: moods, colours, sizes and states." />
+      <BackHeader title="Persona avatars" onBack={() => router.push('/')} sub="Glowing orbs with a dot-cluster inside: moods, colours, sizes and states." />
       <main className="sheet" style={{ paddingBottom: 64 }}>
         <div className="row wrap" style={{ gap: 8 }}>
           {MOODS.map((m) => (
-            <button key={m} className={`pill ${m === mood ? 'blue' : 'white'}`} aria-pressed={m === mood} onClick={() => setMood(m)}>
+            <button key={m} className={`pill ${m === mood ? 'violet' : 'white'}`} aria-pressed={m === mood} onClick={() => setMood(m)}>
               {m}
             </button>
           ))}
@@ -101,9 +101,9 @@ export default function Avatars() {
         </div>
 
         <h2 style={{ marginTop: 24 }}>On the dark recap slide</h2>
-        <div className="row wrap" style={{ gap: 16, background: 'var(--ink)', padding: 16, borderRadius: 20 }}>
+        <div className="row wrap" style={{ gap: 16, background: 'var(--plum)', padding: 16, borderRadius: 20 }}>
           {COLORS.map((c, i) => (
-            <PersonaAvatar key={c} seed={SEEDS[i] + seedShift * 97} color={c} mood={mood} size={64} animated={animated} name={NAMES[i]} share={SHARES[i]} surface="dark" />
+            <PersonaAvatar key={c} seed={SEEDS[i] + seedShift * 97} color={c} mood={mood} size={64} animated={animated} name={NAMES[i]} share={SHARES[i]} />
           ))}
         </div>
         <p className="small muted" style={{ marginTop: 16 }}>

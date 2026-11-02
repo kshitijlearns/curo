@@ -639,3 +639,13 @@ The prompt's T18–T21 are taken (v2: T18 write_personas, T19 agent_reactions, T
 T21 explain_simulation), so v2.2 adds **T25 write_follower_personas, T26 persona_thoughts,
 T27 persona_reactions, T28 persona_chat** and **T29 check_sensitive** (the cheap classifier).
 The prompt's "T16 recap copy" is our T23; its "T17" (follower ideas) is our T24, now removed.
+
+---
+
+# v2.3: the redesign
+
+A completely new UI, purple and white only, inspired by the Women Wellness (Artspire) and Verdikt
+(Emote) Dribbble shots: serif headlines (Fraunces), auroras, glass tiles, gradient header panels,
+a floating pill nav with a raised Studio button, and each persona as a glowing purple orb. The
+Creator Recap is playful, with the persona orbs all the way through it. No API or data changes:
+only the web app, the share card and the avatar's colours. Decisions D241–D244.

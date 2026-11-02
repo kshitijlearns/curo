@@ -53,16 +53,16 @@ describe('PersonaAvatar', () => {
     expect(container.querySelector('svg')?.getAttribute('data-mood')).toBe('thinking');
   });
 
-  it('gives light colours a hairline ring and the same seed the same dots', () => {
+  it('is a gradient orb with its dots inside, and the same seed gives the same dots', () => {
     motion(false);
+    const dotsOf = (c: HTMLElement) => Array.from(c.querySelectorAll('circle.pa-dot')).map((d) => `${d.getAttribute('cx')},${d.getAttribute('cy')}`);
     const a = render(<PersonaAvatar seed={99} color="pink" />);
-    expect(a.container.querySelector('circle[stroke="#E4E4EC"]')).not.toBeNull();
-    const first = a.container.innerHTML;
+    expect(a.container.querySelector('radialGradient')).not.toBeNull();
+    const orb = a.container.querySelector('circle.pa-orb');
+    expect(orb?.getAttribute('fill')).toContain(a.container.querySelector('radialGradient')?.id);
+    const first = dotsOf(a.container);
     cleanup();
-    const b = render(<PersonaAvatar seed={99} color="pink" />);
-    expect(b.container.innerHTML).toBe(first);
-    cleanup();
-    const blue = render(<PersonaAvatar seed={99} color="blue" />);
-    expect(blue.container.querySelector('circle[stroke="#E4E4EC"]')).toBeNull();
+    const b = render(<PersonaAvatar seed={99} color="blue" />);
+    expect(dotsOf(b.container)).toEqual(first);
   });
 });

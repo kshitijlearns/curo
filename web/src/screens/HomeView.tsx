@@ -17,7 +17,7 @@ import { Section } from '@/components/Carousel';
 import { ProgressStrip } from '@/components/FirstRun';
 import { Icon } from '@/components/Icon';
 import { Overlay } from '@/components/Overlay';
-import { PersonaSection } from '@/components/Personas';
+import { PersonaHero, PersonaSection } from '@/components/Personas';
 import { ScoreRing } from '@/components/ScoreRing';
 import { api, type S } from '@/lib/api';
 import {
@@ -69,21 +69,51 @@ export function HomeView() {
   }, [me.data?.is_anonymous]);
 
   const name = me.data?.account?.username;
+  const hour = new Date().getHours();
+  const part = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
   return (
     <>
-      <div className="row between" style={{ margin: '0 4px 4px' }}>
-        <p className="light" style={{ margin: 0, fontSize: 16 }}>
-          {name ? `Hi @${name}` : 'Hi'}
-        </p>
+      <div className="row between greeting">
+        <div style={{ minWidth: 0 }}>
+          <small>{new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}</small>
+          <strong>
+            Good {part}
+            {name ? `, @${name}` : ''}
+          </strong>
+        </div>
         <button
-          className="pill"
+          className="circle sm"
+          aria-label="Refresh"
           onClick={() => {
             // Re-fetches the sections only; never starts a new scrape.
             qc.invalidateQueries();
             s.showToast('Refreshed.');
           }}
         >
-          <Icon name="refresh" size={16} /> Refresh
+          <Icon name="refresh" size={18} />
+        </button>
+      </div>
+      <PersonaHero />
+      <div className="tiles">
+        <button className="tile" onClick={() => s.nav('studio')}>
+          <span className="tile-icon">
+            <Icon name="sparkle" size={18} />
+          </span>
+          <strong>
+            Make a
+            <br />
+            new reel
+          </strong>
+        </button>
+        <button className="tile" onClick={() => s.nav('sim')}>
+          <span className="tile-icon">
+            <Icon name="simulator" size={18} strokeWidth={1.9} />
+          </span>
+          <strong>
+            Test before
+            <br />
+            you post
+          </strong>
         </button>
       </div>
       {remind ? (
@@ -127,7 +157,7 @@ function RecapSection() {
   if (!r || r.status !== 'ready') {
     return (
       <Section title="Your Creator Recap">
-        <div className="card gray" style={{ minHeight: 150 }}>
+        <div className="card tint" style={{ minHeight: 150 }}>
           <h3>Your recap is on its way</h3>
           <p className="light" style={{ marginBottom: 12 }}>
             It fills in here as soon as it’s ready.
@@ -153,7 +183,7 @@ function RecapSection() {
         <p style={{ fontWeight: 600 }}>{r.archetype}</p>
         {headline ? (
           <p style={{ marginTop: 12 }}>
-            <span className="score" style={{ fontSize: 34, color: 'var(--blue)' }}>
+            <span className="score" style={{ fontSize: 34, color: 'var(--violet)' }}>
               {headline.value}
             </span>{' '}
             <span className="light">{headline.label}</span>
@@ -191,7 +221,7 @@ function OpportunitySection() {
   return (
     <Section title="Opportunity areas">
       {cards.length === 0 ? (
-        <div className="card gray">
+        <div className="card tint">
           <p className="light">Opportunity areas appear after CURO’s first nightly run on your reels.</p>
         </div>
       ) : (
@@ -226,14 +256,14 @@ function TrendSection() {
     <>
       <Section title="Trending for you">
         {cards.length === 0 ? (
-          <div className="card gray">
+          <div className="card tint">
             <p className="light">Nothing new is picking up in your niche today. Check back tomorrow.</p>
           </div>
         ) : (
           cards.map((t) => (
             <button key={t.id} className="card tap" onClick={() => setOpen(t)}>
               <div className="row between">
-                <span className="pill pink">{t.saturation === 'unknown' ? 'New' : `${t.saturation} competition`}</span>
+                <span className="pill mist">{t.saturation === 'unknown' ? 'New' : `${t.saturation} competition`}</span>
                 {t.window_end ? <span className="small muted">until {fmtDate(t.window_end)}</span> : null}
               </div>
               <h3 style={{ marginTop: 10 }}>{t.name}</h3>
@@ -257,7 +287,7 @@ function TrendSheet({ t, onClose }: { t: S['TrendCard']; onClose: () => void }) 
   return (
     <Overlay labelledBy="trend-title" onClose={onClose}>
       <div className="row between">
-        <span className="pill pink">{t.saturation === 'unknown' ? 'New' : `${t.saturation} competition`}</span>
+        <span className="pill mist">{t.saturation === 'unknown' ? 'New' : `${t.saturation} competition`}</span>
         <button className="circle sm" onClick={onClose} aria-label="Close">
           <Icon name="close" size={18} />
         </button>

@@ -96,7 +96,7 @@ export default function Save() {
           <form onSubmit={verify} className="stack">
             <p className="light">Code sent to {email}.</p>
             {devCode && !usesSupabase ? (
-              <p className="label-sim" style={{ background: 'var(--lavender)' }}>
+              <p className="label-sim" style={{ background: 'var(--lilac)' }}>
                 {DEMO ? 'Demo with sample data' : 'Development sign-in'}: your code is {devCode}
               </p>
             ) : null}
@@ -119,7 +119,7 @@ export default function Save() {
           </form>
         )}
         {error ? (
-          <p role="alert" className="card pink" style={{ marginTop: 14 }}>
+          <p role="alert" className="card mist" style={{ marginTop: 14 }}>
             {error}
           </p>
         ) : null}

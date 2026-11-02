@@ -37,7 +37,7 @@ export function Section({
       </div>
       {intro}
       {error ? (
-        <div className="card pink" role="alert">
+        <div className="card mist" role="alert">
           <p>This section didn’t load.</p>
           {onRetry ? (
             <button className="btn small ghost" style={{ marginTop: 10 }} onClick={onRetry}>

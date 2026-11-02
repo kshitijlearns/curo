@@ -1,5 +1,7 @@
 'use client';
 /** First-run pieces (v2.1): the live progress strip and the onboarding illustrations. */
+import { Icon } from './Icon';
+import { PersonaAvatar } from './PersonaAvatar';
 import type { S } from '@/lib/api';
 
 /** What the backend is doing right now, from the onboarding job and the recap. */
@@ -25,60 +27,72 @@ export function ProgressStrip({ status }: { status: S['OnboardingStatus'] | unde
   );
 }
 
-const stroke = { stroke: '#242424', strokeWidth: 2.4, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
-const line = { ...stroke, fill: 'none' } as const;
+// The first-run art (v2.3): the same glowing orbs the app is built around.
+const CREW = [
+  { seed: 20271, color: 'blue', size: 118, x: 50, y: 48 },
+  { seed: 41203, color: 'lavender', size: 76, x: 16, y: 70 },
+  { seed: 7719, color: 'pink', size: 66, x: 84, y: 64 },
+  { seed: 93311, color: 'ink', size: 48, x: 30, y: 16 },
+] as const;
 
-/** Card 1 — Home: a phone with a recap cover and swipeable cards. */
+/** Card 1 and the first screen: four followers floating on a curve. */
 export function ArtHome() {
   return (
-    <svg viewBox="0 0 300 200" width="100%" height="100%" role="img" aria-label="A phone showing your recap and cards">
-      <rect x="95" y="14" width="110" height="176" rx="18" fill="#FFFFFF" {...stroke} />
-      <rect x="107" y="34" width="86" height="64" rx="12" fill="#C3BFF2" />
-      <text x="150" y="62" textAnchor="middle" fontSize="11" fontWeight="600" fill="#242424">Your month</text>
-      <text x="150" y="84" textAnchor="middle" fontSize="18" fontWeight="600" fill="#5B73F2">2.4L</text>
-      <rect x="107" y="108" width="54" height="40" rx="10" fill="#F2D4E2" />
-      <rect x="167" y="108" width="40" height="40" rx="10" fill="#E4E4EC" />
-      <rect x="107" y="156" width="86" height="20" rx="10" fill="#E4E4EC" />
-      <path d="M40 150 C 60 120, 70 90, 88 70" {...line} />
-      <path d="M78 66 L 90 68 L 86 80" {...line} />
-      <circle cx="245" cy="60" r="18" fill="#F2D4E2" />
-      <path d="M238 60 l5 5 l10 -11" {...line} />
-    </svg>
+    <div className="orb-stage" style={{ width: '100%', height: '100%' }} role="img" aria-label="Your four follower groups">
+      <svg className="curve" viewBox="0 0 400 196" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M-6 150 C 70 96, 120 40, 200 84 S 330 150, 410 92" fill="none" stroke="#6D3BEB" strokeOpacity={0.45} strokeWidth={1.5} strokeDasharray="2 7" strokeLinecap="round" />
+      </svg>
+      {CREW.map((c) => (
+        <div key={c.seed} className="orb" style={{ left: `${c.x}%`, top: `${c.y}%` }}>
+          <PersonaAvatar seed={c.seed} color={c.color} mood="like" size={c.size} decorative />
+        </div>
+      ))}
+    </div>
   );
 }
 
-/** Card 2 — Idea Studio: a lightbulb over a script and storyboard frames. */
+/** Card 2, Idea Studio: an idea turning into a script, a storyboard and a caption. */
 export function ArtStudio() {
+  const steps = ['Idea', 'Script', 'Storyboard', 'Caption'];
   return (
-    <svg viewBox="0 0 300 200" width="100%" height="100%" role="img" aria-label="An idea becoming a script and storyboard">
-      <path d="M150 22 a34 34 0 0 0 -20 61 v12 h40 v-12 a34 34 0 0 0 -20 -61z" fill="#F2D4E2" {...stroke} />
-      <path d="M138 106 h24" {...line} />
-      <rect x="40" y="128" width="66" height="54" rx="10" fill="#FFFFFF" {...stroke} />
-      <path d="M52 144 h42 M52 156 h34 M52 168 h38" {...line} strokeWidth={2} />
-      <rect x="117" y="128" width="66" height="54" rx="10" fill="#C3BFF2" {...stroke} />
-      <circle cx="150" cy="150" r="10" fill="#FFFFFF" {...stroke} />
-      <path d="M135 174 c8 -10 22 -10 30 0" {...line} strokeWidth={2} />
-      <rect x="194" y="128" width="66" height="54" rx="10" fill="#FFFFFF" {...stroke} />
-      <text x="227" y="160" textAnchor="middle" fontSize="12" fontWeight="600" fill="#5B73F2">#festive</text>
-    </svg>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }} role="img" aria-label="An idea becoming a script, storyboard and caption">
+      <span className="circle violet" style={{ width: 92, height: 92, boxShadow: 'var(--shadow-lift)' }}>
+        <Icon name="sparkle" size={42} color="#FFFFFF" />
+      </span>
+      <div className="chip-row" style={{ justifyContent: 'center', color: 'var(--violet-deep)' }}>
+        {steps.map((t) => (
+          <span key={t} style={{ background: 'rgba(255,255,255,0.8)', boxShadow: 'var(--shadow-soft)' }}>
+            {t}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }
 
-/** Card 3 — Simulator: a reel playing to a crowd of small AI followers. */
+/** Card 3, Simulator: a reel playing to a crowd of small AI followers. */
 export function ArtSimulator() {
   const dots = [];
   for (let r = 0; r < 4; r++) {
-    for (let c = 0; c < 9; c++) {
-      const on = (r * 9 + c) % 3 !== 0;
-      dots.push(<circle key={`${r}-${c}`} cx={40 + c * 28} cy={128 + r * 16} r={5} fill={on ? '#5B73F2' : '#E4E4EC'} />);
+    for (let c = 0; c < 11; c++) {
+      const on = (r * 11 + c) % 3 !== 0;
+      dots.push(<circle key={`${r}-${c}`} cx={20 + c * 26} cy={136 + r * 16} r={5.5} fill={on ? '#6D3BEB' : '#CDBCFA'} />);
     }
   }
   return (
     <svg viewBox="0 0 300 200" width="100%" height="100%" role="img" aria-label="A reel watched by AI followers">
-      <rect x="118" y="12" width="64" height="100" rx="12" fill="#C3BFF2" {...stroke} />
-      <path d="M142 46 v30 l24 -15 z" fill="#242424" />
-      <path d="M200 30 c 20 -6 34 4 36 18 c 2 14 -12 22 -26 20 l -10 10 l 2 -12" fill="#FFFFFF" {...stroke} />
-      <text x="218" y="54" textAnchor="middle" fontSize="11" fontWeight="600" fill="#242424">why?</text>
+      <defs>
+        <linearGradient id="reel" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#4C1FB8" />
+          <stop offset="1" stopColor="#7E55EE" />
+        </linearGradient>
+      </defs>
+      <rect x="116" y="8" width="68" height="110" rx="16" fill="url(#reel)" />
+      <path d="M142 44 v34 l27 -17 z" fill="#FFFFFF" />
+      <path d="M204 26 c 20 -6 34 4 36 18 c 2 14 -12 22 -26 20 l -10 10 l 2 -12 c -14 -8 -14 -30 -2 -36z" fill="#FFFFFF" />
+      <text x="222" y="50" textAnchor="middle" fontSize="12" fontWeight="600" fill="#1F1147">
+        why?
+      </text>
       {dots}
     </svg>
   );

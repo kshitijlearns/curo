@@ -77,7 +77,7 @@ export function OpportunityView({ id }: { id: string }) {
       </div>
 
       {o.fit.length ? (
-        <div className="card gray">
+        <div className="card tint">
           <h3 style={{ fontSize: 16 }}>How it fits you</h3>
           {(o.fit as { k: string; t: string }[]).map((f) => (
             <p key={f.k} style={{ marginTop: 6 }}>
@@ -96,7 +96,7 @@ export function OpportunityView({ id }: { id: string }) {
             <div key={t.name} className="card">
               <div className="row between">
                 <h3 style={{ fontSize: 16, margin: 0 }}>{t.name}</h3>
-                <span className="pill pink">{t.saturation === 'unknown' ? 'new' : t.saturation}</span>
+                <span className="pill mist">{t.saturation === 'unknown' ? 'new' : t.saturation}</span>
               </div>
               <p className="light small" style={{ marginTop: 6 }}>
                 {t.why_rising}

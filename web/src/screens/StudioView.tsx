@@ -50,7 +50,6 @@ function StudioStart() {
   useEffect(() => {
     s.setComposer({
       placeholder: 'Type an idea to check it',
-      hint: 'Curo scores it against your reels, your audience and what’s rising.',
       busy: check.isPending,
       onSend: (t) => {
         setIdea(t);
@@ -160,8 +159,7 @@ function ProjectView({ id }: { id: string }) {
 
   useEffect(() => {
     s.setComposer({
-      placeholder: current === 'ideas' ? 'Ask for different ideas, or ask Curo anything' : `Change the ${current} in your words`,
-      hint: 'Ask Curo can change this step for you. Tap the mic to speak.',
+      placeholder: current === 'ideas' ? 'Ask Curo for different ideas' : `Change the ${current} in your words`,
       busy: ask.busy || !!running,
       onSend: (t) => ask.send(t),
     });
@@ -188,26 +186,26 @@ function ProjectView({ id }: { id: string }) {
 
   return (
     <>
-      <div className="row between" style={{ marginBottom: 12 }}>
-        <button className="pill" onClick={() => s.openProject(null)}>
-          <Icon name="back" size={16} /> Studio
-        </button>
-        <button
-          className="pill lav"
-          onClick={async () => {
-            await api(`/projects/${id}/save`, { body: { step: current } });
-            qc.invalidateQueries({ queryKey: ['saved'] });
-            qc.invalidateQueries({ queryKey: ['me'] });
-            s.showToast('Draft saved. Find it under Saved.');
-          }}
-        >
-          <Icon name="bookmark" size={16} /> Save draft
-        </button>
-      </div>
-      <h2 className="section-title" style={{ marginTop: 0 }}>
-        {p.title || p.opportunity?.name || 'Your project'}
-      </h2>
-      {p.opportunity ? <p className="section-sub">From “{p.opportunity.name}”</p> : null}
+      <section className="hero-panel">
+        <div className="row between">
+          <button className="pill" onClick={() => s.openProject(null)}>
+            <Icon name="back" size={16} /> Studio
+          </button>
+          <button
+            className="pill"
+            onClick={async () => {
+              await api(`/projects/${id}/save`, { body: { step: current } });
+              qc.invalidateQueries({ queryKey: ['saved'] });
+              qc.invalidateQueries({ queryKey: ['me'] });
+              s.showToast('Draft saved. Find it under Saved.');
+            }}
+          >
+            <Icon name="bookmark" size={16} /> Save draft
+          </button>
+        </div>
+        <h2>{p.title || p.opportunity?.name || 'Your project'}</h2>
+        {p.opportunity ? <p>From “{p.opportunity.name}”</p> : null}
+      </section>
 
       <nav className="steps" aria-label="Studio steps">
         {STEPS.map((st) => (
@@ -345,7 +343,7 @@ function IdeasStep({
       {shown.map((idea, i) => (
         <article key={idea.id} className={`card ${idea.selected ? 'lav' : ''}`} style={{ animationDelay: `${i * 70}ms` }}>
           <div className="row between">
-            <span className="pill pink">{idea.slot ? SLOT[idea.slot] : 'Your idea'}</span>
+            <span className="pill mist">{idea.slot ? SLOT[idea.slot] : 'Your idea'}</span>
             {idea.score !== null && idea.score !== undefined ? (
               <span className="score" style={{ fontSize: 24 }}>
                 {Math.round(idea.score * 100)}
@@ -414,7 +412,7 @@ function ScriptStep({
         </span>
         {sc.band ? <span>{sc.band}</span> : null}
       </div>
-      {sc.reply ? <p className="label-sim" style={{ background: 'var(--lavender)' }}>{sc.reply}</p> : null}
+      {sc.reply ? <p className="label-sim" style={{ background: 'var(--lilac)' }}>{sc.reply}</p> : null}
       {editing ? (
         <>
           <textarea className="field" value={text} onChange={(e) => setText(e.target.value)} aria-label="Your script" rows={10} />
@@ -430,7 +428,7 @@ function ScriptStep({
       ) : (
         <div className="card">
           {sc.beats.map((b) => (
-            <div key={b.id} style={{ marginBottom: 14, background: (sc.changed_beat_ids ?? []).includes(b.id) ? 'var(--pink)' : undefined, borderRadius: 12, padding: (sc.changed_beat_ids ?? []).includes(b.id) ? 8 : 0 }}>
+            <div key={b.id} style={{ marginBottom: 14, background: (sc.changed_beat_ids ?? []).includes(b.id) ? 'var(--mist)' : undefined, borderRadius: 12, padding: (sc.changed_beat_ids ?? []).includes(b.id) ? 8 : 0 }}>
               <p className="small muted" style={{ fontWeight: 600 }}>
                 {b.t} · {b.role}
               </p>
@@ -490,7 +488,7 @@ function StoryboardStep({
   }
   return (
     <>
-      <div className="card gray">
+      <div className="card tint">
         <div className="row between">
           <strong>{sb.feasibility.label} to shoot</strong>
           <span className="small muted">{sb.frames.length} frames</span>
@@ -500,7 +498,7 @@ function StoryboardStep({
         </p>
       </div>
       {!sb.up_to_date ? (
-        <div className="card pink">
+        <div className="card mist">
           <p>The script changed since this was drawn.</p>
           <button className="btn small" style={{ marginTop: 10 }} onClick={onDraw} disabled={busy}>
             Redraw
@@ -516,7 +514,7 @@ function StoryboardStep({
                 width: 64,
                 height: 112,
                 borderRadius: 12,
-                background: 'var(--lavender)',
+                background: 'var(--lilac)',
                 flexShrink: 0,
                 display: 'flex',
                 alignItems: 'center',
@@ -620,7 +618,7 @@ function CaptionStep({
           const on = tags.includes(tag);
           const kind = candidates.find((h) => h.tag === tag)?.kind;
           return (
-            <button key={tag} className={`pill ${on ? 'blue' : ''}`} aria-pressed={on} onClick={() => toggle(tag)}>
+            <button key={tag} className={`pill ${on ? 'violet' : ''}`} aria-pressed={on} onClick={() => toggle(tag)}>
               #{tag}
               {kind && !on ? <span className="small" style={{ fontWeight: 400, opacity: 0.7 }}>{kind}</span> : null}
             </button>

@@ -91,6 +91,47 @@ function useStartProject() {
 
 // ---------------------------------------------------------------------- Home
 
+// Where the four orbs sit on Home's curve: x%, y%, size, largest group in the middle.
+const STAGE = [
+  [50, 46, 112],
+  [17, 66, 72],
+  [83, 58, 64],
+  [33, 16, 46],
+] as const;
+
+/** Home's hero: the four personas floating on a curve, and how they feel right now. */
+export function PersonaHero() {
+  const q = usePersonas();
+  const [open, setOpen] = useState<string | null>(null);
+  const cards = q.data?.personas ?? [];
+  const ready = q.data?.status === 'ready' && cards.length === 4;
+  return (
+    <>
+      <div className="orb-stage">
+        <svg className="curve" viewBox="0 0 400 196" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M-6 150 C 70 96, 120 40, 200 84 S 330 150, 410 92" fill="none" stroke="#9B7BF5" strokeOpacity={0.5} strokeWidth={1.5} strokeDasharray="2 7" strokeLinecap="round" />
+        </svg>
+        {STAGE.map(([x, y, size], i) => {
+          const p = cards[i];
+          return (
+            <div key={i} className="orb" style={{ left: `${x}%`, top: `${y}%` }}>
+              {ready && p ? (
+                <button onClick={() => setOpen(p.id)} aria-label={`${p.name}: open details`} style={{ borderRadius: '50%' }}>
+                  <PersonaAvatar seed={p.avatar_seed} color={p.color as PersonaColor} mood={p.mood as Mood} size={size} decorative />
+                </button>
+              ) : (
+                <AvatarSkeleton size={size} seed={(i + 1) * 7919} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <p className="hero-line">{ready ? (q.data?.summary ?? EARLY) : 'Meeting your followers…'}</p>
+      {open ? <PersonaSheet id={open} onClose={() => setOpen(null)} /> : null}
+    </>
+  );
+}
+
 export function PersonaSection() {
   const q = usePersonas();
   const [open, setOpen] = useState<string | null>(null);
@@ -133,10 +174,7 @@ export function PersonaSection() {
       <Section
         title={title}
         intro={
-          <>
-            {d.summary ? <p className="persona-summary">{d.summary}</p> : null}
-            {d.early_guess ? <p className="persona-summary small">{EARLY}. Post and reply to comments to sharpen them.</p> : null}
-          </>
+          d.early_guess ? <p className="persona-summary small">Post and reply to comments to sharpen them.</p> : null
         }
         footer={<PersonaLabel style={{ margin: '4px 6px 0' }} />}
       >
@@ -385,7 +423,7 @@ export function PersonaChat({ personaId, name, context, contextId }: { personaId
           Ask {name}
         </label>
         <input id={`pc-${personaId}`} className="field" style={{ height: 44 }} value={text} onChange={(e) => setText(e.target.value)} placeholder={`Ask ${name}…`} maxLength={500} disabled={busy} />
-        <button className="circle sm blue" type="submit" disabled={busy || !text.trim()} aria-label="Send">
+        <button className="circle sm violet" type="submit" disabled={busy || !text.trim()} aria-label="Send">
           <Icon name="send" size={18} />
         </button>
       </form>

@@ -1,9 +1,11 @@
 'use client';
 /**
- * The Creator Recap story player (v2.1 §3.2): full screen (a phone-width column on desktop),
- * segmented progress bars, tap right / left, press and hold to pause, ← → and space, swipe
- * down or ✕ to close. Slides auto-advance (6 s, 8 s for longer ones); with reduced motion
- * there's no auto-advance and no count-up. "ⓘ How we got this" shows the facts and formula.
+ * The Creator Recap story player (v2.1 §3.2; playful since v2.3): full screen (a phone-width
+ * column on desktop), segmented progress bars, tap right / left, press and hold to pause, ← →
+ * and space, swipe down or ✕ to close. Slides auto-advance (6 s, 8 s for longer ones); with
+ * reduced motion there's no auto-advance and no count-up. "ⓘ How we got this" shows the facts
+ * and formula. Purple scenes, drifting blobs, stickers, and the creator's persona orbs all the
+ * way through: one peeks in from the corner of every slide with a small reaction.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -13,15 +15,39 @@ import { PersonaAvatar } from './PersonaAvatar';
 import { apiText, type S } from '@/lib/api';
 import type { Mood, PersonaColor } from '@/lib/avatar';
 
-const COLOURS: Record<string, string> = {
-  blue: '#5B73F2',
-  lavender: '#C3BFF2',
-  pink: '#F2D4E2',
-  white: '#FFFFFF',
-  gray: '#E4E4EC',
-  ink: '#242424',
+// The slide's stored background name → a purple scene (v2.3). Dark scenes carry white text.
+const SCENES: Record<string, Scene> = { lavender: 'lilac', pink: 'mist', ink: 'deep', gray: 'violet', white: 'mist' };
+type Scene = 'deep' | 'violet' | 'lilac' | 'mist';
+// A persona's own slide takes its colour.
+const PERSONA_SCENES: Record<string, Scene> = { blue: 'violet', lavender: 'lilac', pink: 'mist', ink: 'deep' };
+const PALETTE = ['#FFFFFF', '#D9CCFB', '#9B7BF5', '#6D3BEB', '#CDBCFA'];
+
+function sceneOf(slide: S['RecapSlide']): Scene {
+  const id = slide.slide_id;
+  if (id === 'creator_type' || id === 'followers_intro' || id === 'followers_summary') return 'deep';
+  if (id.startsWith('persona_')) return PERSONA_SCENES[(slide.facts as { color?: string }).color ?? ''] ?? 'violet';
+  return SCENES[slide.visual.bg] ?? 'lilac';
+}
+
+// What a follower says from the corner of a slide. Reactions only: no numbers, no claims.
+const CHEERS: Record<string, string> = {
+  intro: 'Psst. We made you something.',
+  posting: 'Look at you go!',
+  streak: 'Okay, consistency!',
+  views_total: 'That’s a lot of eyes.',
+  beyond_followers: 'New faces showed up!',
+  top_reel: 'This one. Yes.',
+  most_talked: 'Everyone had opinions.',
+  most_shared: 'Straight to the group chat.',
+  growth: 'The crew is growing!',
+  vs_last_month: 'Look at that shift.',
+  audience_voice: 'Recognise this?',
+  language_mix: 'We speak your language.',
+  best_time: 'Prime scrolling hours.',
+  superpower: 'This is your thing.',
+  top_topic: 'More of this, please.',
+  creator_type: 'Called it.',
 };
-const PALETTE = ['#5B73F2', '#C3BFF2', '#F2D4E2', '#FFFFFF', '#E4E4EC'];
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -71,7 +97,7 @@ function Confetti() {
   return (
     <div className="confetti" aria-hidden="true">
       {bits.map((b, i) => (
-        <i key={i} style={{ left: `${b.left}%`, animationDelay: `${b.delay}s`, background: b.colour, borderRadius: b.round ? 6 : 2 }} />
+        <i key={i} style={{ left: `${b.left}%`, animationDelay: `${b.delay}s`, background: b.colour, borderRadius: b.round ? 6 : 3 }} />
       ))}
     </div>
   );
@@ -94,8 +120,43 @@ function FloatIn({ p, index, reduced }: { p: PersonaFact; index: number; reduced
   }, [index, reduced]);
   return (
     <div className="float-in" style={{ animationDelay: reduced ? '0s' : `${index * 450}ms` }}>
-      <PersonaAvatar seed={p.avatar_seed} color={p.color} mood={mood} size={64} name={p.name} share={p.share_pct / 100} animated={!reduced} />
+      <PersonaAvatar seed={p.avatar_seed} color={p.color} mood={mood} size={92} name={p.name} share={p.share_pct / 100} animated={!reduced} />
       <span className="small">{p.short_name}</span>
+    </div>
+  );
+}
+
+/** Stars and rings scattered around a slide; they move with the slide number. */
+function Stickers({ index, dark }: { index: number; dark: boolean }) {
+  const fill = dark ? '#FFFFFF' : '#6D3BEB';
+  const spots = [
+    { left: `${8 + (index * 13) % 22}%`, top: `${13 + (index * 7) % 8}%`, size: 26 },
+    { right: `${6 + (index * 11) % 18}%`, top: `${20 + (index * 5) % 10}%`, size: 18 },
+    { left: `${70 - (index * 9) % 26}%`, top: `${9 + (index * 3) % 6}%`, size: 12 },
+  ];
+  return (
+    <>
+      {spots.map(({ size, ...at }, i) => (
+        <svg key={i} className="sticker" width={size} height={size} viewBox="0 0 24 24" style={{ ...at, animationDelay: `${-i * 1.3}s` }} aria-hidden="true">
+          {(index + i) % 3 === 2 ? (
+            <circle cx={12} cy={12} r={8} fill="none" stroke={fill} strokeWidth={3.5} />
+          ) : (
+            <path d="M12 1c1 7 4 10 11 11-7 1-10 4-11 11-1-7-4-10-11-11 7-1 10-4 11-11z" fill={fill} />
+          )}
+        </svg>
+      ))}
+    </>
+  );
+}
+
+function Crew({ crew, reduced, size = 56 }: { crew: PersonaFact[]; reduced: boolean; size?: number }) {
+  return (
+    <div className="row" style={{ gap: 10 }} aria-hidden="true">
+      {crew.map((p, k) => (
+        <span key={p.id} className="float-in" style={{ animationDelay: reduced ? '0s' : `${k * 120}ms` }}>
+          <PersonaAvatar seed={p.avatar_seed} color={p.color} mood="love" size={size} decorative animated={!reduced} />
+        </span>
+      ))}
     </div>
   );
 }
@@ -105,12 +166,14 @@ function Body({
   recap,
   reduced,
   accent,
+  crew,
   onClose,
 }: {
   slide: Slide;
   recap: S['Recap'];
   reduced: boolean;
   accent: string;
+  crew: PersonaFact[];
   onClose: () => void;
 }) {
   const f = slide.facts as Record<string, any>;
@@ -118,6 +181,14 @@ function Body({
   const head = <h2>{copy.headline}</h2>;
   const sub = copy.subline ? <p className="sub">{copy.subline}</p> : null;
   switch (slide.slide_id) {
+    case 'intro':
+      return (
+        <>
+          {crew.length ? <Crew crew={crew} reduced={reduced} size={64} /> : null}
+          <h2 style={{ fontSize: 46 }}>{copy.headline}</h2>
+          {sub}
+        </>
+      );
     case 'posting':
       return (
         <>
@@ -167,12 +238,12 @@ function Body({
     case 'most_shared':
       return (
         <>
-          <div style={{ border: '2px solid currentColor', borderRadius: 20, padding: '16px 18px' }}>
-            <p className="sub" style={{ fontWeight: 600 }}>
+          {head}
+          <div className="story-card" style={{ transform: 'rotate(-1.6deg)' }}>
+            <p className="sub" style={{ fontFamily: 'var(--display)', fontSize: 21, lineHeight: 1.25 }}>
               “{f.title}”
             </p>
           </div>
-          {head}
           {sub}
         </>
       );
@@ -193,7 +264,7 @@ function Body({
         <>
           {head}
           {f.top_comment ? (
-            <div style={{ background: 'rgba(255,255,255,0.7)', color: '#242424', borderRadius: 20, padding: '14px 16px' }}>
+            <div className="story-card" style={{ transform: 'rotate(1.4deg)' }}>
               <p className="sub">“{f.top_comment}”</p>
               <p className="note" style={{ marginTop: 6 }}>
                 {fmtIn(f.top_comment_likes)} likes{f.emoji ? ` · most-used emoji ${f.emoji}` : ''}
@@ -213,8 +284,8 @@ function Body({
                 <span>{m.language}</span>
                 <span>{Math.round(m.share * 100)}%</span>
               </div>
-              <div style={{ height: 10, borderRadius: 5, background: 'rgba(36,36,36,0.15)', marginTop: 6 }}>
-                <div style={{ width: `${m.share * 100}%`, height: '100%', borderRadius: 5, background: accent }} />
+              <div style={{ height: 12, borderRadius: 6, background: 'rgba(255,255,255,0.35)', marginTop: 6 }}>
+                <div style={{ width: `${m.share * 100}%`, height: '100%', borderRadius: 6, background: accent }} />
               </div>
             </div>
           ))}
@@ -225,14 +296,16 @@ function Body({
       return (
         <>
           <p className="sub" style={{ opacity: 0.85 }}>
-            You’re
+            Drumroll… you’re
           </p>
-          <span className="big" style={{ fontSize: 44 }}>{recap.creator_level ?? 'A creator'}</span>
-          <span className="big" style={{ fontSize: 40, color: COLOURS.lavender }}>
+          <span className="big" style={{ fontSize: 52 }}>
+            {recap.creator_level ?? 'A creator'}
+          </span>
+          <span className="big" style={{ fontSize: 40, fontStyle: 'italic', color: '#D9CCFB', animationDelay: reduced ? '0s' : '280ms' }}>
             {recap.archetype}
           </span>
           {recap.level_modifier ? (
-            <span className="pill" style={{ alignSelf: 'flex-start', background: COLOURS.pink, color: '#242424' }}>
+            <span className="pill" style={{ alignSelf: 'flex-start', background: '#FFFFFF', color: '#4C1FB8' }}>
               {recap.level_modifier}
             </span>
           ) : null}
@@ -244,7 +317,7 @@ function Body({
     case 'followers_intro':
       return (
         <>
-          <h2>{copy.headline}</h2>
+          <h2 style={{ fontSize: 44 }}>{copy.headline}</h2>
           <p className="sub">Now meet the people who watch you.</p>
           <div className="persona-float" aria-label="Your four follower personas">
             {(f.personas as PersonaFact[]).map((p, k) => (
@@ -252,7 +325,6 @@ function Body({
             ))}
           </div>
           {f.early_guess ? <p className="note">{EARLY_GUESS}</p> : null}
-          <p className="note">{PERSONA_LABEL}</p>
         </>
       );
     case 'persona_1':
@@ -261,18 +333,26 @@ function Body({
     case 'persona_4':
       return (
         <>
-          <PersonaAvatar seed={f.avatar_seed} color={f.color} mood="love" size={120} name={f.name} share={f.share_pct / 100} animated={!reduced} />
-          <span className="big" style={{ fontSize: 36 }}>
+          <div className="persona-stage">
+            <PersonaAvatar seed={f.avatar_seed} color={f.color} mood="love" size={210} name={f.name} share={f.share_pct / 100} animated={!reduced} />
+            <div className="share-sticker">
+              <b>{f.share_pct}%</b>
+              <span>of comments</span>
+            </div>
+          </div>
+          <span className="big" style={{ fontSize: 40, lineHeight: 1.05 }}>
             {f.name}
           </span>
-          <p className="sub">
-            <strong>{f.share_pct}%</strong> of your comments
-          </p>
           <p className="sub">{f.tagline}</p>
-          {(f.comes_for as string[])?.length ? <p className="note">Comes for: {(f.comes_for as string[]).join(' · ')}</p> : null}
+          {(f.comes_for as string[])?.length ? (
+            <div className="chip-row" aria-label="Comes for">
+              {(f.comes_for as string[]).map((c) => (
+                <span key={c}>{c}</span>
+              ))}
+            </div>
+          ) : null}
           <blockquote className="story-thought">“{f.thought}”</blockquote>
-          {f.early_guess ? <span className="pill" style={{ alignSelf: 'flex-start', background: COLOURS.white, color: '#242424' }}>{EARLY_GUESS}</span> : null}
-          <p className="note">{PERSONA_LABEL}</p>
+          {f.early_guess ? <p className="note">{EARLY_GUESS}</p> : null}
         </>
       );
     case 'followers_summary':
@@ -294,20 +374,21 @@ function Body({
                 }}
                 aria-label={`${p.name}, ${p.share_pct}% of your comments. Open after the recap`}
               >
-                <PersonaAvatar seed={p.avatar_seed} color={p.color} mood="like" size={64} decorative animated={!reduced} />
-                <strong>{p.short_name}</strong>
-                <span>{p.share_pct}%</span>
+                <PersonaAvatar seed={p.avatar_seed} color={p.color} mood="like" size={76} decorative animated={!reduced} />
+                <span className="small" style={{ fontWeight: 600 }}>
+                  {p.short_name}
+                </span>
+                <b>{p.share_pct}%</b>
               </button>
             ))}
           </div>
           {sub}
-          <p className="note">{PERSONA_LABEL}</p>
         </>
       );
     case 'followers_shift':
       return (
         <>
-          <PersonaAvatar seed={f.avatar_seed} color={f.color} mood="like" size={64} decorative animated={!reduced} />
+          <PersonaAvatar seed={f.avatar_seed} color={f.color} mood="like" size={96} decorative animated={!reduced} />
           {head}
           {(f.display as string[]).map((d) => (
             <p key={d} className="sub">
@@ -321,6 +402,7 @@ function Body({
     case 'next_up':
       return (
         <>
+          {crew.length ? <Crew crew={crew} reduced={reduced} /> : null}
           {head}
           {sub}
           <button className="btn block" style={{ height: 56, fontSize: 18, position: 'relative', zIndex: 3, pointerEvents: 'auto' }} onClick={onClose}>
@@ -395,7 +477,7 @@ function ShareCard({ recap }: { recap: S['Recap'] }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center', position: 'relative', zIndex: 3, pointerEvents: 'auto' }}>
       {url ? (
-        <img src={url} alt={`Your recap card: ${recap.creator_level ?? ''} ${recap.archetype ?? ''}`} style={{ width: '62%', borderRadius: 18, boxShadow: '0 0 0 1px rgba(36,36,36,0.15)' }} />
+        <img src={url} alt={`Your recap card: ${recap.creator_level ?? ''} ${recap.archetype ?? ''}`} style={{ width: '62%', borderRadius: 20, boxShadow: 'var(--shadow-lift)', transform: 'rotate(-1.5deg)' }} />
       ) : (
         <div className="skeleton" style={{ width: '62%', aspectRatio: '9 / 16' }} />
       )}
@@ -403,7 +485,7 @@ function ShareCard({ recap }: { recap: S['Recap'] }) {
         <button className="btn" style={{ flex: 1 }} onClick={share} disabled={!png}>
           Share
         </button>
-        <button className="btn ghost" style={{ flex: 1 }} onClick={download} disabled={!png}>
+        <button className="btn ghost" style={{ flex: 1, color: 'var(--plum)' }} onClick={download} disabled={!png}>
           Download
         </button>
       </div>
@@ -425,6 +507,10 @@ export function StoryPlayer({
 }) {
   const slides = recap.slides ?? [];
   const reduced = useReducedMotion();
+  const crew = useMemo(
+    () => ((slides.find((x) => x.slide_id === 'followers_intro')?.facts as { personas?: PersonaFact[] })?.personas ?? []) as PersonaFact[],
+    [slides],
+  );
   const [i, setI] = useState(Math.min(Math.max(0, start), Math.max(0, slides.length - 1)));
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -508,9 +594,11 @@ export function StoryPlayer({
   }, []);
 
   if (!mounted || !slide) return null;
-  const bg = COLOURS[slide.visual.bg] ?? COLOURS.lavender;
-  const fg = COLOURS[slide.visual.fg] ?? COLOURS.ink;
-  const accent = COLOURS[slide.visual.accent] ?? COLOURS.blue;
+  const scene = sceneOf(slide);
+  const dark = scene === 'deep' || scene === 'violet';
+  const accent = dark ? '#D9CCFB' : '#6D3BEB';
+  const cheer = CHEERS[slide.slide_id];
+  const friend = crew.length ? crew[i % crew.length] : null;
   const f = slide.facts as Record<string, any>;
 
   const down = (e: React.PointerEvent) => {
@@ -539,7 +627,10 @@ export function StoryPlayer({
 
   return createPortal(
     <div className="story" role="dialog" aria-modal="true" aria-label={`Creator Recap: ${recap.period_label}`}>
-      <div className="story-col" style={{ background: bg, color: fg }}>
+      <div className="story-col" data-scene={scene}>
+        <span className="story-blob a" aria-hidden="true" />
+        <span className="story-blob b" aria-hidden="true" />
+        <Stickers index={i + 1} dark={dark} />
         <div className="story-bars" aria-hidden="true">
           {slides.map((_, k) => (
             <span key={k}>
@@ -570,13 +661,22 @@ export function StoryPlayer({
           aria-hidden="true"
         />
         <div className="story-body" key={`body-${i}`} aria-live="polite" style={{ pointerEvents: 'none' }}>
-          <Body slide={slide} recap={recap} reduced={reduced} accent={accent} onClose={onClose} />
+          <Body slide={slide} recap={recap} reduced={reduced} accent={accent} crew={crew} onClose={onClose} />
         </div>
-        {slide.slide_id !== 'share_card' && slide.slide_id !== 'next_up' ? (
-          <button className="story-how" onClick={() => setHow(true)}>
-            ⓘ How we got this
-          </button>
+        {friend && cheer ? (
+          <div className="cameo" key={`cameo-${i}`} aria-hidden="true">
+            <span className="say">{cheer}</span>
+            <PersonaAvatar seed={friend.avatar_seed} color={friend.color} mood={i % 2 ? 'love' : 'like'} size={68} decorative animated={!reduced} />
+          </div>
         ) : null}
+        <div className="story-foot">
+          {slide.slide_id !== 'share_card' && slide.slide_id !== 'next_up' ? (
+            <button className="story-how" onClick={() => setHow(true)}>
+              ⓘ How we got this
+            </button>
+          ) : null}
+          {crew.length ? <p>{PERSONA_LABEL}</p> : null}
+        </div>
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, display: 'flex', justifyContent: 'center', gap: 8, paddingBottom: 6, zIndex: 3 }}>
           <button className="sr-only" onClick={back}>
             Previous slide
@@ -587,7 +687,7 @@ export function StoryPlayer({
         </div>
         {how ? (
           <div className="overlay" style={{ position: 'absolute', zIndex: 5 }} onClick={() => setHow(false)} role="dialog" aria-modal="true" aria-labelledby="how-title">
-            <div className="panel" onClick={(e) => e.stopPropagation()} style={{ color: '#242424' }}>
+            <div className="panel" onClick={(e) => e.stopPropagation()} style={{ color: 'var(--plum)' }}>
               <div className="row between">
                 <h2 id="how-title" style={{ margin: 0, fontSize: 20 }}>
                   How we got this

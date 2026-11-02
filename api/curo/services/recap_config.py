@@ -114,21 +114,21 @@ BACKGROUNDS = [
     ("gray", "ink"),
     ("white", "ink"),
 ]
-# A persona slide's background is the persona's colour where ink text passes AA (lavender,
-# pink); the blue and ink personas sit on white with their coloured dots (D216).
+# A persona slide's background name; the web app turns it into a purple scene (D242).
 PERSONA_BACKGROUNDS = {
     "blue": ("white", "ink"),
     "lavender": ("lavender", "ink"),
     "pink": ("pink", "ink"),
     "ink": ("white", "ink"),
 }
+# v2.3: purple and white only. The names are the keys stored on recap slides.
 COLOURS = {
-    "blue": "#5B73F2",
-    "lavender": "#C3BFF2",
-    "pink": "#F2D4E2",
+    "blue": "#6D3BEB",
+    "lavender": "#D9CCFB",
+    "pink": "#F3EDFF",
     "white": "#FFFFFF",
-    "gray": "#E4E4EC",
-    "ink": "#242424",
+    "gray": "#ECE5FB",
+    "ink": "#1F1147",
 }
 LANGUAGE_NAMES = {
     "en": "English", "hi": "Hindi", "hinglish": "Hinglish", "mr": "Marathi", "ta": "Tamil",

@@ -8,19 +8,20 @@ export type PersonaColor = 'blue' | 'lavender' | 'pink' | 'ink' | 'gray';
 
 export const MOODS: Mood[] = ['neutral', 'love', 'like', 'unsure', 'skip', 'thinking', 'listening'];
 export const COLORS: PersonaColor[] = ['blue', 'lavender', 'pink', 'ink'];
-export const HEX: Record<PersonaColor, string> = {
-  blue: '#5B73F2',
-  lavender: '#C3BFF2',
-  pink: '#F2D4E2',
-  ink: '#242424',
-  gray: '#E4E4EC',
+// v2.3: each persona is a glowing purple orb with its dots inside. The keys are the stored
+// colour names (kept so existing personas keep their identity); every value is a purple.
+// [highlight, middle, edge] of the orb's radial gradient, then the dots' colour.
+export const ORB: Record<PersonaColor, [string, string, string, string]> = {
+  blue: ['#A98BFA', '#6D3BEB', '#4C1FB8', '#FFFFFF'],
+  lavender: ['#D6C7FD', '#9B7BF5', '#6D3BEB', '#FFFFFF'],
+  pink: ['#F3EDFF', '#CDBCFA', '#9B7BF5', '#4C1FB8'],
+  ink: ['#7A5BD0', '#3A1D8C', '#1F1147', '#FFFFFF'],
+  gray: ['#F3EDFF', '#ECE5FB', '#D9CCFB', '#FFFFFF'],
 };
-export const RING = '#E4E4EC';
-export const LIGHT = new Set<PersonaColor>(['lavender', 'pink', 'gray']);
 
 const GOLDEN = Math.PI * (3 - Math.sqrt(5));
 export const CLUSTER_R = 31;
-export const RING_R = 47;
+export const ORB_R = 48;
 const DOT_R = [2.7, 3.7, 4.7];
 const MIN_DOTS = 18;
 const MAX_DOTS = 40;

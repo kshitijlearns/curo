@@ -21,7 +21,8 @@ export type IconName =
   | 'mic'
   | 'play'
   | 'close'
-  | 'send';
+  | 'send'
+  | 'user';
 
 export function Icon({
   name,
@@ -141,6 +142,14 @@ export function Icon({
       break;
     case 'send':
       body = <path d="M12 19V5M6 11l6-6 6 6" {...s} />;
+      break;
+    case 'user':
+      body = (
+        <>
+          <circle cx={12} cy={8} r={4} {...s} />
+          <path d="M4.5 20.5c1.2-4 4-5.5 7.5-5.5s6.3 1.5 7.5 5.5" {...s} />
+        </>
+      );
       break;
   }
   return (

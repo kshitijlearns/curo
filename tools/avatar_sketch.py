@@ -65,8 +65,8 @@ def main() -> None:
             )
     out.append(
         f'<text x="14" y="{height - 14}" font-size="10" fill="#242424" fill-opacity="0.7">'
-        "Colours follow share order: blue, lavender, pink, ink. Light colours get a hairline "
-        "#E4E4EC ring on white. No faces: only the dots move.</text>"
+        "A purple orb per persona, in order of share, with its dots inside. No faces: only "
+        "the dots move.</text>"
     )
     out.append("</svg>")
     path = ROOT / "docs" / "personas" / "avatar-moods.svg"

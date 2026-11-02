@@ -1,4 +1,5 @@
-"""The Follower Persona avatar (v2.2 §2): a soft cluster of dots, the same everywhere.
+"""The Follower Persona avatar (v2.2 §2, v2.3): a purple orb with a soft cluster of dots inside, the
+same everywhere.
 
 One algorithm, two copies: this module (the share card and the plan's mood sketch) and
 ``web/src/lib/avatar.ts`` (the ``PersonaAvatar`` component). Both use the same seeded random
@@ -18,21 +19,21 @@ from dataclasses import dataclass
 M32 = 0xFFFFFFFF
 GOLDEN = math.pi * (3 - math.sqrt(5))  # the golden angle
 CLUSTER_R = 31.0
-RING_R = 47.0
+ORB_R = 48.0
 DOT_R = (2.7, 3.7, 4.7)  # three dot sizes
 MIN_DOTS, MAX_DOTS = 18, 40
 
-# Persona colours, in order of share (v2.2 §2.1).
+# Persona colours, in order of share (v2.2 §2.1). v2.3: each persona is a glowing purple orb
+# with its dots inside. The keys are the stored colour names (kept so existing personas keep
+# their identity); every value is a purple: [highlight, middle, edge] of the orb, then the dots.
 COLORS = ("blue", "lavender", "pink", "ink")
-HEX = {
-    "blue": "#5B73F2",
-    "lavender": "#C3BFF2",
-    "pink": "#F2D4E2",
-    "ink": "#242424",
-    "gray": "#E4E4EC",
+ORB = {
+    "blue": ("#A98BFA", "#6D3BEB", "#4C1FB8", "#FFFFFF"),
+    "lavender": ("#D6C7FD", "#9B7BF5", "#6D3BEB", "#FFFFFF"),
+    "pink": ("#F3EDFF", "#CDBCFA", "#9B7BF5", "#4C1FB8"),
+    "ink": ("#7A5BD0", "#3A1D8C", "#1F1147", "#FFFFFF"),
+    "gray": ("#F3EDFF", "#ECE5FB", "#D9CCFB", "#FFFFFF"),
 }
-RING = "#E4E4EC"
-LIGHT = {"lavender", "pink", "gray"}  # need a hairline ring on white
 MOODS = ("neutral", "love", "like", "unsure", "skip", "thinking", "listening")
 
 
@@ -114,20 +115,20 @@ def place(d: Dot, mood: str) -> Placed:
     return Placed(round(x, 2), round(y, 2), round(d.r * scale, 2), round(d.opacity * fade, 2))
 
 
-def svg_group(seed: int, color: str, mood: str = "neutral", ring: bool | None = None) -> str:
-    """The avatar's circles in its 100 × 100 box (wrap it in a translate/scale to place it)."""
-    fill = HEX.get(color, HEX["blue"])
-    parts = []
-    if ring if ring is not None else color in LIGHT:
-        parts.append(
-            f'<circle cx="50" cy="50" r="{RING_R}" fill="none" stroke="{RING}" stroke-width="1.2"/>'
-        )
-    light = color in LIGHT
+def svg_group(seed: int, color: str, mood: str = "neutral") -> str:
+    """The avatar in its 100 × 100 box (wrap it in a translate/scale to place it)."""
+    hi, mid, edge, dot = ORB.get(color, ORB["blue"])
+    gid = f"orb-{color}-{seed}"
+    parts = [
+        f'<defs><radialGradient id="{gid}" cx="0.34" cy="0.28" r="0.82">'
+        f'<stop offset="0" stop-color="{hi}"/><stop offset="0.55" stop-color="{mid}"/>'
+        f'<stop offset="1" stop-color="{edge}"/></radialGradient></defs>',
+        f'<circle cx="50" cy="50" r="{ORB_R}" fill="url(#{gid})"/>',
+    ]
     for d in dots(seed):
         p = place(d, mood)
-        # Light dots are faint on white: their opacity range is lifted, as in the web component.
-        op = round(0.6 + 0.4 * p.opacity, 2) if light else p.opacity
-        parts.append(f'<circle cx="{p.x}" cy="{p.y}" r="{p.r}" fill="{fill}" fill-opacity="{op}"/>')
+        op = round(0.45 + 0.55 * p.opacity, 2)  # as in the web component
+        parts.append(f'<circle cx="{p.x}" cy="{p.y}" r="{p.r}" fill="{dot}" fill-opacity="{op}"/>')
     return "".join(parts)
 
 
