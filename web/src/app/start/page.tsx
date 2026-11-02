@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { ArtHome } from '@/components/FirstRun';
 import { ApiError, api, type S } from '@/lib/api';
 import { DEMO } from '@/lib/demo';
 import { startAnonymous } from '@/lib/session';
@@ -65,14 +66,17 @@ export default function Start() {
         <h1>Curo</h1>
       </header>
       <main className="sheet" style={{ paddingBottom: 48 }}>
-        <h2 className="section-title" style={{ fontSize: 26 }}>
+        <div className="onb-art" style={{ height: 210 }}>
+          <ArtHome />
+        </div>
+        <h2 className="section-title" style={{ fontSize: 32, lineHeight: 1.1, fontWeight: 400 }}>
           What’s your Instagram username?
         </h2>
         <p className="section-sub">
           CURO reads your public profile and reels to build your first Creator Recap. No Instagram login, ever.
         </p>
         {DEMO ? (
-          <p className="label-sim" style={{ background: 'var(--lavender)' }}>
+          <p className="label-sim">
             This is a demo with sample data: any username shows the demo creator, @curo.demo.
           </p>
         ) : null}
@@ -99,7 +103,7 @@ export default function Start() {
               autoFocus
             />
           </div>
-          <p id="handle-help" className="small" style={{ margin: '0 8px', minHeight: 18, color: problem ? 'var(--ink)' : 'var(--muted)' }}>
+          <p id="handle-help" className="small" style={{ margin: '0 8px', minHeight: 18, color: problem ? 'var(--plum)' : 'var(--muted)' }}>
             {problem ?? 'Your account must be public.'}
           </p>
           <button className="btn block" style={{ height: 56, fontSize: 18 }} disabled={busy || !handle || !!problem}>
@@ -107,7 +111,7 @@ export default function Start() {
           </button>
         </form>
         {error ? (
-          <div className="card pink" role="alert" style={{ marginTop: 14 }}>
+          <div className="card mist" role="alert" style={{ marginTop: 14 }}>
             <p>{error}</p>
             {taken ? (
               <Link href="/login" className="btn small" style={{ marginTop: 12 }}>

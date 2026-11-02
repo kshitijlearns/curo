@@ -11,7 +11,6 @@ export type Tab = 'home' | 'studio' | 'sim';
 
 type Composer = {
   placeholder: string;
-  hint?: string;
   busy?: boolean;
   onSend: (text: string) => void;
 } | null;

@@ -19,12 +19,12 @@ export function ScoreRing({
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} role="img" aria-label={`${label ?? 'Score'}: ${known ? value : 'unknown'}${known ? ` of ${max}` : ''}`}>
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--gray)" strokeWidth={10} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--line)" strokeWidth={10} fill="none" />
         <circle
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke="var(--blue)"
+          stroke="var(--violet)"
           strokeWidth={10}
           fill="none"
           strokeLinecap="round"

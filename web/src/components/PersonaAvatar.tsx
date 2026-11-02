@@ -1,13 +1,14 @@
 'use client';
 /**
- * A Follower Persona's avatar (v2.2 §2): a soft cluster of dots that breathes and reacts.
- * The dots come from the persona's seed (lib/avatar.ts, the same algorithm as the share card),
- * so a persona looks the same everywhere. A mood only moves, scales or dims the dots.
+ * A Follower Persona's avatar (v2.2 §2, v2.3): a glowing purple orb with a soft cluster of dots
+ * inside that breathes and reacts. The dots come from the persona's seed (lib/avatar.ts, the
+ * same algorithm as the share card), so a persona looks the same everywhere. A mood only moves,
+ * scales or dims the dots.
  * Reduced motion (or animated={false}) shows the static mood shapes.
  */
-import { useMemo, useSyncExternalStore } from 'react';
+import { useId, useMemo, useSyncExternalStore } from 'react';
 
-import { dots, HEX, LIGHT, place, RING, RING_R, type Mood, type PersonaColor } from '@/lib/avatar';
+import { dots, ORB, ORB_R, place, type Mood, type PersonaColor } from '@/lib/avatar';
 
 export type AvatarState = 'idle' | 'listening' | 'thinking' | 'loading';
 
@@ -29,8 +30,6 @@ export function useReducedMotion(): boolean {
   );
 }
 
-const lightOpacity = (o: number) => Math.round((0.6 + 0.4 * o) * 100) / 100;
-
 /** "The Festive Planner, 31% of your comments, mood: love" */
 export function avatarLabel(name: string, share: number | null | undefined, mood: Mood): string {
   const pct = share === null || share === undefined ? null : Math.round(share * 100);
@@ -47,7 +46,6 @@ export function PersonaAvatar({
   name,
   share,
   label,
-  surface = 'light',
   decorative = false,
 }: {
   seed: number;
@@ -59,16 +57,14 @@ export function PersonaAvatar({
   name?: string;
   share?: number | null;
   label?: string;
-  surface?: 'light' | 'dark';
   decorative?: boolean;
 }) {
   const reduced = useReducedMotion();
   const base = useMemo(() => dots(seed), [seed]);
   const shown: Mood = state === 'listening' || state === 'loading' ? 'listening' : state === 'thinking' ? 'thinking' : mood;
-  const fill = state === 'loading' ? HEX.gray : HEX[color];
+  const [hi, mid, edge, dot] = ORB[state === 'loading' ? 'gray' : color];
+  const gradient = `orb-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const moving = animated && !reduced;
-  const light = state === 'loading' || LIGHT.has(color);
-  const ring = light;
   const aria = label ?? (name ? avatarLabel(name, share, shown) : `Follower persona, mood: ${shown}`);
   return (
     <svg
@@ -80,10 +76,14 @@ export function PersonaAvatar({
       data-static={moving ? undefined : 'true'}
       {...(decorative ? { 'aria-hidden': true } : { role: 'img', 'aria-label': aria })}
     >
-      {surface === 'dark' && color === 'ink' ? <circle cx={50} cy={50} r={RING_R} fill="#FFFFFF" /> : null}
-      {ring ? (
-        <circle cx={50} cy={50} r={RING_R} fill="none" stroke={RING} strokeWidth={1} vectorEffect="non-scaling-stroke" />
-      ) : null}
+      <defs>
+        <radialGradient id={gradient} cx="0.34" cy="0.28" r="0.82">
+          <stop offset="0" stopColor={hi} />
+          <stop offset="0.55" stopColor={mid} />
+          <stop offset="1" stopColor={edge} />
+        </radialGradient>
+      </defs>
+      <circle className="pa-orb" cx={50} cy={50} r={ORB_R} fill={`url(#${gradient})`} />
       {/* The dots stay mounted so they spring between moods; the group's class carries the
           looping motion (and love's one pulse, which replays whenever the class returns). */}
       <g className={`pa-g pa-${shown}${moving ? ' pa-anim' : ''}`}>
@@ -96,11 +96,10 @@ export function PersonaAvatar({
               cx={d.x}
               cy={d.y}
               r={p.r}
-              fill={fill}
+              fill={dot}
               style={{
                 transform: `translate(${(p.x - d.x).toFixed(2)}px, ${(p.y - d.y).toFixed(2)}px)`,
-                // Light dots are faint on white: their opacity range is lifted (still 40–100% depth).
-                opacity: light ? lightOpacity(p.opacity) : p.opacity,
+                opacity: Math.round((0.45 + 0.55 * p.opacity) * 100) / 100,
                 transitionDelay: moving ? `${(i % 12) * 14}ms` : undefined,
               }}
             />
@@ -111,7 +110,7 @@ export function PersonaAvatar({
   );
 }
 
-/** Four breathing grey placeholders while personas are being built. */
+/** Breathing pale orbs while personas are being built. */
 export function AvatarSkeleton({ size = 64, seed = 1 }: { size?: number; seed?: number }) {
   return <PersonaAvatar seed={seed} color="gray" state="loading" size={size} label="Building your follower personas" />;
 }

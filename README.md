@@ -7,7 +7,7 @@ where an AI audience built from your own comments watches your reel before you p
 Everything outside CURO (Apify, Gemini, Claude, Supabase, payments, Sentry/PostHog) sits
 behind an interface with a working mock, so the whole app runs on realistic fake data until
 keys arrive. See [PLAN_V2.md](PLAN_V2.md), [docs/DECISIONS.md](docs/DECISIONS.md) (v2:
-D200–D211, v2.1: D212–D222, v2.2: D223–D240) and [docs/INTEGRATION.md](docs/INTEGRATION.md).
+D200–D211, v2.1: D212–D222, v2.2: D223–D240, v2.3: D241–D244) and [docs/INTEGRATION.md](docs/INTEGRATION.md).
 
 ## Run it
 
@@ -50,7 +50,7 @@ and Trending for you. A new recap arrives on the 1st of every month.
 Every creator gets **4 Follower Personas**: characters that summarise the main groups of people
 commenting on their reels (k-means on comment embeddings and behaviour, profiled in code,
 written by Claude, checked for numbers and sensitive attributes). Each has a dot-cluster avatar
-that reacts (see **`/dev/avatars`**). They're introduced in the recap ("Meet your followers"),
+that reacts (glowing purple orbs, see **`/dev/avatars`**). They're introduced in the recap ("Meet your followers"),
 get a card each at the top of Home (tap for the detail sheet and a chat), react to every Studio
 idea and draft from a row above the composer (tap one for its own take; A in the idea score is
 their share-weighted score), and the Simulator's 1,000 agents are drawn from them, with "How

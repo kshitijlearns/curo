@@ -53,7 +53,7 @@ export default function Login() {
           We’ll email you a 6-digit code. Curo never asks for your Instagram password.
         </p>
         {DEMO ? (
-          <p className="label-sim" style={{ background: 'var(--lavender)' }}>
+          <p className="label-sim" style={{ background: 'var(--lilac)' }}>
             This is a demo with sample data for @curo.demo. Sign in with any email.
           </p>
         ) : null}
@@ -81,7 +81,7 @@ export default function Login() {
           <form onSubmit={verify} className="stack">
             <p className="light">Code sent to {email}.</p>
             {devCode && !usesSupabase ? (
-              <p className="label-sim" style={{ background: 'var(--lavender)' }}>
+              <p className="label-sim" style={{ background: 'var(--lilac)' }}>
                 {DEMO ? 'Demo with sample data' : 'Development sign-in'}: your code is {devCode}
               </p>
             ) : null}
@@ -107,7 +107,7 @@ export default function Login() {
           </form>
         )}
         {error ? (
-          <p role="alert" className="card pink" style={{ marginTop: 14 }}>
+          <p role="alert" className="card mist" style={{ marginTop: 14 }}>
             {error}
           </p>
         ) : null}

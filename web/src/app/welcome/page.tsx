@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 import { ArtHome, ArtSimulator, ArtStudio, ProgressStrip } from '@/components/FirstRun';
+import { AvatarSkeleton } from '@/components/PersonaAvatar';
 import { useOnboardingStatus } from '@/lib/hooks';
 import { signedIn } from '@/lib/session';
 
@@ -16,19 +17,16 @@ const CARDS = [
     title: 'Your Home: know what’s working',
     body: 'Meet the four groups of people who follow you and what they think of your reels. Every month you get a Creator Recap, a story of your content and your audience, plus opportunity areas and what’s trending in your niche.',
     art: <ArtHome />,
-    bg: 'var(--lavender)',
   },
   {
     title: 'Idea Studio: create with CURO',
     body: 'Pick an opportunity or bring your own idea. CURO helps you shape it into a script, a shot-by-shot storyboard and a caption with hashtags, in your own style.',
     art: <ArtStudio />,
-    bg: 'var(--pink)',
   },
   {
     title: 'Simulator: test before you post',
     body: 'Record your reel and upload it. 1,000 AI followers built from your real audience watch it, react, comment and skip. Then you can ask any of them why.',
     art: <ArtSimulator />,
-    bg: 'var(--gray)',
   },
 ];
 const TEASE_AFTER_MS = 90_000;
@@ -75,7 +73,7 @@ export default function Welcome() {
         </header>
         <main className="sheet">
           <h2 className="section-title">We hit a snag</h2>
-          <div className="card pink" role="alert">
+          <div className="card mist" role="alert">
             <p>{st?.error || 'We couldn’t read that account.'}</p>
           </div>
           <button className="btn block" onClick={() => router.replace('/start')}>
@@ -94,22 +92,22 @@ export default function Welcome() {
     ];
     const tease = teasers[Math.floor(elapsed / 4000) % teasers.length];
     return (
-      <div className="onb" style={{ background: 'var(--ink)', color: 'var(--white)' }}>
+      <div className="onb onb-wait">
         <main style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 24, padding: 28, maxWidth: 480, margin: '0 auto', width: '100%' }}>
-          <div aria-hidden="true" style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-            {['var(--lavender)', 'var(--pink)', 'var(--blue)', 'var(--white)'].map((c, k) => (
-              <span key={c} style={{ width: 22, height: 22, borderRadius: k % 2 ? 6 : 11, background: c, animation: `pulse 1.2s ${k * 0.15}s ease-in-out infinite` }} />
+          <div aria-hidden="true" style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+            {[1, 2, 3, 4].map((k) => (
+              <span key={k} style={{ animation: `pulse 1.4s ${k * 0.15}s ease-in-out infinite` }}>
+                <AvatarSkeleton size={44} seed={k * 3571} />
+              </span>
             ))}
           </div>
-          <h1 style={{ margin: 0, fontSize: 30, textAlign: 'center' }}>Building your recap</h1>
+          <h1 style={{ margin: 0, fontFamily: 'var(--display)', fontWeight: 400, fontSize: 34, textAlign: 'center' }}>Building your recap</h1>
           <p key={tease} style={{ margin: 0, textAlign: 'center', fontSize: 18, animation: 'rise 450ms var(--enter)' }}>
             {tease}
           </p>
-          <div style={{ color: 'var(--ink)' }}>
-            <ProgressStrip status={st} />
-          </div>
+          <ProgressStrip status={st} />
           {elapsed > GIVE_UP_MS ? (
-            <div className="card pink" style={{ color: 'var(--ink)' }}>
+            <div className="card" style={{ color: 'var(--plum)' }}>
               <p>This is taking much longer than it should. Your Home is ready; the recap will appear there when it’s done.</p>
             </div>
           ) : null}
@@ -126,9 +124,9 @@ export default function Welcome() {
   const card = CARDS[i];
   const last = i === CARDS.length - 1;
   return (
-    <div className="onb" style={{ background: card.bg }}>
+    <div className="onb">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 20px', maxWidth: 480, margin: '0 auto', width: '100%' }}>
-        <strong style={{ fontSize: 22 }}>Curo</strong>
+        <strong style={{ fontFamily: 'var(--display)', fontWeight: 500, fontSize: 24 }}>Curo</strong>
         {!last ? (
           <button className="pill white" onClick={() => setI(CARDS.length - 1)}>
             Skip

@@ -641,7 +641,11 @@ def profile(
         for w in set(re.findall(r"[a-z]+", c.text.lower())):
             if w in PLACES:
                 places[w.title()] += 1
-    favourite = sorted(on_reel.items(), key=lambda kv: (-kv[1], kv[0]))[:4]
+    # Ties by title, never by id: ids are random, and a persona must not change run to run.
+    favourite = sorted(
+        on_reel.items(),
+        key=lambda kv: (-kv[1], reels[kv[0]].title if kv[0] in reels else "", kv[0]),
+    )[:4]
     m = meter(sentiment, lifts)
     p = Profile(
         slot=slot,

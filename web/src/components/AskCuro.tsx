@@ -81,7 +81,7 @@ export function useAskCuro(opts: {
 export function AskThread({ messages, busy }: { messages: Msg[]; busy: boolean }) {
   if (!messages.length) return null;
   return (
-    <section aria-label="Ask Curo" className="card gray" style={{ marginTop: 18 }}>
+    <section aria-label="Ask Curo" className="card tint" style={{ marginTop: 18 }}>
       <h3 style={{ fontSize: 15 }}>Ask Curo</h3>
       <div className="stack" style={{ gap: 8 }} aria-live="polite">
         {messages.slice(-12).map((m, i) => (

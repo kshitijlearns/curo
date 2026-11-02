@@ -23,6 +23,10 @@ from curo.services import persona_avatar, persona_safety, persona_text, validato
 from curo.services import personas as P
 
 NOW = datetime(2027, 8, 23, 10, tzinfo=UTC)
+PURPLES = {
+    "#A98BFA", "#6D3BEB", "#4C1FB8", "#D6C7FD", "#9B7BF5", "#F3EDFF", "#CDBCFA", "#7A5BD0",
+    "#3A1D8C", "#1F1147", "#ECE5FB", "#D9CCFB", "#FFFFFF",
+}  # fmt: skip
 REPO = Path(__file__).resolve().parents[2]
 
 
@@ -147,6 +151,19 @@ def test_profile_facts_match_hand_calculation():
     # Every number a persona may say is in its facts.
     for f in p.facts:
         assert not validator.new_numbers(f, p.facts)
+
+
+def test_favourite_reels_break_ties_by_title_never_by_random_id():
+    def fav(ids):
+        reels = {r: P.PReel(id=r, title=t, posted=NOW) for r, t in zip(ids, "ABCDE", strict=True)}
+        comments = _comments([("love this look", "praise", 10)], reel_ids=tuple(ids))
+        p = P.profile(1, comments, comments, 1.0, 100, reels, len(comments), NOW)
+        return [r["title"] for r in p.favourite_reels]
+
+    # The same reels under ids that sort the other way round.
+    assert (
+        fav(["a1", "b2", "c3", "d4", "e5"]) == fav(["e5", "d4", "c3", "b2", "a1"]) == list("ABCD")
+    )
 
 
 def test_love_and_turn_off_come_from_over_and_under_indexing():
@@ -285,8 +302,10 @@ def test_avatar_dots_are_deterministic_and_match_the_web_fixture():
         assert {d.r for d in dots} <= set(persona_avatar.DOT_R)
         assert all(0.4 <= d.opacity <= 1.0 for d in dots)
     svg = persona_avatar.svg(42, "pink", "love")
-    assert 'stroke="#E4E4EC"' in svg  # light colours get the hairline ring
-    assert 'stroke="#E4E4EC"' not in persona_avatar.svg(42, "blue")
+    assert "radialGradient" in svg and 'fill="#4C1FB8"' in svg  # dark dots on the palest orb
+    assert 'fill="#FFFFFF"' in persona_avatar.svg(42, "blue")
+    for stops in persona_avatar.ORB.values():  # purple and white only
+        assert all(c.upper() in PURPLES for c in stops)
 
 
 # ------------------------------------------------------------------ safety

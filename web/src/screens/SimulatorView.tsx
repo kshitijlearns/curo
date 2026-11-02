@@ -110,7 +110,7 @@ function SimStart({ parent }: { parent?: S['Simulation'] }) {
       {busy ? <Loading text={busy} /> : null}
 
       {project.data && !parent ? (
-        <label className="card gray row between" style={{ cursor: 'pointer' }}>
+        <label className="card tint row between" style={{ cursor: 'pointer' }}>
           <span>
             <strong>Link to your draft</strong>
             <br />
@@ -202,8 +202,7 @@ function SimResult({ id }: { id: string }) {
   useEffect(() => {
     if (q.data?.status !== 'done') return s.setComposer(null);
     s.setComposer({
-      placeholder: 'Ask about this result',
-      hint: 'For example: why do people stop at the start?',
+      placeholder: 'Why do people stop at the start?',
       busy: ask.busy,
       onSend: (t) => ask.send(t),
     });
@@ -279,7 +278,7 @@ function SimResult({ id }: { id: string }) {
       ) : null}
 
       {r.best_time ? (
-        <div className="card gray">
+        <div className="card tint">
           <div className="row">
             <Icon name="clock" />
             <h3 style={{ margin: 0, fontSize: 16 }}>Best time to post: {r.best_time.label}</h3>
@@ -314,7 +313,7 @@ function SimResult({ id }: { id: string }) {
                 <span style={{ marginLeft: 'auto' }}>Tap to talk</span>
               </div>
               {(c.replies ?? []).slice(0, 2).map((rp, i) => (
-                <p key={i} className="small light" style={{ marginTop: 6, paddingLeft: 12, borderLeft: '2px solid var(--gray)' }}>
+                <p key={i} className="small light" style={{ marginTop: 6, paddingLeft: 12, borderLeft: '2px solid var(--line)' }}>
                   Agent {rp.agent_no} · {rp.segment}: {rp.text}
                 </p>
               ))}
@@ -373,12 +372,10 @@ function PersonaGroups({ crowd, simId }: { crowd: S['SimAudienceResult']; simId:
         <button key={p.persona_id} className="group-row" onClick={() => setOpen(p.persona_id)} aria-label={`${p.name}: ${p.takeaway} Open their take`}>
           <PersonaAvatar seed={p.avatar_seed} color={p.color as PersonaColor} mood={p.mood as Mood} size={40} name={p.name} share={p.share} decorative />
           <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-            <div className="row between">
-              <strong className="small">{p.name}</strong>
-              <span className="small">
-                {pct(p.kept_watching)} kept watching · {pct(p.watched_to_end)} to the end
-              </span>
-            </div>
+            <strong style={{ fontFamily: 'var(--display)', fontWeight: 500, fontSize: 17 }}>{p.name}</strong>
+            <p className="small" style={{ margin: '2px 0', fontWeight: 600 }}>
+              {pct(p.kept_watching)} kept watching · {pct(p.watched_to_end)} to the end
+            </p>
             <p className="small muted" style={{ margin: '2px 0' }}>
               Likes {pct(p.rates.likes)} · Comments {pct(p.rates.comments)} · Shares {pct(p.rates.shares)} · Saves {pct(p.rates.saves)} (simulated)
             </p>
@@ -439,10 +436,10 @@ function Predictions({ crowd }: { crowd: S['SimAudienceResult'] }) {
     <section className="card" aria-label="Predicted ranges">
       <h3 style={{ fontSize: 16 }}>Predicted in the first 7 days</h3>
       {crowd.predictions.map((p) => (
-        <div key={p.metric} className="row between" style={{ padding: '8px 0', borderBottom: '1px solid var(--gray)' }}>
+        <div key={p.metric} className="row between" style={{ padding: '8px 0', borderBottom: '1px solid var(--line)' }}>
           <span>
             {METRIC[p.metric]}
-            {p.simulated ? <span className="pill pink" style={{ height: 22, marginLeft: 8, fontSize: 11 }}>simulated</span> : null}
+            {p.simulated ? <span className="pill mist" style={{ height: 22, marginLeft: 8, fontSize: 11 }}>simulated</span> : null}
           </span>
           <span style={{ fontWeight: 600 }}>
             {p.count === null || p.count === undefined ? (
@@ -476,12 +473,12 @@ function SkipCurve({ points }: { points: S['SkipPoint'][] }) {
     <section className="card" aria-label="Skip curve">
       <h3 style={{ fontSize: 16 }}>Who keeps watching</h3>
       <svg viewBox={`0 -6 ${W} ${H + 24}`} width="100%" role="img" aria-label={`Share of agents still watching each second; ${Math.round(points[points.length - 1].watching * 100)}% reach the end.`}>
-        <line x1={0} y1={H} x2={W} y2={H} stroke="var(--gray)" />
-        <line x1={0} y1={0} x2={W} y2={0} stroke="var(--gray)" strokeDasharray="4 4" />
-        <path d={`${d} L${W},${H} L0,${H} Z`} fill="var(--lavender)" opacity={0.6} />
-        <path d={d} fill="none" stroke="var(--blue)" strokeWidth={2.5} strokeLinejoin="round" />
-        <text x={0} y={H + 16} fontSize={11} fill="var(--ink)">0:00</text>
-        <text x={W} y={H + 16} fontSize={11} fill="var(--ink)" textAnchor="end">{mmss(max)}</text>
+        <line x1={0} y1={H} x2={W} y2={H} stroke="var(--line)" />
+        <line x1={0} y1={0} x2={W} y2={0} stroke="var(--line)" strokeDasharray="4 4" />
+        <path d={`${d} L${W},${H} L0,${H} Z`} fill="var(--lilac)" opacity={0.6} />
+        <path d={d} fill="none" stroke="var(--violet)" strokeWidth={2.5} strokeLinejoin="round" />
+        <text x={0} y={H + 16} fontSize={11} fill="var(--plum)">0:00</text>
+        <text x={W} y={H + 16} fontSize={11} fill="var(--plum)" textAnchor="end">{mmss(max)}</text>
       </svg>
       <p className="small light">
         {Math.round(mid.watching * 100)}% still watching at {mmss(mid.t)}; {Math.round(points[points.length - 1].watching * 100)}% to the end.
@@ -605,7 +602,7 @@ function AgentChat({ simId, agentNo, onClose }: { simId: string; agentNo: number
                 disabled={left <= 0}
                 maxLength={500}
               />
-              <button className="circle blue" type="submit" aria-label="Send" disabled={left <= 0 || send.isPending}>
+              <button className="circle violet" type="submit" aria-label="Send" disabled={left <= 0 || send.isPending}>
                 <Icon name="send" size={20} />
               </button>
             </form>

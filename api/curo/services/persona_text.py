@@ -261,7 +261,7 @@ def reaction_template(
     likes = words_of(" ".join(p.loves + p.comes_for + p.wants_more))
     dislikes = words_of(" ".join(p.turn_offs))
     hits, misses = len(mine & likes), len(mine & dislikes)
-    jitter = _hash(p.key, idea, target) % 17 - 8
+    jitter = _hash(p.name, idea, target) % 17 - 8
     score = max(5, min(95, 48 + 12 * min(hits, 3) - 14 * min(misses, 2) + jitter))
     reaction = reaction_for(score)
     want = (p.wants_more or ["a clearer payoff"])[0]
@@ -272,7 +272,7 @@ def reaction_template(
         score=score,
         would=Would(
             like=score >= 45,
-            comment=score >= 60 and _hash(p.key, "c", idea) % 2 == 0,
+            comment=score >= 60 and _hash(p.name, "c", idea) % 2 == 0,
             share=score >= 70,
             save=score >= 65,
         ),

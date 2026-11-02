@@ -155,7 +155,7 @@ function Body() {
       <h2 className="section-title" style={{ marginTop: 20 }}>
         Delete your account
       </h2>
-      <div className="card pink">
+      <div className="card mist">
         <p>
           Deletes your account, drafts, simulations, chats and the data Curo collected for you. Your username stays on a
           do-not-collect list. This can’t be undone.
@@ -166,7 +166,7 @@ function Body() {
         <input id="confirm" className="field" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
         <button
           className="btn block"
-          style={{ marginTop: 12, background: 'var(--ink)' }}
+          style={{ marginTop: 12, background: 'var(--plum)' }}
           disabled={confirm !== 'DELETE' || del.isPending}
           onClick={() => del.mutate()}
         >

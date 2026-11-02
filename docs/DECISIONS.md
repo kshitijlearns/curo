@@ -1583,6 +1583,37 @@ mocks (`tests/test_personas_api.py`); a browser-driven E2E is left for later.
 `tools/record_web_demo.py` now records Home's personas and detail sheets, the reactions for
 each idea and each Studio stage, and a few persona chat answers; the demo plays them back.
 
+## v2.3 · The redesign (purple and white)
+
+### D241 · A new design system — settled (replaces the six-colour system)
+The owner asked for a completely new UI, purple and white only, inspired by two Dribbble shots:
+Artspire's wellness app (a serif headline, a glowing orb on a curve, soft fades, a floating pill
+nav with a raised middle button) and Emote's Verdikt (auroras, glass tiles, a gradient header
+panel, a segmented AI-progress card, a dark pill beside a round button). This replaces "six
+colours, no gradients, Figtree": gradients are now part of the look; tokens are `--violet`,
+`--violet-deep`, `--lilac`, `--mist`, `--line`, `--plum`, `--white`; Fraunces for what matters,
+Plus Jakarta Sans for the rest. The references were followed for layout and mood; no asset or
+copy was taken from them. A web test fails on any colour outside purple and white.
+
+### D242 · Persona avatars are glowing orbs — settled
+The dot-cluster stays (same seeds, same moods, no faces), now inside a purple orb with white
+dots, because pale dots on white were hard to see and the orb is the design's hero. The hairline
+ring and the dark-surface disc are gone. Stored colour names stay `blue`, `lavender`, `pink`,
+`ink` so existing personas keep their identity; each maps to a purple in `ORB`, and the same goes
+for recap slides' stored background names, which the web turns into purple scenes.
+
+### D243 · A playful recap — settled
+Each slide is a purple scene with drifting blobs and stickers, big serif numbers and a springy
+entrance. The personas run through the whole recap: all four open it, one peeks in from the
+corner of each slide with a small reaction, each gets a big bouncing orb with a share sticker and
+a speech bubble, then a 2×2 summary. Cameo lines are fixed reactions with no numbers and no
+claims about what anyone did, and the persona label stays on screen whenever personas appear.
+
+### D244 · Navigation and the dock — settled
+A floating pill: Home, Saved, a raised Studio button, Simulator, You. Saved and the account
+moved here from the header. Composer hints are gone (the raised button would cover them); their
+meaning moved into the placeholders.
+
 ## Schema additions (beyond the MVP doc's key columns; built in Phase 2, in `db/migrations/`)
 
 | Column | Why |

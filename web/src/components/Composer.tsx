@@ -7,14 +7,12 @@ import { useVoice } from '@/lib/voice';
 
 export function Composer({
   placeholder,
-  hint,
   busy,
   onSend,
   onNotice,
   onTyping,
 }: {
   placeholder: string;
-  hint?: string;
   busy?: boolean;
   onSend: (text: string) => void;
   onNotice: (text: string) => void;
@@ -84,7 +82,6 @@ export function Composer({
           </button>
         )}
       </div>
-      {hint ? <p className="hint small muted" style={{ margin: '6px 8px 0' }}>{hint}</p> : null}
     </div>
   );
 }

@@ -1,8 +1,7 @@
 'use client';
 /**
- * The app shell (prototype): a lavender header, a white sheet with a 32px rounded top, and a
- * dock with the Composer (where a chat applies) above the springy Nav. Saved opens over the
- * current tab with the Nav still showing.
+ * The app shell (v2.3): a soft aurora behind a light header, and a dock with the Composer (where
+ * a chat applies) above the floating Nav. Saved opens over the current tab.
  */
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -95,11 +94,7 @@ function Shell() {
     );
   } else {
     header = (
-      <BrandHeader
-        savedCount={me.data?.saved_count ?? 0}
-        onSaved={() => s.setSaved(true)}
-        initial={me.data?.account?.username ?? me.data?.email}
-      />
+      <BrandHeader initial={me.data?.account?.username ?? me.data?.email} />
     );
   }
 
@@ -122,14 +117,13 @@ function Shell() {
           {composer ? (
             <Composer
               placeholder={composer.placeholder}
-              hint={composer.hint}
               busy={composer.busy}
               onSend={composer.onSend}
               onNotice={s.showToast}
               onTyping={s.setTyping}
             />
           ) : null}
-          <Nav active={s.tab} onNav={s.nav} />
+          <Nav active={s.tab} saved={s.saved} savedCount={me.data?.saved_count ?? 0} onNav={s.nav} onSaved={() => s.setSaved(true)} />
         </div>
       </div>
       {s.toast ? <Toast key={s.toast.id} text={s.toast.text} /> : null}

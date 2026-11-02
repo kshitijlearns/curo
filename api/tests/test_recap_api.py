@@ -67,9 +67,7 @@ def test_first_run_anonymous_to_recap_to_saved_account_to_home(db):
 
         svg = client.get(f"/v1/recaps/{recap['id']}/share-image", headers=h)
         assert svg.status_code == 200 and svg.headers["content-type"].startswith("image/svg+xml")
-        assert (
-            "@curo.demo" in svg.text and 'width="1080"' in svg.text and "gradient" not in svg.text
-        )
+        assert "@curo.demo" in svg.text and 'width="1080"' in svg.text
         assert "Your followers" in svg.text and personas[0]["short_name"] in svg.text
 
         seen = client.post(f"/v1/recaps/{recap['id']}/viewed", headers=h).json()
