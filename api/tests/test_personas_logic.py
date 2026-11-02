@@ -153,6 +153,19 @@ def test_profile_facts_match_hand_calculation():
         assert not validator.new_numbers(f, p.facts)
 
 
+def test_favourite_reels_break_ties_by_title_never_by_random_id():
+    def fav(ids):
+        reels = {r: P.PReel(id=r, title=t, posted=NOW) for r, t in zip(ids, "ABCDE", strict=True)}
+        comments = _comments([("love this look", "praise", 10)], reel_ids=tuple(ids))
+        p = P.profile(1, comments, comments, 1.0, 100, reels, len(comments), NOW)
+        return [r["title"] for r in p.favourite_reels]
+
+    # The same reels under ids that sort the other way round.
+    assert (
+        fav(["a1", "b2", "c3", "d4", "e5"]) == fav(["e5", "d4", "c3", "b2", "a1"]) == list("ABCD")
+    )
+
+
 def test_love_and_turn_off_come_from_over_and_under_indexing():
     reels = _reels()
     everyone = _comments(SPEC)
