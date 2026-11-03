@@ -7,7 +7,7 @@ where an AI audience built from your own comments watches your reel before you p
 Everything outside CURO (Apify, Gemini, Claude, Supabase, payments, Sentry/PostHog) sits
 behind an interface with a working mock, so the whole app runs on realistic fake data until
 keys arrive. See [PLAN_V2.md](PLAN_V2.md), [docs/DECISIONS.md](docs/DECISIONS.md) (v2:
-D200–D211, v2.1: D212–D222, v2.2: D223–D240, v2.3: D241–D244) and [docs/INTEGRATION.md](docs/INTEGRATION.md).
+D200–D211, v2.1: D212–D222, v2.2: D223–D240, v2.3: D241–D244, v3: D245–D247) and [docs/INTEGRATION.md](docs/INTEGRATION.md).
 
 ## Run it
 
@@ -64,6 +64,11 @@ shown on screen. For the demo creator with two weeks of history, sign in as
 new email: CURO collects its (synthetic) public reels through the mock provider exactly as
 it would a real account.
 
+The app has three tabs on a floating dark nav — **Home**, **Studio** and **Simulator** (v3,
+D245–D247) — in a colour-block look: cream paper, near-black ink and seven saturated blocks.
+On Home, a round **Account** button floats beside the nav: your profile, plan and credits,
+everything you **Saved** (drafts and opportunity areas) and the link to Settings.
+
 - **Home**: Opportunity areas (scored 10 × (0.35 fit + 0.25 audience demand + 0.25 timing +
   0.15 room left)) and **Trending for you**, a shared daily trend feed per niche ranked for
   your reels. Tap an angle to start a project from it.
@@ -75,7 +80,7 @@ it would a real account.
   always "simulated"), a skip curve, the best time to post, what's working and what to
   change with timestamps, and simulated comments — tap one to talk to that agent. Re-run
   with a new take to see the score change.
-- **Settings**: your plan and credits (Free: 2 projects, 2 simulations, 10 Ask Curo
+- **Account → Settings**: your plan and credits (Free: 2 projects, 2 simulations, 10 Ask Curo
   messages a month; Pro $30: 10, 10, 100; top-ups never expire), what Curo remembers, and
   deleting your account. Admins (`ADMIN_EMAILS`) also see `/admin/costs`.
 

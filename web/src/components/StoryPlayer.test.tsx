@@ -60,7 +60,7 @@ describe('the Creator Recap', () => {
     expect(screen.getByText('34%')).toBeTruthy();
     expect(screen.getByText('“I come for relatable moments.”')).toBeTruthy();
     expect(document.querySelector('.cameo')).toBeNull(); // the persona has the slide to itself
-    expect(document.querySelector('.story-col')?.getAttribute('data-scene')).toBe('violet');
+    expect(document.querySelector('.story-col')?.getAttribute('data-scene')).toBe('mist'); // a blue persona's slide is sky (v3)
   });
 
   it('shows all four in the summary, and a tap opens that persona after the recap', () => {

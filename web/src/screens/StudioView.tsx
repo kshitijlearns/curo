@@ -1,18 +1,20 @@
 'use client';
 /**
- * Studio: from an opportunity (or the creator's own idea) to ideas, a script, a storyboard and
- * a caption with at most five hashtags. Every step runs as a job; Ask Curo (the Composer)
+ * Studio (v3 look): from an opportunity (or the creator's own idea) to ideas, a script (a
+ * timeline of coloured beats), a storyboard (a row of 9:16 frames) and a caption with at most
+ * five hashtags. Every step runs as a job; Ask Curo (the Composer)
  * changes any step in plain words. A project credit includes up to 10 revisions.
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 
 import { AskThread, useAskCuro } from '@/components/AskCuro';
-import { ErrorNote, Loading } from '@/components/Chrome';
-import { Icon } from '@/components/Icon';
-import { WhoThisIsFor } from '@/components/Personas';
+import { Arrow, Chip, ErrorNote, Loading, TopBar } from '@/components/Chrome';
+import { Icon, type IconName } from '@/components/Icon';
+import { SectionHead, WhoThisIsFor } from '@/components/Personas';
 import { api, waitForJob, type S } from '@/lib/api';
-import { usePersonaReactions, useProject, useSaved } from '@/lib/hooks';
+import { useOpportunities, usePersonaReactions, useProject, useSaved } from '@/lib/hooks';
+import { blockAt, scoreBlock } from '@/lib/palette';
 import { useApp } from '@/state/app';
 
 const MAX_HASHTAGS = 5;
@@ -23,6 +25,8 @@ const STEPS: { id: Step; label: string }[] = [
   { id: 'storyboard', label: 'Storyboard' },
   { id: 'caption', label: 'Caption' },
 ];
+const STEP_ICON: Record<Step, IconName> = { ideas: 'bolt', script: 'lines', storyboard: 'grid', caption: 'hash' };
+const STEP_BLOCK: Record<Step, string> = { ideas: 'violet', script: 'lemon', storyboard: 'sky', caption: 'lime' };
 
 export function StudioView() {
   const s = useApp();
@@ -34,6 +38,7 @@ export function StudioView() {
 function StudioStart() {
   const s = useApp();
   const saved = useSaved();
+  const opps = useOpportunities();
   const qc = useQueryClient();
   const [idea, setIdea] = useState('');
   const check = useMutation({
@@ -69,64 +74,118 @@ function StudioStart() {
   useEffect(() => () => s.setPersonaTarget(null), []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <>
-      <h2 className="section-title">Studio</h2>
-      <p className="section-sub">Start from an opportunity area on Home, or check an idea of your own below.</p>
-      <button className="btn block lav" onClick={() => s.nav('home')}>
-        <Icon name="home" size={18} /> Pick an opportunity area
-      </button>
+      <TopBar />
+      <div className="hero">
+        <span className="eyebrow">Studio</span>
+        <h1 className="display-title">
+          What are we
+          <br />
+          <span className="hl lemon">making</span> today?
+        </h1>
+      </div>
+
+      <ol className="flow" aria-label="How Studio works">
+        {STEPS.map((st, i) => (
+          <li key={st.id} className={`blk-${STEP_BLOCK[st.id]}`}>
+            <Icon name={STEP_ICON[st.id]} size={18} strokeWidth={2} />
+            <span>{st.label}</span>
+            {i < STEPS.length - 1 ? <i aria-hidden="true" /> : null}
+          </li>
+        ))}
+      </ol>
+      <p className="hint-line">
+        <Icon name="comments" size={16} strokeWidth={2} /> Type an idea below and Curo scores it with your followers.
+      </p>
 
       {check.isPending ? <Loading text="Scoring your idea…" /> : null}
       {check.error ? <ErrorNote error={check.error} /> : null}
       {v ? (
-        <div className="card lav" style={{ marginTop: 16 }}>
-          <div className="row between">
-            <span className="pill white">{v.verdict}</span>
-            <span className="score" style={{ fontSize: 28 }}>
+        <section className={`verdict blk-${scoreBlock(v.score)}`} aria-label="Your idea’s score">
+          <div className="row between" style={{ alignItems: 'flex-start' }}>
+            <Chip>{v.verdict}</Chip>
+            <span className="verdict-score" aria-label={`Score ${Math.round(v.score * 100)} of 100`}>
               {Math.round(v.score * 100)}
             </span>
           </div>
-          <h3 style={{ marginTop: 10 }}>{idea}</h3>
-          {v.personas?.summary ? (
-            <p className="small" style={{ marginTop: 6, fontWeight: 600 }}>
-              {v.personas.summary} <span className="muted" style={{ fontWeight: 400 }}>Tap a persona below for their take.</span>
-            </p>
-          ) : null}
-          {v.reasons.map((r) => (
-            <p key={r.text} style={{ marginTop: 8 }}>
-              {r.text} <span className="small muted">{r.evidence}</span>
-            </p>
-          ))}
-          {v.tweaks.length ? (
-            <>
-              <p className="small" style={{ fontWeight: 600, marginTop: 12 }}>
-                Make it stronger
-              </p>
-              {v.tweaks.map((t) => (
-                <p key={t.text} className="small light">
-                  {t.text}
-                </p>
-              ))}
-            </>
-          ) : null}
-          <button className="btn block" style={{ marginTop: 14 }} onClick={() => make.mutate(idea)} disabled={make.isPending}>
-            Make this
+          <h3 className="block-title" style={{ fontSize: 24 }}>
+            {idea}
+          </h3>
+          {v.personas?.summary ? <p className="small" style={{ margin: '0 0 10px', fontWeight: 600 }}>{v.personas.summary}</p> : null}
+          <div className="stack" style={{ gap: 6 }}>
+            {v.reasons.map((r) => (
+              <div key={r.text} className="pill-row static">
+                <span className="pill-row-main">
+                  <strong className="wrap-text">{r.text}</strong>
+                  <small className="wrap-text">{r.evidence}</small>
+                </span>
+              </div>
+            ))}
+            {v.tweaks.map((t) => (
+              <div key={t.text} className="pill-row static">
+                <span className="circle sm cream" aria-hidden="true">
+                  <Icon name="bolt" size={14} strokeWidth={2} />
+                </span>
+                <span className="pill-row-main">
+                  <strong className="wrap-text">{t.text}</strong>
+                </span>
+              </div>
+            ))}
+          </div>
+          <button className="btn block ink" style={{ marginTop: 14 }} onClick={() => make.mutate(idea)} disabled={make.isPending}>
+            <Icon name="sparkle" size={16} /> Make this
           </button>
-        </div>
+        </section>
+      ) : null}
+
+      {opps.data?.length ? (
+        <>
+          <SectionHead
+            title="Start from an opportunity"
+            action={
+              <button className="see-all" onClick={() => s.nav('home')}>
+                All
+              </button>
+            }
+          />
+          <div className="mini-deck">
+            {opps.data.slice(0, 3).map((o, i) => (
+              <button
+                key={o.id}
+                className={`mini-card blk-${blockAt(i)}`}
+                onClick={() => {
+                  s.openOpp(o.id);
+                  s.nav('home');
+                }}
+              >
+                <span className="mini-score">{o.score_shown}</span>
+                <span className="pill-row-main">
+                  <small>{o.tag}</small>
+                  <strong>{o.name}</strong>
+                </span>
+                <Arrow />
+              </button>
+            ))}
+          </div>
+        </>
       ) : null}
 
       {saved.data?.drafts?.length ? (
         <>
-          <h2 className="section-title" style={{ marginTop: 24 }}>
-            Your drafts
-          </h2>
-          {(saved.data.drafts ?? []).map((d) => (
-            <button key={d.id} className="card tap" onClick={() => s.openProject(d.id)}>
-              <div className="row between">
-                <h3 style={{ margin: 0 }}>{d.title}</h3>
-                <Icon name="chevronRight" />
-              </div>
-            </button>
-          ))}
+          <SectionHead title="Your drafts" />
+          <div className="panel-block lemon">
+            {(saved.data.drafts ?? []).map((d) => (
+              <button key={d.id} className="pill-row" onClick={() => s.openProject(d.id)}>
+                <span className="circle sm cream" aria-hidden="true">
+                  <Icon name="film" size={16} strokeWidth={2} />
+                </span>
+                <span className="pill-row-main">
+                  <strong>{d.title}</strong>
+                  {d.opportunity ? <small>{d.opportunity}</small> : null}
+                </span>
+                <Icon name="chevronRight" size={18} strokeWidth={2} />
+              </button>
+            ))}
+          </div>
         </>
       ) : null}
     </>
@@ -186,41 +245,50 @@ function ProjectView({ id }: { id: string }) {
 
   return (
     <>
-      <section className="hero-panel">
-        <div className="row between">
-          <button className="pill" onClick={() => s.openProject(null)}>
-            <Icon name="back" size={16} /> Studio
-          </button>
-          <button
-            className="pill"
-            onClick={async () => {
-              await api(`/projects/${id}/save`, { body: { step: current } });
-              qc.invalidateQueries({ queryKey: ['saved'] });
-              qc.invalidateQueries({ queryKey: ['me'] });
-              s.showToast('Draft saved. Find it under Saved.');
-            }}
-          >
-            <Icon name="bookmark" size={16} /> Save draft
-          </button>
-        </div>
-        <h2>{p.title || p.opportunity?.name || 'Your project'}</h2>
-        {p.opportunity ? <p>From “{p.opportunity.name}”</p> : null}
-      </section>
+      <div className="row between project-top">
+        <button className="chip-btn" onClick={() => s.openProject(null)}>
+          <Icon name="back" size={16} strokeWidth={2} /> Studio
+        </button>
+        <button
+          className="chip-btn"
+          onClick={async () => {
+            await api(`/projects/${id}/save`, { body: { step: current } });
+            qc.invalidateQueries({ queryKey: ['saved'] });
+            qc.invalidateQueries({ queryKey: ['me'] });
+            s.showToast('Draft saved. Find it in your account.');
+          }}
+        >
+          <Icon name="bookmark" size={16} strokeWidth={2} /> Save draft
+        </button>
+      </div>
+      <h1 className="display-title project-title">{p.title || p.opportunity?.name || 'Your project'}</h1>
+      {p.opportunity ? (
+        <span className="chip outline" style={{ marginBottom: 14 }}>
+          <Icon name="bookmark" size={13} strokeWidth={2} /> {p.opportunity.name}
+        </span>
+      ) : null}
 
       <nav className="steps" aria-label="Studio steps">
-        {STEPS.map((st) => (
-          <button
-            key={st.id}
-            aria-current={st.id === current ? 'step' : undefined}
-            onClick={() => setStep(st.id)}
-            disabled={!reachable(p, st.id)}
-          >
-            {st.label}
-          </button>
-        ))}
+        {STEPS.map((st, i) => {
+          const idx = STEPS.findIndex((x) => x.id === current);
+          const done = i < idx;
+          return (
+            <button
+              key={st.id}
+              aria-current={st.id === current ? 'step' : undefined}
+              className={done ? 'done' : undefined}
+              onClick={() => setStep(st.id)}
+              disabled={!reachable(p, st.id)}
+            >
+              <span className="step-n">{done ? <Icon name="check" size={14} strokeWidth={3} /> : i + 1}</span>
+              <Icon name={STEP_ICON[st.id]} size={18} strokeWidth={2} />
+              <span className="step-label">{st.label}</span>
+            </button>
+          );
+        })}
       </nav>
 
-      {running ? <Loading text={running} /> : null}
+      {running ? <Working text={running} /> : null}
 
       {current === 'ideas' ? (
         <IdeasStep
@@ -278,6 +346,20 @@ function ProjectView({ id }: { id: string }) {
   );
 }
 
+/** A step running: three bouncing dots on a dark card. */
+function Working({ text }: { text: string }) {
+  return (
+    <div className="working" role="status">
+      <span className="loader light" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </span>
+      <span>{text}</span>
+    </div>
+  );
+}
+
 /** What the personas react to on this step, with a key that changes with each content version. */
 function personaTargetOf(p: S['Project'] | undefined, st: Step, focusIdea: string | null) {
   if (!p) return null;
@@ -317,6 +399,8 @@ function screenOf(st: Step): S['ChatIn']['screen'] {
 
 const SLOT = { proven: 'Proven for you', adapted: 'A trend, made yours', explore: 'Worth exploring' };
 const PART = { H: 'Your history', A: 'Audience', T: 'Trend', N: 'Novelty' } as const;
+const PART_BLOCK = { H: 'violet', A: 'pink', T: 'lime', N: 'sky' } as const;
+const IDEA_BLOCKS = ['violet', 'lemon', 'coral'] as const;
 
 function IdeasStep({
   p,
@@ -337,49 +421,63 @@ function IdeasStep({
   const latest = rounds[rounds.length - 1];
   // A project from the creator's own idea (or a persona's "Make this") starts with that idea.
   const shown = latest?.ideas ?? (p.idea ? [p.idea] : []);
-  if (!shown.length) return busy ? null : <Loading text="Curo is writing your first three ideas…" />;
+  if (!shown.length) return busy ? null : <Working text="Curo is writing your first three ideas…" />;
   return (
     <>
       {shown.map((idea, i) => (
-        <article key={idea.id} className={`card ${idea.selected ? 'lav' : ''}`} style={{ animationDelay: `${i * 70}ms` }}>
-          <div className="row between">
-            <span className="pill mist">{idea.slot ? SLOT[idea.slot] : 'Your idea'}</span>
+        <article key={idea.id} className={`idea-card blk-${IDEA_BLOCKS[i % 3]}${idea.selected ? ' picked' : ''}`} style={{ animationDelay: `${i * 70}ms` }}>
+          <div className="row between" style={{ alignItems: 'flex-start' }}>
+            <Chip>
+              {idea.selected ? <Icon name="check" size={13} strokeWidth={3} /> : null}
+              {idea.slot ? SLOT[idea.slot] : 'Your idea'}
+            </Chip>
             {idea.score !== null && idea.score !== undefined ? (
-              <span className="score" style={{ fontSize: 24 }}>
+              <span className="idea-score" aria-label={`Idea score ${Math.round(idea.score * 100)} of 100`}>
                 {Math.round(idea.score * 100)}
               </span>
             ) : null}
           </div>
-          <h3 style={{ marginTop: 10 }}>{idea.text}</h3>
-          <p className="light">{idea.description}</p>
-          <p className="small" style={{ marginTop: 8 }}>
-            {idea.why}
-          </p>
+          <h3 className="idea-title">{idea.text}</h3>
+          <p className="idea-desc">{idea.description}</p>
+          {idea.why ? (
+            <p className="idea-why">
+              <Icon name="trend" size={14} strokeWidth={2.2} /> {idea.why}
+            </p>
+          ) : null}
           {idea.shares ? (
-            <div className="row wrap" style={{ marginTop: 10, gap: 6 }}>
-              {(Object.keys(PART) as (keyof typeof PART)[]).map((k) => (
-                <span key={k} className="pill" style={{ fontWeight: 400 }}>
-                  {PART[k]} {idea.shares![k]}%
-                </span>
-              ))}
+            <div className="idea-mix">
+              <div className="split-bar thin" aria-hidden="true">
+                {(Object.keys(PART) as (keyof typeof PART)[]).map((k) => (
+                  <i key={k} className={`blk-${PART_BLOCK[k]}`} style={{ flex: idea.shares![k] || 0.01 }} />
+                ))}
+              </div>
+              <div className="row wrap" style={{ gap: 10, marginTop: 6 }}>
+                {(Object.keys(PART) as (keyof typeof PART)[]).map((k) => (
+                  <span key={k} className="legend">
+                    <i className={`blk-${PART_BLOCK[k]}`} /> {PART[k]} {idea.shares![k]}%
+                  </span>
+                ))}
+              </div>
             </div>
           ) : null}
           <div className="row" style={{ marginTop: 14, gap: 8 }}>
-            <button className="btn" style={{ flex: 1 }} onClick={() => onPick(idea.id)} disabled={busy}>
-              {idea.selected ? 'Continue with this' : 'Make this one'}
+            <button className="btn ink" style={{ flex: 1 }} onClick={() => onPick(idea.id)} disabled={busy}>
+              {idea.selected ? 'Continue with this' : 'Make this one'} <Icon name="arrowRight" size={16} strokeWidth={2} />
             </button>
-            <button className={`btn small ${focus === idea.id ? 'lav' : 'ghost'}`} onClick={() => onFocus(idea.id)} aria-pressed={focus === idea.id}>
-              {focus === idea.id ? 'Reactions below' : 'See reactions'}
+            <button className={`btn small ${focus === idea.id ? 'white' : 'clear'}`} onClick={() => onFocus(idea.id)} aria-pressed={focus === idea.id}>
+              <Icon name="users" size={16} strokeWidth={2} /> {focus === idea.id ? 'Reacting below' : 'Reactions'}
             </button>
           </div>
         </article>
       ))}
       <button className="btn block ghost" onClick={onMore} disabled={busy}>
-        <Icon name="refresh" size={18} /> Three different ideas
+        <Icon name="refresh" size={18} strokeWidth={2} /> Three different ideas
       </button>
     </>
   );
 }
+
+const ROLE_BLOCK: Record<string, string> = { hook: 'coral', setup: 'lemon', item: 'sky', ending: 'lime', payoff: 'lime', cta: 'pink' };
 
 function ScriptStep({
   p,
@@ -399,25 +497,34 @@ function ScriptStep({
   const sc = p.script;
   if (!sc) {
     return (
-      <button className="btn block" onClick={onWrite} disabled={busy}>
-        Write the script
+      <button className="btn block ink big" onClick={onWrite} disabled={busy}>
+        <Icon name="lines" size={18} strokeWidth={2} /> Write the script
       </button>
     );
   }
+  const changed = sc.version > 1 ? (sc.changed_beat_ids ?? []) : [];
   return (
     <>
-      <div className="row between small muted" style={{ margin: '0 4px 10px' }}>
-        <span>
-          About {Math.round(sc.seconds)} seconds · {sc.words} words
+      <div className="row wrap" style={{ gap: 6, marginBottom: 12 }}>
+        <span className="chip ink">
+          <Icon name="clock" size={14} strokeWidth={2} /> {Math.round(sc.seconds)}s
         </span>
-        {sc.band ? <span>{sc.band}</span> : null}
+        <span className="chip outline">{sc.words} words</span>
+        {sc.band ? <span className="chip outline">Best: {sc.band.split(',')[0]}</span> : null}
       </div>
-      {sc.reply ? <p className="label-sim" style={{ background: 'var(--lilac)' }}>{sc.reply}</p> : null}
+      {sc.reply ? (
+        <div className="note-card">
+          <span className="circle sm white" aria-hidden="true">
+            <Icon name="sparkle" size={14} />
+          </span>
+          <p>{sc.reply}</p>
+        </div>
+      ) : null}
       {editing ? (
         <>
           <textarea className="field" value={text} onChange={(e) => setText(e.target.value)} aria-label="Your script" rows={10} />
           <div className="row" style={{ marginTop: 10 }}>
-            <button className="btn" onClick={() => (onOwn(text), setEditing(false))} disabled={!text.trim()}>
+            <button className="btn ink" onClick={() => (onOwn(text), setEditing(false))} disabled={!text.trim()}>
               Use my script
             </button>
             <button className="btn ghost" onClick={() => setEditing(false)}>
@@ -426,39 +533,44 @@ function ScriptStep({
           </div>
         </>
       ) : (
-        <div className="card">
+        <ol className="timeline" aria-label="Script beats">
           {sc.beats.map((b) => (
-            <div key={b.id} style={{ marginBottom: 14, background: (sc.changed_beat_ids ?? []).includes(b.id) ? 'var(--mist)' : undefined, borderRadius: 12, padding: (sc.changed_beat_ids ?? []).includes(b.id) ? 8 : 0 }}>
-              <p className="small muted" style={{ fontWeight: 600 }}>
-                {b.t} · {b.role}
-              </p>
-              <p style={{ fontSize: 16 }}>{b.text}</p>
-              {b.note ? (
-                <p className="small light" style={{ marginTop: 4 }}>
-                  {(b.note as { text?: string }).text}
-                </p>
-              ) : null}
-            </div>
+            <li key={b.id}>
+              <span className="tl-time">{b.t.split('–')[0].trim()}</span>
+              <div className={`tl-card blk-${ROLE_BLOCK[b.role] ?? 'pink'}`}>
+                <div className="row between">
+                  <span className="tl-role">{b.role}</span>
+                  {changed.includes(b.id) ? <span className="chip white">Changed</span> : <span className="tl-range">{b.t}</span>}
+                </div>
+                <p className="tl-text">{b.text}</p>
+                {b.note ? (
+                  <p className="tl-note">
+                    <Icon name="bolt" size={13} strokeWidth={2} filled /> {(b.note as { title?: string; text?: string }).title ?? (b.note as { text?: string }).text}
+                  </p>
+                ) : null}
+              </div>
+            </li>
           ))}
-        </div>
+        </ol>
       )}
       {!editing ? (
         <div className="stack">
-          <button className="btn block" onClick={onNext} disabled={busy}>
-            Next: storyboard <Icon name="arrowRight" size={18} />
+          <button className="btn block ink big" onClick={onNext} disabled={busy}>
+            Next: storyboard <Icon name="arrowRight" size={18} strokeWidth={2} />
           </button>
           <div className="row">
-            <button className="btn ghost small" onClick={onWrite} disabled={busy}>
-              Write it again
+            <button className="btn ghost small" style={{ flex: 1 }} onClick={onWrite} disabled={busy}>
+              <Icon name="refresh" size={16} strokeWidth={2} /> Write it again
             </button>
             <button
               className="btn ghost small"
+              style={{ flex: 1 }}
               onClick={() => {
                 setText(sc.beats.map((b) => b.text).join('\n'));
                 setEditing(true);
               }}
             >
-              Use my own words
+              <Icon name="lines" size={16} strokeWidth={2} /> My own words
             </button>
           </div>
         </div>
@@ -466,6 +578,8 @@ function ScriptStep({
     </>
   );
 }
+
+const FRAME_BLOCKS = ['coral', 'lemon', 'sky', 'lime', 'pink', 'violet'] as const;
 
 function StoryboardStep({
   p,
@@ -481,72 +595,56 @@ function StoryboardStep({
   const sb = p.storyboard;
   if (!sb) {
     return (
-      <button className="btn block" onClick={onDraw} disabled={busy}>
-        Draw the storyboard
+      <button className="btn block ink big" onClick={onDraw} disabled={busy}>
+        <Icon name="grid" size={18} strokeWidth={2} /> Draw the storyboard
       </button>
     );
   }
   return (
     <>
-      <div className="card tint">
-        <div className="row between">
-          <strong>{sb.feasibility.label} to shoot</strong>
-          <span className="small muted">{sb.frames.length} frames</span>
-        </div>
-        <p className="small light" style={{ marginTop: 6 }}>
-          {sb.feasibility.detail}
-        </p>
+      <div className="feas">
+        <span className="feas-score">{sb.feasibility.label}</span>
+        <span className="feas-main">
+          <strong>to shoot · {sb.frames.length} frames</strong>
+          <small>{sb.feasibility.detail}</small>
+        </span>
       </div>
       {!sb.up_to_date ? (
-        <div className="card mist">
-          <p>The script changed since this was drawn.</p>
-          <button className="btn small" style={{ marginTop: 10 }} onClick={onDraw} disabled={busy}>
+        <div className="banner blk-lemon">
+          <span className="banner-main">
+            <strong>The script changed</strong>
+            <small>Redraw to match it.</small>
+          </span>
+          <button className="btn small ink" onClick={onDraw} disabled={busy}>
             Redraw
           </button>
         </div>
       ) : null}
-      {sb.frames.map((f, i) => (
-        <article key={f.id} className="card" style={{ opacity: f.stale ? 0.6 : 1 }}>
-          <div className="row" style={{ gap: 12, alignItems: 'flex-start' }}>
-            <div
-              aria-hidden="true"
-              style={{
-                width: 64,
-                height: 112,
-                borderRadius: 12,
-                background: 'var(--lilac)',
-                flexShrink: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 600,
-              }}
-            >
-              {i + 1}
+      <div className="frames" role="list" aria-label="Storyboard frames">
+        {sb.frames.map((f, i) => (
+          <article key={f.id} role="listitem" className={`frame blk-${FRAME_BLOCKS[i % FRAME_BLOCKS.length]}`} style={{ opacity: f.stale ? 0.55 : 1 }}>
+            <div className="row between">
+              <span className="frame-n">{i + 1}</span>
+              <span className="chip white">{f.t.split('–')[0].trim()}</span>
             </div>
-            <div>
-              <p className="small muted" style={{ fontWeight: 600 }}>
-                {f.t} · {f.shot_type.replaceAll('_', ' ')}
-              </p>
-              <p style={{ marginTop: 4 }}>{f.instruction}</p>
-              {f.onscreen_text ? (
-                <p className="small" style={{ marginTop: 6 }}>
-                  On screen: “{f.onscreen_text}”
-                </p>
-              ) : null}
-              <p className="small light" style={{ marginTop: 6 }}>
-                Says: {f.line}
-              </p>
-            </div>
-          </div>
-        </article>
-      ))}
-      <button className="btn block" onClick={onNext} disabled={busy}>
-        Next: caption <Icon name="arrowRight" size={18} />
+            <span className="frame-shot">{f.shot_type.replaceAll('_', ' ')}</span>
+            <p className="frame-do">{f.instruction}</p>
+            {f.onscreen_text ? <span className="frame-text">“{f.onscreen_text}”</span> : null}
+            <p className="frame-says">
+              <Icon name="mic" size={13} strokeWidth={2} /> {f.line}
+            </p>
+            {f.transition ? <span className="frame-cut">{f.transition} →</span> : null}
+          </article>
+        ))}
+      </div>
+      <button className="btn block ink big" onClick={onNext} disabled={busy}>
+        Next: caption <Icon name="arrowRight" size={18} strokeWidth={2} />
       </button>
     </>
   );
 }
+
+const JOB_ICON = { comments: 'comments', likes: 'likes', shares: 'shares', saves: 'bookmark' } as const;
 
 function CaptionStep({
   p,
@@ -569,8 +667,8 @@ function CaptionStep({
   const candidates = useMemo(() => c?.candidates ?? [], [c]);
   if (!c) {
     return (
-      <button className="btn block" onClick={onWrite} disabled={busy}>
-        Write captions and hashtags
+      <button className="btn block ink big" onClick={onWrite} disabled={busy}>
+        <Icon name="hash" size={18} strokeWidth={2} /> Write captions and hashtags
       </button>
     );
   }
@@ -590,49 +688,68 @@ function CaptionStep({
   };
   return (
     <>
-      <h3 className="section-title" style={{ fontSize: 18 }}>
-        Pick a caption
-      </h3>
-      {c.options.map((o, i) => (
-        <button
-          key={i}
-          className={`card tap ${c.chosen === i ? 'lav' : ''}`}
-          onClick={async () => {
-            await api(`/projects/${p.id}/caption`, { method: 'PUT', body: { chosen: i } });
-            onChange();
-          }}
-          aria-pressed={c.chosen === i}
-        >
-          <span className="pill white">For {o.job}</span>
-          <p style={{ marginTop: 10, whiteSpace: 'pre-wrap' }}>{o.text}</p>
-          <p className="small muted" style={{ marginTop: 6 }}>
-            {o.why}
-          </p>
-        </button>
-      ))}
-      <h3 className="section-title" style={{ fontSize: 18 }}>
-        Hashtags · {tags.length} of {MAX_HASHTAGS}
-      </h3>
-      <div className="row wrap" style={{ gap: 8, marginBottom: 16 }}>
+      <h2 className="section-label">Pick a caption</h2>
+      {c.options.map((o, i) => {
+        const on = c.chosen === i;
+        return (
+          <button
+            key={i}
+            className={`caption-card${on ? ' on' : ''}`}
+            onClick={async () => {
+              await api(`/projects/${p.id}/caption`, { method: 'PUT', body: { chosen: i } });
+              onChange();
+            }}
+            aria-pressed={on}
+          >
+            <div className="row between">
+              <span className="chip ink">
+                <Icon name={JOB_ICON[o.job as keyof typeof JOB_ICON] ?? 'sparkle'} size={13} strokeWidth={2} /> For {o.job}
+              </span>
+              <span className={`radio${on ? ' on' : ''}`} aria-hidden="true">
+                {on ? <Icon name="check" size={14} strokeWidth={3} /> : null}
+              </span>
+            </div>
+            <p className="caption-text">{o.text}</p>
+            <p className="caption-why">{o.why}</p>
+          </button>
+        );
+      })}
+      <div className="section-head" style={{ marginTop: 22 }}>
+        <h2>Hashtags</h2>
+        <span className="tag-count" aria-label={`${tags.length} of ${MAX_HASHTAGS} hashtags`}>
+          {Array.from({ length: MAX_HASHTAGS }, (_, i) => (
+            <i key={i} className={i < tags.length ? 'on' : ''} />
+          ))}
+          <b>
+            {tags.length}/{MAX_HASHTAGS}
+          </b>
+        </span>
+      </div>
+      <div className="row wrap" style={{ gap: 8, marginBottom: 18 }}>
         {[...new Set([...tags, ...candidates.map((h) => h.tag)])].map((tag) => {
           const on = tags.includes(tag);
           const kind = candidates.find((h) => h.tag === tag)?.kind;
           return (
-            <button key={tag} className={`pill ${on ? 'violet' : ''}`} aria-pressed={on} onClick={() => toggle(tag)}>
+            <button key={tag} className={`tag${on ? ' on' : ''}`} aria-pressed={on} onClick={() => toggle(tag)}>
               #{tag}
-              {kind && !on ? <span className="small" style={{ fontWeight: 400, opacity: 0.7 }}>{kind}</span> : null}
+              {kind && !on ? <small>{kind}</small> : null}
             </button>
           );
         })}
       </div>
-      <div className="card lav">
-        <h3>Ready to record</h3>
-        <p className="light">Record it, then test it in the Simulator before you post.</p>
+      <section className="ready-card">
+        <span className="eyebrow" style={{ color: 'var(--lime)' }}>
+          All set
+        </span>
+        <h3 className="block-title" style={{ color: 'var(--white)' }}>
+          Ready to record
+        </h3>
+        <p>Record it, then test it on your AI audience before you post.</p>
         <WhoThisIsFor data={who.data} />
-        <button className="btn block" style={{ marginTop: 12 }} onClick={() => s.nav('sim')}>
-          <Icon name="simulator" size={18} /> Go to the Simulator
+        <button className="btn block coral big" style={{ marginTop: 14 }} onClick={() => s.nav('sim')}>
+          <Icon name="simulator" size={18} strokeWidth={2} /> Test it in the Simulator
         </button>
-      </div>
+      </section>
     </>
   );
 }

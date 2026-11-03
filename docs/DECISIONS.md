@@ -1614,6 +1614,41 @@ A floating pill: Home, Saved, a raised Studio button, Simulator, You. Saved and 
 moved here from the header. Composer hints are gone (the raised button would cover them); their
 meaning moved into the placeholders.
 
+## v3 · Colour blocks (the redesign after v2.3)
+
+### D245 · A colour-block design system — settled (replaces D241's purple and white)
+The owner asked for a completely new UI, inspired by four Dribbble shots (a leaderboard app,
+a team-tasks app, a job-search app and a news app): cream paper with faint contour lines,
+near-black ink, saturated colour blocks, white pill rows on coloured panels, round ↗ buttons,
+chunky grotesque headlines and a floating dark nav. The ask was "less text, a better way to
+show the interface". Tokens and every hex in the web app now come from `web/src/lib/palette.ts`
+(ink, cream, paper, sand, white, violet, lilac, lemon, coral, lime, pink, sky, teal); the
+palette test fails on anything else. Bricolage Grotesque for headlines and numbers, Plus
+Jakarta Sans for the rest. Persona orbs keep their stored colour names and seeds and map to
+blocks (`PERSONA_BLOCK`: blue → sky, lavender → violet, pink → pink, ink → ink). Recap scenes
+keep their names (deep, violet, lilac, mist) and become ink, violet, lemon and sky, plus a new
+pink scene ("rose") for pink personas. The references were followed for layout and mood; no
+asset or copy was taken from them. The share card image (api) keeps its v2.3 colours for now.
+
+### D246 · Three tabs; Account floats on Home, Saved lives in Account — settled (replaces D244)
+The nav is Home, Studio and Simulator only. The open tab grows into a coloured pill with its
+name (Home lime, Studio lemon, Simulator coral); the others are white circles. On Home a round
+Account button sits beside the nav; it opens Account over Home (`?account=1`): profile, plan
+and credits, Saved (drafts / opportunity areas behind a two-way switch), recaps, settings and
+sign out. Settings' back button returns to Account.
+
+### D247 · Show, don't tell — settled
+Each screen leads with a picture of its data instead of paragraphs. Home: the personas on a
+podium (bar height = share of comments) with a dark ranking card, "They want more of" rows that
+start a project in one tap, the recap as four big numbers, opportunity areas as a stacked deck,
+trends as a swipeable row. Studio: the four steps as a calendar-like strip, ideas as coloured
+cards with the score mix as one bar, the script as a timeline of coloured beats, the storyboard
+as a row of frames, captions as radio cards and a 5-slot hashtag meter. Simulator: a big score
+on a block coloured by how it did (lime ≥ 60, lemon ≥ 40, coral below), predictions as tiles,
+the skip curve on a dark card, findings as timestamped rows, each persona group as a card, and
+a field of lighting-up dots while the audience watches. Every number and label shown is one
+the API already returns; the simulated and persona labels stay wherever they appeared.
+
 ## Schema additions (beyond the MVP doc's key columns; built in Phase 2, in `db/migrations/`)
 
 | Column | Why |

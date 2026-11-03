@@ -1,20 +1,21 @@
 'use client';
 /**
- * The app shell (v2.3): a soft aurora behind a light header, and a dock with the Composer (where
- * a chat applies) above the floating Nav. Saved opens over the current tab.
+ * The app shell (v3): cream paper, three tabs (Home, Studio, Simulator) on a floating dark Nav,
+ * and on Home a round Account button beside it; Account (with Saved inside) opens over Home. The
+ * dock stacks the Studio's persona row and the Composer (where a chat applies) above the Nav.
  */
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { BackHeader, BrandHeader, Loading, Nav, Toast } from '@/components/Chrome';
+import { BackHeader, Loading, Nav, Toast } from '@/components/Chrome';
 import { Composer } from '@/components/Composer';
 import { PersonaRow } from '@/components/Personas';
 import { UpgradeSheet } from '@/components/UpgradeSheet';
 import { signedIn } from '@/lib/session';
 import { useLatestRecap, useMe, useOpportunity, useSaveOpportunity } from '@/lib/hooks';
+import { AccountView } from '@/screens/AccountView';
 import { HomeView } from '@/screens/HomeView';
 import { OpportunityView } from '@/screens/OpportunityView';
-import { SavedView } from '@/screens/SavedView';
 import { SimulatorView } from '@/screens/SimulatorView';
 import { StudioView } from '@/screens/StudioView';
 import { AppProvider, useApp } from '@/state/app';
@@ -28,7 +29,7 @@ export default function Page() {
   if (!ready) {
     return (
       <div className="app">
-        <div className="sheet" style={{ marginTop: 120 }}>
+        <div className="sheet" style={{ marginTop: 160 }}>
           <Loading />
         </div>
       </div>
@@ -68,15 +69,13 @@ function Shell() {
   }, [latest.data, router]);
 
   let header: React.ReactNode;
-  if (s.saved) {
-    header = (
-      <BackHeader title="Saved" onBack={() => s.setSaved(false)} sub="Opportunity areas and Studio drafts you kept" />
-    );
+  if (s.account) {
+    header = <BackHeader title="Account" onBack={() => s.setAccount(false)} />;
   } else if (s.tab === 'home' && s.oppId) {
     const saved = save.isPending ? !!save.variables?.save : !!opp.data?.saved;
     header = (
       <BackHeader
-        title="Opportunity area"
+        title="Opportunity"
         onBack={() => s.openOpp(null)}
         bookmark={{
           saved,
@@ -86,29 +85,29 @@ function Shell() {
               { id: opp.data.id, save: !opp.data.saved },
               {
                 onSuccess: (_d, v) =>
-                  s.showToast(v.save ? 'Saved. Find it under Saved at the top of the app.' : 'Removed from saved.'),
+                  s.showToast(v.save ? 'Saved. Find it in your account.' : 'Removed from saved.'),
               },
             ),
         }}
       />
     );
   } else {
-    header = (
-      <BrandHeader initial={me.data?.account?.username ?? me.data?.email} />
-    );
+    header = null; // each tab draws its own big title
   }
 
   let view: React.ReactNode;
-  if (s.saved) view = <SavedView />;
+  if (s.account) view = <AccountView />;
   else if (s.tab === 'home') view = s.oppId ? <OpportunityView id={s.oppId} /> : <HomeView />;
   else if (s.tab === 'studio') view = <StudioView />;
   else view = <SimulatorView />;
 
-  const composer = s.saved || s.tab === 'home' ? null : s.composer;
+  const composer = s.account || s.tab === 'home' ? null : s.composer;
+  const initial = (me.data?.account?.username ?? me.data?.email ?? '').replace('@', '').slice(0, 1).toUpperCase() || '·';
+  const onHome = s.tab === 'home' && !s.oppId;
   return (
-    <div className="app">
+    <div className="app" data-tab={s.account ? 'account' : s.tab}>
       {header}
-      <main className="sheet" style={{ paddingBottom: composer ? (s.tab === 'studio' ? 320 : 230) : 140 }}>
+      <main className="sheet" style={{ paddingBottom: composer ? (s.tab === 'studio' ? 300 : 210) : 132 }}>
         {view}
       </main>
       <div className="dock">
@@ -123,7 +122,20 @@ function Shell() {
               onTyping={s.setTyping}
             />
           ) : null}
-          <Nav active={s.tab} saved={s.saved} savedCount={me.data?.saved_count ?? 0} onNav={s.nav} onSaved={() => s.setSaved(true)} />
+          <Nav
+            active={s.tab}
+            onNav={s.nav}
+            account={
+              onHome || s.account
+                ? {
+                    initial,
+                    open: s.account,
+                    badge: me.data?.saved_count ?? 0,
+                    onOpen: () => s.setAccount(!s.account),
+                  }
+                : null
+            }
+          />
         </div>
       </div>
       {s.toast ? <Toast key={s.toast.id} text={s.toast.text} /> : null}

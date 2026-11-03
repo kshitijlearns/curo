@@ -1,7 +1,8 @@
 'use client';
 /**
- * What the shell shows: the tab, Saved over it, the opportunity open on Home, the Studio
- * project, the simulation, a toast, and the out-of-credits screen when the API says 402.
+ * What the shell shows (v3): one of three tabs (Home, Studio, Simulator), the Account screen over
+ * Home (with Saved inside it), the opportunity open on Home, the Studio project, the simulation,
+ * a toast, and the out-of-credits screen when the API says 402.
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
@@ -27,8 +28,9 @@ export type PersonaTarget = {
 type AppState = {
   tab: Tab;
   nav: (t: Tab) => void;
-  saved: boolean;
-  setSaved: (v: boolean) => void;
+  /** The Account screen (profile, plan, Saved) opened from Home's floating button. */
+  account: boolean;
+  setAccount: (v: boolean) => void;
   oppId: string | null;
   openOpp: (id: string | null) => void;
   projectId: string | null;
@@ -59,7 +61,7 @@ function readUrl() {
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [tab, setTab] = useState<Tab>('home');
-  const [saved, setSaved] = useState(false);
+  const [account, setAccountState] = useState(false);
   const [oppId, setOppId] = useState<string | null>(null);
   const [projectId, setProjectId] = useState<string | null>(null);
   const [simId, setSimId] = useState<string | null>(null);
@@ -77,18 +79,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (q.project) setProjectId(q.project);
     if (q.sim) setSimId(q.sim);
     if (q.opp) setOppId(q.opp);
+    if (q.account === '1' && (!q.tab || q.tab === 'home')) setAccountState(true);
   }, []);
   useEffect(() => {
     const q = new URLSearchParams();
     if (tab !== 'home') q.set('tab', tab);
-    if (tab === 'home' && oppId) q.set('opp', oppId);
+    if (tab === 'home' && account) q.set('account', '1');
+    else if (tab === 'home' && oppId) q.set('opp', oppId);
     if (tab === 'studio' && projectId) q.set('project', projectId);
     if (tab === 'sim' && simId) q.set('sim', simId);
     const url = q.toString() ? `/?${q}` : '/';
     if (url !== `${window.location.pathname}${window.location.search}`) {
       window.history.replaceState(null, '', url);
     }
-  }, [tab, oppId, projectId, simId]);
+  }, [tab, oppId, projectId, simId, account]);
 
   useEffect(() => {
     const on = (e: Event) => setLimit((e as CustomEvent<Limit>).detail);
@@ -106,21 +110,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     () => ({
       tab,
       nav: (t) => {
-        setSaved(false);
+        setAccountState(false);
         if (t === tab && t === 'home') setOppId(null);
         setTab(t);
         window.scrollTo({ top: 0 });
       },
-      saved,
-      setSaved,
+      account,
+      setAccount: (v) => {
+        setAccountState(v);
+        if (v) setTab('home');
+        window.scrollTo({ top: 0 });
+      },
       oppId,
       openOpp: (id) => {
+        setAccountState(false);
         setOppId(id);
         window.scrollTo({ top: 0 });
       },
       projectId,
       openProject: (id) => {
-        setSaved(false);
+        setAccountState(false);
         setProjectId(id);
         setTab('studio');
         window.scrollTo({ top: 0 });
@@ -144,7 +153,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       personaTarget,
       setPersonaTarget,
     }),
-    [tab, saved, oppId, projectId, simId, toast, showToast, limit, composer, focusPersona, typing, personaTarget],
+    [tab, account, oppId, projectId, simId, toast, showToast, limit, composer, focusPersona, typing, personaTarget],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

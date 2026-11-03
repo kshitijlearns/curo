@@ -18,7 +18,7 @@ export default function Settings() {
   }, [router]);
   return (
     <div className="app">
-      <BackHeader title="Settings" onBack={() => router.push('/')} />
+      <BackHeader title="Settings" onBack={() => router.push('/?account=1')} />
       <main className="sheet" style={{ paddingBottom: 64 }}>
         <Body />
       </main>

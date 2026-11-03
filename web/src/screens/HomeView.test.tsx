@@ -65,21 +65,28 @@ afterEach(() => {
 });
 
 describe('Home', () => {
-  it('shows the four sections in the v2.2 order, followers first', () => {
+  it('shows the v3 sections in order, followers first', () => {
     mount();
     const titles = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
-    expect(titles).toEqual(['What your followers think of you', 'Your Creator Recap', 'Opportunity areas', 'Trending for you']);
+    expect(titles).toEqual(['Your followers', 'They want more of', 'Your Creator Recap', 'Opportunity areas', 'Trending for you']);
     expect(screen.queryByText('What your followers will love')).toBeNull();
   });
 
-  it('gives each persona a card with its thought, mood meter in words, evidence and the label', () => {
+  it('puts the personas on a podium and ranks them, with how each one feels in words and the label', () => {
     mount();
     expect(screen.getByText('3 of 4 of your follower groups are loving your recent reels.')).toBeTruthy();
+    // On the podium, each orb is labelled with the persona's name, share and mood.
     expect(screen.getAllByRole('img', { name: 'The Festive Planner, 31% of your comments, mood: love' })).toHaveLength(4);
+    expect(screen.getAllByText('31%')).toHaveLength(4);
+    // The ranking: one row each, its mood meter in words.
+    expect(screen.getAllByRole('button', { name: 'The Festive Planner, Big fan: open details' })).toHaveLength(4);
     expect(screen.getAllByRole('meter')[0].getAttribute('aria-valuetext')).toBe('Big fan');
-    expect(screen.getAllByText('From 214 comments across 18 reels · updated 3 Oct.')).toHaveLength(4);
-    expect(screen.getAllByRole('button', { name: 'Make this: budget versions' })).toHaveLength(4);
     expect(screen.getByText('Built from your public comments. Personas are summaries, not real people.')).toBeTruthy();
+  });
+
+  it('turns what each persona wants more of into a one-tap Studio start', () => {
+    mount();
+    expect(screen.getAllByRole('button', { name: 'Make this: budget versions' })).toHaveLength(4);
   });
 
   it('shows breathing skeletons while the personas are being built', () => {
@@ -87,6 +94,7 @@ describe('Home', () => {
     mount();
     expect(screen.getAllByRole('img', { name: 'Building your follower personas' }).length).toBeGreaterThan(0);
     expect(screen.getAllByText('Meeting your followers…').length).toBeGreaterThan(0);
+    expect(screen.queryByRole('heading', { name: 'They want more of' })).toBeNull();
     personasStatus = 'ready';
   });
 });

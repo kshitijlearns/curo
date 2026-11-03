@@ -1,25 +1,25 @@
 'use client';
 /**
- * Follower Personas in the app (v2.2): Home's cards and detail sheet, persona chat, the Studio
- * persona row with its popovers, and the "Who this is for" list. Every surface carries the
+ * Follower Personas in the app (v2.2, v3 look): Home's podium, ranking and "They want more of"
+ * rows, the detail sheet, persona chat, the Studio persona row with its popovers, and the
+ * "Who this is for" list. Every surface carries the
  * label "Built from your public comments. Personas are summaries, not real people."
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useId, useRef, useState } from 'react';
 
-import { Section } from './Carousel';
 import { Icon } from './Icon';
 import { Overlay } from './Overlay';
 import { AvatarSkeleton, PersonaAvatar } from './PersonaAvatar';
 import { api, personaChatStream, type S } from '@/lib/api';
 import type { Mood, PersonaColor } from '@/lib/avatar';
+import { blockAt, PERSONA_BLOCK } from '@/lib/palette';
 import { usePersona, usePersonaChatHistory, usePersonaReactions, usePersonas } from '@/lib/hooks';
 import { useApp } from '@/state/app';
 
 export const PERSONA_LABEL = 'Built from your public comments. Personas are summaries, not real people.';
 const EARLY = 'Early guess: gets sharper as people comment';
 
-type Card = S['PersonaCard'];
 type Reaction = S['PersonaReactionOut'];
 
 export function PersonaLabel({ style }: { style?: React.CSSProperties }) {
@@ -45,15 +45,15 @@ export function ConfidenceDots({ level }: { level: 'low' | 'medium' | 'high' }) 
 const METER_WORDS = ['Not feeling it', 'Lukewarm', 'Interested', 'Fan', 'Big fan'];
 
 /** The 5-step mood meter, labelled in words (not just colour). */
-export function MoodMeter({ meter }: { meter: number }) {
+export function MoodMeter({ meter, compact = false }: { meter: number; compact?: boolean }) {
   return (
-    <div className="meter" role="meter" aria-valuemin={1} aria-valuemax={5} aria-valuenow={meter} aria-valuetext={METER_WORDS[meter - 1]} aria-label="How they feel about your recent reels">
+    <div className={`meter${compact ? ' compact' : ''}`} role="meter" aria-valuemin={1} aria-valuemax={5} aria-valuenow={meter} aria-valuetext={METER_WORDS[meter - 1]} aria-label="How they feel about your recent reels">
       <div className="meter-steps" aria-hidden="true">
         {[1, 2, 3, 4, 5].map((i) => (
           <i key={i} className={i <= meter ? 'on' : ''} />
         ))}
       </div>
-      <span className="small">{METER_WORDS[meter - 1]}</span>
+      <span className="meter-word">{METER_WORDS[meter - 1]}</span>
     </div>
   );
 }
@@ -91,52 +91,17 @@ function useStartProject() {
 
 // ---------------------------------------------------------------------- Home
 
-// Where the four orbs sit on Home's curve: x%, y%, size, largest group in the middle.
-const STAGE = [
-  [50, 46, 112],
-  [17, 66, 72],
-  [83, 58, 64],
-  [33, 16, 46],
-] as const;
+/** Podium order for four: second, first, third, fourth (by share), like a leaderboard. */
+const PODIUM = [1, 0, 2, 3];
 
-/** Home's hero: the four personas floating on a curve, and how they feel right now. */
-export function PersonaHero() {
+/**
+ * Home's hero (v3): the four personas on a podium — bar height is each group's share of your
+ * comments — then a dark card ranking them, with how each one feels in words. Tap any of them
+ * for the detail sheet.
+ */
+export function PersonaPodium() {
   const q = usePersonas();
   const [open, setOpen] = useState<string | null>(null);
-  const cards = q.data?.personas ?? [];
-  const ready = q.data?.status === 'ready' && cards.length === 4;
-  return (
-    <>
-      <div className="orb-stage">
-        <svg className="curve" viewBox="0 0 400 196" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M-6 150 C 70 96, 120 40, 200 84 S 330 150, 410 92" fill="none" stroke="#9B7BF5" strokeOpacity={0.5} strokeWidth={1.5} strokeDasharray="2 7" strokeLinecap="round" />
-        </svg>
-        {STAGE.map(([x, y, size], i) => {
-          const p = cards[i];
-          return (
-            <div key={i} className="orb" style={{ left: `${x}%`, top: `${y}%` }}>
-              {ready && p ? (
-                <button onClick={() => setOpen(p.id)} aria-label={`${p.name}: open details`} style={{ borderRadius: '50%' }}>
-                  <PersonaAvatar seed={p.avatar_seed} color={p.color as PersonaColor} mood={p.mood as Mood} size={size} decorative />
-                </button>
-              ) : (
-                <AvatarSkeleton size={size} seed={(i + 1) * 7919} />
-              )}
-            </div>
-          );
-        })}
-      </div>
-      <p className="hero-line">{ready ? (q.data?.summary ?? EARLY) : 'Meeting your followers…'}</p>
-      {open ? <PersonaSheet id={open} onClose={() => setOpen(null)} /> : null}
-    </>
-  );
-}
-
-export function PersonaSection() {
-  const q = usePersonas();
-  const [open, setOpen] = useState<string | null>(null);
-  const start = useStartProject();
-  const title = 'What your followers think of you';
   // A persona tapped on the recap's summary slide opens here once the recap closes.
   useEffect(() => {
     if (q.data?.status !== 'ready') return;
@@ -150,92 +115,118 @@ export function PersonaSection() {
       /* private mode */
     }
   }, [q.data]);
-  if (q.isLoading || q.data?.status === 'building') {
+  const title = 'Your followers';
+  const cards = [...(q.data?.personas ?? [])].sort((x, y) => y.share - x.share);
+  const ready = q.data?.status === 'ready' && cards.length >= 1;
+  if (q.error) {
     return (
-      <Section title={title}>
-        {[1, 2].map((i) => (
-          <div key={i} className="card persona-card skeleton-card" aria-label="Building your follower personas">
-            <div className="row" style={{ gap: 12 }}>
-              <AvatarSkeleton size={64} seed={i * 7919} />
-              <div>
-                <h3>Meeting your followers…</h3>
-                <p className="small muted">Your follower personas are being built from your comments.</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </Section>
+      <section aria-label={title}>
+        <SectionHead title={title} />
+        <div className="card coral" role="alert">
+          <p>This section didn’t load.</p>
+          <button className="btn small" style={{ marginTop: 10 }} onClick={() => q.refetch()}>
+            Try again
+          </button>
+        </div>
+      </section>
     );
   }
-  if (q.error || !q.data) return <Section title={title} error={q.error ?? 'x'} onRetry={() => q.refetch()}>{null}</Section>;
-  const d = q.data;
+  const max = Math.max(...cards.map((c) => c.share), 0.01);
   return (
-    <>
-      <Section
-        title={title}
-        intro={
-          d.early_guess ? <p className="persona-summary small">Post and reply to comments to sharpen them.</p> : null
-        }
-        footer={<PersonaLabel style={{ margin: '4px 6px 0' }} />}
-      >
-        {(d.personas ?? []).map((p) => (
-          <PersonaCardView key={p.id} p={p} onOpen={() => setOpen(p.id)} onMake={(idea) => start.mutate({ idea, persona: p.id })} busy={start.isPending} />
-        ))}
-      </Section>
+    <section aria-label={title} className="followers">
+      <SectionHead title={title} hint={ready ? 'by share of comments' : undefined} />
+      <div className="podium">
+        {(ready ? PODIUM.filter((i) => i < cards.length) : [1, 0, 2, 3]).map((rank) => {
+          const p = ready ? cards[rank] : undefined;
+          const h = p ? 74 + Math.round((p.share / max) * 108) : [150, 182, 128, 104][rank];
+          const block = p ? PERSONA_BLOCK[p.color] ?? 'paper' : 'paper';
+          return (
+            <div key={rank} className="podium-col" style={{ ['--h' as string]: `${h}px`, ['--i' as string]: rank }}>
+              {p ? (
+                <button className="podium-top" onClick={() => setOpen(p.id)} aria-label={`${p.name}: open details`}>
+                  <span className="podium-rank">{ordinal(rank + 1)}</span>
+                  <span className="podium-name">{p.short_name}</span>
+                  <PersonaAvatar seed={p.avatar_seed} color={p.color as PersonaColor} mood={p.mood as Mood} size={rank === 0 ? 64 : 52} name={p.name} share={p.share} />
+                </button>
+              ) : (
+                <div className="podium-top">
+                  <AvatarSkeleton size={rank === 0 ? 64 : 52} seed={(rank + 1) * 7919} />
+                </div>
+              )}
+              <div className={`podium-bar blk-${block}`}>
+                {p ? <span className="podium-pct">{p.share_pct}%</span> : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="rank-card">
+        <p className="rank-summary">{ready ? (q.data?.summary ?? EARLY) : 'Meeting your followers…'}</p>
+        {ready ? (
+          <div className="stack" style={{ gap: 8 }}>
+            {cards.map((p, i) => (
+              <button key={p.id} className="rank-row" onClick={() => setOpen(p.id)} aria-label={`${p.name}, ${p.meter_word}: open details`}>
+                <PersonaAvatar seed={p.avatar_seed} color={p.color as PersonaColor} mood={p.mood as Mood} size={40} decorative animated={false} />
+                <span className="rank-main">
+                  <small>{ordinal(i + 1)}</small>
+                  <strong>{p.name}</strong>
+                </span>
+                <MoodMeter meter={p.meter} compact />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="small" style={{ opacity: 0.7, margin: 0 }}>
+            Your follower personas are being built from your comments.
+          </p>
+        )}
+        {q.data?.early_guess ? <p className="small" style={{ opacity: 0.7, margin: '10px 4px 0' }}>Early guess: post and reply to comments to sharpen them.</p> : null}
+        <PersonaLabel style={{ margin: '12px 4px 0', color: 'rgba(255,255,255,.6)' }} />
+      </div>
       {open ? <PersonaSheet id={open} onClose={() => setOpen(null)} /> : null}
-    </>
+    </section>
   );
 }
 
-export function PersonaCardView({ p, onOpen, onMake, busy }: { p: Card; onOpen: () => void; onMake: (idea: string) => void; busy?: boolean }) {
+/** "They want more of": each persona's asks as rows, one tap starts a Studio project. */
+export function WantsPanel() {
+  const q = usePersonas();
+  const start = useStartProject();
+  if (q.data?.status !== 'ready') return null;
+  const rows = (q.data.personas ?? []).flatMap((p) => (p.thought.wants_more ?? []).slice(0, 2).map((w) => ({ p, w })));
+  if (!rows.length) return null;
   return (
-    <article className="card persona-card">
-      <button className="persona-top" onClick={onOpen} aria-label={`${p.name}: open details`}>
-        <PersonaAvatar seed={p.avatar_seed} color={p.color as PersonaColor} mood={p.mood as Mood} size={64} name={p.name} share={p.share} />
-        <div style={{ minWidth: 0, textAlign: 'left' }}>
-          <h3 style={{ margin: 0 }}>{p.name}</h3>
-          <div className="row" style={{ gap: 8, marginTop: 6 }}>
-            <span className="pill white">{p.share_pct}% of comments</span>
-            <ConfidenceDots level={p.confidence} />
+    <section aria-label="They want more of">
+      <SectionHead title="They want more of" />
+      <div className="panel-block pink">
+        {rows.slice(0, 6).map(({ p, w }) => (
+          <div key={`${p.id}-${w}`} className="pill-row">
+            <PersonaAvatar seed={p.avatar_seed} color={p.color as PersonaColor} mood={p.mood as Mood} size={34} decorative animated={false} />
+            <span className="pill-row-main">
+              <strong>{w}</strong>
+              <small>{p.short_name}</small>
+            </span>
+            <button className="arrow dark" disabled={start.isPending} onClick={() => start.mutate({ idea: w, persona: p.id })} aria-label={`Make this: ${w}`}>
+              <Icon name="arrowUpRight" size={18} strokeWidth={2.2} />
+            </button>
           </div>
-        </div>
-      </button>
-      {p.is_starter ? <span className="pill lav early">Early guess</span> : null}
-      <blockquote className="thought">“{p.thought.thought}”</blockquote>
-      <MoodMeter meter={p.meter} />
-      <p className="small muted" style={{ margin: '10px 0 4px' }}>
-        Loves
-      </p>
-      <div className="row wrap" style={{ gap: 6 }}>
-        {(p.thought.loves ?? []).slice(0, 2).map((l) => (
-          <span key={l} className="pill lav">
-            {l}
-          </span>
         ))}
       </div>
-      {(p.thought.wants_more ?? []).length ? (
-        <>
-          <p className="small muted" style={{ margin: '10px 0 4px' }}>
-            Wants more of
-          </p>
-          <div className="stack" style={{ gap: 6 }}>
-            {(p.thought.wants_more ?? []).slice(0, 2).map((w) => (
-              <div key={w} className="row between want">
-                <span className="small">{w}</span>
-                <button className="link small" disabled={busy} onClick={() => onMake(w)} aria-label={`Make this: ${w}`}>
-                  Make this <Icon name="arrowRight" size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </>
-      ) : null}
-      <p className="small muted" style={{ marginTop: 12 }}>
-        {p.evidence_line}
-      </p>
-    </article>
+    </section>
   );
 }
+
+/** A section title in the big type, with an optional quiet hint or action on the right. */
+export function SectionHead({ title, hint, action }: { title: string; hint?: string; action?: React.ReactNode }) {
+  return (
+    <div className="section-head">
+      <h2>{title}</h2>
+      {action ?? (hint ? <span className="hint">{hint}</span> : null)}
+    </div>
+  );
+}
+
+export const ordinal = (n: number) => `${n}${n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th'}`;
 
 // ---------------------------------------------------------------------- detail sheet
 
@@ -244,77 +235,100 @@ export function PersonaSheet({ id, onClose, context = 'home', contextId = null }
   const p = q.data;
   const [chat, setChat] = useState(context !== 'home');
   const titleId = useId();
+  const block = p ? PERSONA_BLOCK[p.color] ?? 'paper' : 'paper';
   return (
     <Overlay labelledBy={titleId} onClose={onClose}>
       <div className="persona-sheet">
-        <div className="row between">
-          <span className="small muted">Follower persona</span>
-          <button className="circle sm" onClick={onClose} aria-label="Close">
-            <Icon name="close" size={18} />
-          </button>
-        </div>
         {!p ? (
-          <div className="row" style={{ gap: 12, marginTop: 12 }}>
+          <div className="row between">
             <AvatarSkeleton size={120} />
+            <button className="circle" onClick={onClose} aria-label="Close">
+              <Icon name="close" size={18} />
+            </button>
           </div>
         ) : (
           <>
-            <div className="persona-hero">
-              <PersonaAvatar seed={p.avatar_seed} color={p.color as PersonaColor} mood={p.mood as Mood} size={120} name={p.name} share={p.share} />
-              <div>
-                <h2 id={titleId} style={{ margin: 0, fontSize: 24 }}>
-                  {p.name}
-                </h2>
-                <p className="light" style={{ margin: '4px 0 8px' }}>
-                  {p.tagline}
-                </p>
-                <div className="row" style={{ gap: 8 }}>
-                  <span className="pill white">{p.share_pct}% of your comments</span>
-                  <ConfidenceDots level={p.confidence} />
-                </div>
+            <div className={`persona-hero blk-${block}`}>
+              <div className="row between" style={{ alignItems: 'flex-start' }}>
+                <PersonaAvatar seed={p.avatar_seed} color={p.color as PersonaColor} mood={p.mood as Mood} size={104} name={p.name} share={p.share} />
+                <button className="circle white" onClick={onClose} aria-label="Close">
+                  <Icon name="close" size={18} />
+                </button>
+              </div>
+              <span className="eyebrow">Follower persona</span>
+              <h2 id={titleId} className="block-title">
+                {p.name}
+              </h2>
+              <p className="persona-tagline">{p.tagline}</p>
+              <div className="row wrap" style={{ gap: 8 }}>
+                <span className="chip white">{p.share_pct}% of your comments</span>
+                <span className="chip white">
+                  <ConfidenceDots level={p.confidence} /> {p.confidence} confidence
+                </span>
               </div>
             </div>
-            {p.is_starter ? <p className="pill lav early">{EARLY}</p> : null}
+            {p.is_starter ? <p className="chip ink early">{EARLY}</p> : null}
             <blockquote className="thought">“{p.thought.thought}”</blockquote>
             <MoodMeter meter={p.meter} />
             <Block title="What they come for">
-              <ul className="plain">{p.comes_for.map((c) => <li key={c}>{c}</li>)}</ul>
+              <div className="row wrap" style={{ gap: 6 }}>
+                {p.comes_for.map((c) => (
+                  <span key={c} className="chip outline">
+                    {c}
+                  </span>
+                ))}
+              </div>
             </Block>
-            <Block title="What they love">
-              <Traits items={p.loves} />
-            </Block>
-            <Block title="What makes them scroll past">
-              <Traits items={p.turn_offs} />
-            </Block>
+            <div className="trait-grid">
+              <Block title="Loves" tone="lime">
+                <Traits items={p.loves} sign="+" />
+              </Block>
+              <Block title="Scrolls past" tone="coral">
+                <Traits items={p.turn_offs} sign="–" />
+              </Block>
+            </div>
             <Block title="How they engage">
-              <p>{p.engagement_style}</p>
-              {p.places?.length ? <p className="small muted">They mention {p.places.join(' and ')}.</p> : null}
+              <p style={{ margin: 0 }}>{p.engagement_style}</p>
+              {p.places?.length ? <p className="small muted" style={{ marginTop: 6 }}>They mention {p.places.join(' and ')}.</p> : null}
             </Block>
             {p.favourite_reels?.length ? (
               <Block title="Their favourite reels">
                 <div className="fav-reels">
-                  {p.favourite_reels.map((r) => (
-                    <div key={r.id} className={`fav tone-${r.tone}`}>
-                      <span className="small">{r.title}</span>
-                      <span className="small muted">{r.comments} of their comments</span>
+                  {p.favourite_reels.map((r, i) => (
+                    <div key={r.id} className={`fav blk-${blockAt(i + 1)}`}>
+                      <Icon name="play" size={16} />
+                      <span className="fav-title">{r.title}</span>
+                      <span className="fav-n">{r.comments} comments</span>
                     </div>
                   ))}
                 </div>
               </Block>
             ) : null}
             <Block title="A typical comment">
-              <p>“{p.typical_comment}”</p>
-              <p className="small muted">Paraphrased from many comments, never a real one.</p>
+              <div className="comment-bubble">
+                <PersonaAvatar seed={p.avatar_seed} color={p.color as PersonaColor} mood={p.mood as Mood} size={28} decorative animated={false} />
+                <p>“{p.typical_comment}”</p>
+              </div>
+              <p className="small muted" style={{ marginTop: 6 }}>
+                Paraphrased from many comments, never a real one.
+              </p>
             </Block>
             <Block title="Language mix">
-              <p>{p.language.map((l) => (l.share !== null && l.share !== undefined ? `${l.name} ${Math.round(l.share * 100)}%` : l.name)).join(', ')}</p>
+              <div className="lang-bar" aria-hidden="true">
+                {p.language.map((l, i) => (
+                  <i key={l.name} className={`blk-${blockAt(i)}`} style={{ flex: l.share ?? 1 / p.language.length }} />
+                ))}
+              </div>
+              <p className="small" style={{ marginTop: 8 }}>
+                {p.language.map((l) => (l.share !== null && l.share !== undefined ? `${l.name} ${Math.round(l.share * 100)}%` : l.name)).join(' · ')}
+              </p>
             </Block>
             {(p.history ?? []).length > 1 ? (
               <Block title="Over time">
                 <div className="history">
                   {(p.history ?? []).map((h) => (
                     <div key={h.period} className="hist">
-                      <PersonaAvatar seed={p.avatar_seed} color={p.color as PersonaColor} mood={h.mood as Mood} size={24} decorative animated={false} />
+                      <PersonaAvatar seed={p.avatar_seed} color={p.color as PersonaColor} mood={h.mood as Mood} size={28} decorative animated={false} />
                       <span className="small">{new Date(h.period).toLocaleDateString('en-IN', { month: 'short' })}</span>
                       <span className="small muted">{Math.round(h.share * 100)}%</span>
                     </div>
@@ -326,12 +340,15 @@ export function PersonaSheet({ id, onClose, context = 'home', contextId = null }
               {chat ? (
                 <PersonaChat personaId={p.id} name={p.short_name} context={context} contextId={contextId} />
               ) : (
-                <button className="btn small" onClick={() => setChat(true)}>
+                <button className="btn small ink" onClick={() => setChat(true)}>
                   <Icon name="comments" size={16} /> Ask them something
                 </button>
               )}
             </Block>
-            <PersonaLabel style={{ marginTop: 16 }} />
+            <p className="small muted" style={{ margin: '14px 4px 0' }}>
+              {p.evidence_line}
+            </p>
+            <PersonaLabel style={{ marginTop: 6 }} />
           </>
         )}
       </div>
@@ -339,22 +356,25 @@ export function PersonaSheet({ id, onClose, context = 'home', contextId = null }
   );
 }
 
-function Block({ title, children }: { title: string; children: React.ReactNode }) {
+function Block({ title, children, tone }: { title: string; children: React.ReactNode; tone?: 'lime' | 'coral' }) {
   return (
-    <section className="persona-block">
+    <section className={`persona-block${tone ? ` tone-${tone}` : ''}`}>
       <h3>{title}</h3>
       {children}
     </section>
   );
 }
 
-function Traits({ items }: { items: S['PersonaTrait'][] }) {
+function Traits({ items, sign }: { items: S['PersonaTrait'][]; sign: string }) {
   return (
-    <ul className="plain">
+    <ul className="traits">
       {items.map((t) => (
         <li key={t.text}>
-          {t.text}
-          {t.evidence ? <span className="small muted evidence">{t.evidence}</span> : null}
+          <i aria-hidden="true">{sign}</i>
+          <span>
+            {t.text}
+            {t.evidence ? <span className="small muted evidence">{t.evidence}</span> : null}
+          </span>
         </li>
       ))}
     </ul>
