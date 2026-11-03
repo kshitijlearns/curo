@@ -20,7 +20,7 @@ export default function Avatars() {
   const [seedShift, setSeedShift] = useState(0);
   return (
     <div className="app">
-      <BackHeader title="Persona avatars" onBack={() => router.push('/')} sub="Glowing orbs with a dot-cluster inside: moods, colours, sizes and states." />
+      <BackHeader title="Persona avatars" onBack={() => router.push('/')} sub="Colour-block orbs with a dot-cluster inside: moods, colours, sizes and states." />
       <main className="sheet" style={{ paddingBottom: 64 }}>
         <div className="row wrap" style={{ gap: 8 }}>
           {MOODS.map((m) => (

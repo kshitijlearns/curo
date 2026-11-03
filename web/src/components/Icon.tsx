@@ -22,7 +22,15 @@ export type IconName =
   | 'play'
   | 'close'
   | 'send'
-  | 'user';
+  | 'user'
+  | 'trend'
+  | 'film'
+  | 'gear'
+  | 'grid'
+  | 'lines'
+  | 'hash'
+  | 'bolt'
+  | 'users';
 
 export function Icon({
   name,
@@ -142,6 +150,52 @@ export function Icon({
       break;
     case 'send':
       body = <path d="M12 19V5M6 11l6-6 6 6" {...s} />;
+      break;
+    case 'trend':
+      body = <path d="M3 17l6-6 4 4 8-8M15 7h6v6" {...s} />;
+      break;
+    case 'film':
+      body = (
+        <>
+          <rect x={3.5} y={4.5} width={17} height={15} rx={3} {...s} />
+          <path d="M3.5 9h17M8 4.5L10 9M13 4.5l2 4.5" {...s} />
+        </>
+      );
+      break;
+    case 'gear':
+      body = (
+        <>
+          <circle cx={12} cy={12} r={3} {...s} />
+          <path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7" {...s} />
+        </>
+      );
+      break;
+    case 'grid':
+      body = (
+        <>
+          <rect x={4} y={3.5} width={6.5} height={8} rx={1.8} {...s} />
+          <rect x={13.5} y={3.5} width={6.5} height={8} rx={1.8} {...s} />
+          <rect x={4} y={14.5} width={6.5} height={6} rx={1.8} {...s} />
+          <rect x={13.5} y={14.5} width={6.5} height={6} rx={1.8} {...s} />
+        </>
+      );
+      break;
+    case 'lines':
+      body = <path d="M4 6.5h16M4 12h16M4 17.5h10" {...s} />;
+      break;
+    case 'hash':
+      body = <path d="M9 3.5L7 20.5M17 3.5l-2 17M4 9h17M3 15h17" {...s} />;
+      break;
+    case 'bolt':
+      body = <path d="M13 2.5L4.5 13.5H11l-1 8 8.5-11H12z" {...s} fill={filled ? color : 'none'} />;
+      break;
+    case 'users':
+      body = (
+        <>
+          <circle cx={9} cy={8.5} r={3.5} {...s} />
+          <path d="M2.5 19.5c.9-3.4 3.4-5 6.5-5s5.6 1.6 6.5 5M15.5 5.2a3.5 3.5 0 0 1 0 6.6M17.5 14.8c2 .6 3.4 2.2 4 4.7" {...s} />
+        </>
+      );
       break;
     case 'user':
       body = (

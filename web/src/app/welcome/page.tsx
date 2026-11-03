@@ -101,7 +101,7 @@ export default function Welcome() {
               </span>
             ))}
           </div>
-          <h1 style={{ margin: 0, fontFamily: 'var(--display)', fontWeight: 400, fontSize: 34, textAlign: 'center' }}>Building your recap</h1>
+          <h1 style={{ margin: 0, fontFamily: 'var(--display)', fontWeight: 800, letterSpacing: '-0.04em', fontSize: 34, textAlign: 'center' }}>Building your recap</h1>
           <p key={tease} style={{ margin: 0, textAlign: 'center', fontSize: 18, animation: 'rise 450ms var(--enter)' }}>
             {tease}
           </p>
@@ -126,7 +126,7 @@ export default function Welcome() {
   return (
     <div className="onb">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 20px', maxWidth: 480, margin: '0 auto', width: '100%' }}>
-        <strong style={{ fontFamily: 'var(--display)', fontWeight: 500, fontSize: 24 }}>Curo</strong>
+        <strong style={{ fontFamily: 'var(--display)', fontWeight: 800, fontSize: 24 }}>Curo</strong>
         {!last ? (
           <button className="pill white" onClick={() => setI(CARDS.length - 1)}>
             Skip

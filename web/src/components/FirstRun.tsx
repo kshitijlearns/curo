@@ -40,7 +40,7 @@ export function ArtHome() {
   return (
     <div className="orb-stage" style={{ width: '100%', height: '100%' }} role="img" aria-label="Your four follower groups">
       <svg className="curve" viewBox="0 0 400 196" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M-6 150 C 70 96, 120 40, 200 84 S 330 150, 410 92" fill="none" stroke="#6D3BEB" strokeOpacity={0.45} strokeWidth={1.5} strokeDasharray="2 7" strokeLinecap="round" />
+        <path d="M-6 150 C 70 96, 120 40, 200 84 S 330 150, 410 92" fill="none" stroke="#7B5CFA" strokeOpacity={0.45} strokeWidth={1.5} strokeDasharray="2 7" strokeLinecap="round" />
       </svg>
       {CREW.map((c) => (
         <div key={c.seed} className="orb" style={{ left: `${c.x}%`, top: `${c.y}%` }}>
@@ -76,21 +76,21 @@ export function ArtSimulator() {
   for (let r = 0; r < 4; r++) {
     for (let c = 0; c < 11; c++) {
       const on = (r * 11 + c) % 3 !== 0;
-      dots.push(<circle key={`${r}-${c}`} cx={20 + c * 26} cy={136 + r * 16} r={5.5} fill={on ? '#6D3BEB' : '#CDBCFA'} />);
+      dots.push(<circle key={`${r}-${c}`} cx={20 + c * 26} cy={136 + r * 16} r={5.5} fill={on ? '#7B5CFA' : '#CFC2FF'} />);
     }
   }
   return (
     <svg viewBox="0 0 300 200" width="100%" height="100%" role="img" aria-label="A reel watched by AI followers">
       <defs>
         <linearGradient id="reel" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#4C1FB8" />
-          <stop offset="1" stopColor="#7E55EE" />
+          <stop offset="0" stopColor="#4B2FD1" />
+          <stop offset="1" stopColor="#7B5CFA" />
         </linearGradient>
       </defs>
       <rect x="116" y="8" width="68" height="110" rx="16" fill="url(#reel)" />
       <path d="M142 44 v34 l27 -17 z" fill="#FFFFFF" />
       <path d="M204 26 c 20 -6 34 4 36 18 c 2 14 -12 22 -26 20 l -10 10 l 2 -12 c -14 -8 -14 -30 -2 -36z" fill="#FFFFFF" />
-      <text x="222" y="50" textAnchor="middle" fontSize="12" fontWeight="600" fill="#1F1147">
+      <text x="222" y="50" textAnchor="middle" fontSize="12" fontWeight="600" fill="#141414">
         why?
       </text>
       {dots}

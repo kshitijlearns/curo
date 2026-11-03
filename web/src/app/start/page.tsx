@@ -69,7 +69,7 @@ export default function Start() {
         <div className="onb-art" style={{ height: 210 }}>
           <ArtHome />
         </div>
-        <h2 className="section-title" style={{ fontSize: 32, lineHeight: 1.1, fontWeight: 400 }}>
+        <h2 className="section-title" style={{ fontSize: 34, lineHeight: 1.02 }}>
           What’s your Instagram username?
         </h2>
         <p className="section-sub">

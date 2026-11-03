@@ -1,15 +1,14 @@
 import type { Metadata, Viewport } from 'next';
-import { Fraunces, Plus_Jakarta_Sans } from 'next/font/google';
+import { Bricolage_Grotesque, Plus_Jakarta_Sans } from 'next/font/google';
 
 import { Providers } from './providers';
 import './globals.css';
 
-// v2.3: a soft serif for what matters, a clean sans for the rest.
-const fraunces = Fraunces({
+// v3: a chunky grotesque for headlines and numbers, a clean sans for the rest.
+const bricolage = Bricolage_Grotesque({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  style: ['normal', 'italic'],
-  variable: '--font-fraunces',
+  weight: ['500', '600', '700', '800'],
+  variable: '--font-bricolage',
   display: 'swap',
 });
 const jakarta = Plus_Jakarta_Sans({
@@ -28,12 +27,12 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#F3EDFF',
+  themeColor: '#F2EEE5',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${jakarta.variable}`}>
+    <html lang="en" className={`${bricolage.variable} ${jakarta.variable}`}>
       <body>
         <Providers>{children}</Providers>
       </body>

@@ -8,15 +8,15 @@ export type PersonaColor = 'blue' | 'lavender' | 'pink' | 'ink' | 'gray';
 
 export const MOODS: Mood[] = ['neutral', 'love', 'like', 'unsure', 'skip', 'thinking', 'listening'];
 export const COLORS: PersonaColor[] = ['blue', 'lavender', 'pink', 'ink'];
-// v2.3: each persona is a glowing purple orb with its dots inside. The keys are the stored
-// colour names (kept so existing personas keep their identity); every value is a purple.
-// [highlight, middle, edge] of the orb's radial gradient, then the dots' colour.
+// v3 (D245): each persona is a colour-block orb with its dots inside. The keys are the stored
+// colour names (kept so existing personas keep their identity); each maps to a block from
+// lib/palette.ts (PERSONA_BLOCK). [highlight, middle, edge] of the orb's gradient, then the dots.
 export const ORB: Record<PersonaColor, [string, string, string, string]> = {
-  blue: ['#A98BFA', '#6D3BEB', '#4C1FB8', '#FFFFFF'],
-  lavender: ['#D6C7FD', '#9B7BF5', '#6D3BEB', '#FFFFFF'],
-  pink: ['#F3EDFF', '#CDBCFA', '#9B7BF5', '#4C1FB8'],
-  ink: ['#7A5BD0', '#3A1D8C', '#1F1147', '#FFFFFF'],
-  gray: ['#F3EDFF', '#ECE5FB', '#D9CCFB', '#FFFFFF'],
+  blue: ['#FFFFFF', '#A6D5FF', '#A6D5FF', '#141414'],
+  lavender: ['#CFC2FF', '#7B5CFA', '#4B2FD1', '#FFFFFF'],
+  pink: ['#FFFFFF', '#FFB5E3', '#FFB5E3', '#141414'],
+  ink: ['#262626', '#141414', '#141414', '#CDEA6A'],
+  gray: ['#FBF8F2', '#E4DED1', '#E4DED1', '#FFFFFF'],
 };
 
 const GOLDEN = Math.PI * (3 - Math.sqrt(5));

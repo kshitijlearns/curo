@@ -1,6 +1,6 @@
 'use client';
 /**
- * The Simulator (v2): upload the recorded video; CURO's AI audience — personas built from the
+ * The Simulator (v2, v3 look): upload the recorded video; CURO's AI audience — personas built from the
  * creator's own comments — watches it, reacts, comments and replies. The result leads with the
  * engagement score, then predicted ranges, the skip curve, the best time to post, what's
  * working / holding it back / to edit (with timestamps), and the simulated comments, each
@@ -10,15 +10,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
 import { AskThread, useAskCuro } from '@/components/AskCuro';
-import { ErrorNote, Loading } from '@/components/Chrome';
+import { ErrorNote, Loading, TopBar } from '@/components/Chrome';
 import { Overlay } from '@/components/Overlay';
-import { Icon } from '@/components/Icon';
-import { PersonaAvatar } from '@/components/PersonaAvatar';
-import { PersonaChat, PersonaLabel } from '@/components/Personas';
-import { ScoreRing } from '@/components/ScoreRing';
+import { Icon, type IconName } from '@/components/Icon';
+import { AvatarSkeleton, PersonaAvatar } from '@/components/PersonaAvatar';
+import { PersonaChat, PersonaLabel, SectionHead } from '@/components/Personas';
 import type { Mood, PersonaColor } from '@/lib/avatar';
 import { api, uploadVideo, waitForJob, type S } from '@/lib/api';
-import { useProject, useSimulation } from '@/lib/hooks';
+import { usePersonas, useProject, useSimulation } from '@/lib/hooks';
+import { blockAt, PERSONA_BLOCK, scoreBlock } from '@/lib/palette';
 import { useApp } from '@/state/app';
 
 export const SIM_LABEL = 'Simulated by CURO’s AI audience. Not real comments.';
@@ -35,6 +35,7 @@ function SimStart({ parent }: { parent?: S['Simulation'] }) {
   const qc = useQueryClient();
   const project = useProject(parent ? parent.project_id ?? null : s.projectId);
   const samples = useQuery({ queryKey: ['samples'], queryFn: () => api<S['SampleVideo'][]>('/uploads/samples') });
+  const personas = usePersonas();
   const [link, setLink] = useState(true);
   const [caption, setCaption] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
@@ -101,37 +102,42 @@ function SimStart({ parent }: { parent?: S['Simulation'] }) {
     }
   };
 
+  const crowd = (personas.data?.personas ?? []).slice(0, 4);
   return (
     <>
-      <h2 className="section-title">{parent ? 'Re-run with a new take' : 'Simulator'}</h2>
-      <p className="section-sub">
-        Test a recorded reel on an AI audience built from your own comments, before you post.
-      </p>
-      {busy ? <Loading text={busy} /> : null}
+      {parent ? null : <TopBar />}
+      <div className="hero">
+        <span className="eyebrow">{parent ? 'New take' : 'Simulator'}</span>
+        <h1 className="display-title">
+          {parent ? (
+            <>
+              Show them
+              <br />
+              <span className="hl coral">take two</span>
+            </>
+          ) : (
+            <>
+              Test it before
+              <br />
+              you <span className="hl coral">post</span>
+            </>
+          )}
+        </h1>
+      </div>
 
-      {project.data && !parent ? (
-        <label className="card tint row between" style={{ cursor: 'pointer' }}>
-          <span>
-            <strong>Link to your draft</strong>
-            <br />
-            <span className="small muted">{project.data.title || project.data.opportunity?.name}</span>
-          </span>
-          <input type="checkbox" checked={link} onChange={(e) => setLink(e.target.checked)} style={{ width: 22, height: 22 }} />
-        </label>
-      ) : null}
+      <div className="audience-strip">
+        <span className="orb-stack" aria-hidden="true">
+          {crowd.length
+            ? crowd.map((p) => <PersonaAvatar key={p.id} seed={p.avatar_seed} color={p.color as PersonaColor} mood={p.mood as Mood} size={36} decorative animated={false} />)
+            : [1, 2, 3, 4].map((i) => <AvatarSkeleton key={i} size={36} seed={i * 4099} />)}
+        </span>
+        <span className="pill-row-main">
+          <strong>1,000 AI followers</strong>
+          <small>drawn from your {crowd.length || 4} follower groups</small>
+        </span>
+      </div>
 
-      <label htmlFor="caption" className="small" style={{ fontWeight: 600, margin: '8px 4px', display: 'block' }}>
-        Caption (optional)
-      </label>
-      <textarea
-        id="caption"
-        className="field"
-        value={caption}
-        onChange={(e) => setCaption(e.target.value)}
-        placeholder="Paste the caption you’ll post"
-        rows={3}
-        style={{ minHeight: 90 }}
-      />
+      {busy ? <Working text={busy} /> : null}
 
       <input
         ref={file}
@@ -140,26 +146,68 @@ function SimStart({ parent }: { parent?: S['Simulation'] }) {
         hidden
         onChange={(e) => onFile(e.target.files?.[0])}
       />
-      <button className="btn block" style={{ marginTop: 14 }} disabled={!!busy} onClick={() => file.current?.click()}>
-        <Icon name="upload" size={18} /> Upload your video (MP4 or MOV, up to 90 seconds)
+      <button className="drop blk-coral" disabled={!!busy} onClick={() => file.current?.click()}>
+        <span className="drop-icon">
+          <Icon name="upload" size={26} strokeWidth={2.2} />
+        </span>
+        <strong>Upload your reel</strong>
+        <span className="row" style={{ gap: 6, justifyContent: 'center' }}>
+          <span className="chip white">MP4 or MOV</span>
+          <span className="chip white">up to 90s</span>
+        </span>
       </button>
+
+      {project.data && !parent ? (
+        <label className="toggle-row">
+          <span className="circle sm cream" aria-hidden="true">
+            <Icon name="film" size={16} strokeWidth={2} />
+          </span>
+          <span className="pill-row-main">
+            <strong>Link to your draft</strong>
+            <small>{project.data.title || project.data.opportunity?.name}</small>
+          </span>
+          <input type="checkbox" className="switch-input" checked={link} onChange={(e) => setLink(e.target.checked)} />
+        </label>
+      ) : null}
+
+      <details className="caption-box" open={!!caption}>
+        <summary>
+          <Icon name="hash" size={16} strokeWidth={2} /> {caption ? 'Your caption' : 'Add the caption you’ll post'}
+          <span className="small muted" style={{ marginLeft: 'auto' }}>
+            optional
+          </span>
+        </summary>
+        <label htmlFor="caption" className="sr-only">
+          Caption (optional)
+        </label>
+        <textarea
+          id="caption"
+          className="field"
+          value={caption}
+          onChange={(e) => setCaption(e.target.value)}
+          placeholder="Paste the caption you’ll post"
+          rows={3}
+          style={{ minHeight: 90 }}
+        />
+      </details>
 
       {samples.data?.length ? (
         <>
-          <h3 className="section-title" style={{ fontSize: 17, marginTop: 22 }}>
-            Or try a sample
-          </h3>
-          {samples.data.map((v) => (
-            <button key={v.name} className="card tap" disabled={!!busy} onClick={() => pickSample(v.name)}>
-              <div className="row between">
-                <h3 style={{ margin: 0, fontSize: 16 }}>{v.title}</h3>
-                <span className="small muted">{Math.round(v.duration_s)}s</span>
-              </div>
-              <p className="small light" style={{ marginTop: 6 }}>
-                {v.description}
-              </p>
-            </button>
-          ))}
+          <SectionHead title="Or try a sample" />
+          <div className="panel-block sky">
+            {samples.data.map((v) => (
+              <button key={v.name} className="pill-row" disabled={!!busy} onClick={() => pickSample(v.name)}>
+                <span className="circle sm ink" aria-hidden="true">
+                  <Icon name="play" size={14} />
+                </span>
+                <span className="pill-row-main">
+                  <strong>{v.title}</strong>
+                  <small>{v.description.split(' · ').slice(0, -1).join(' · ') || v.description}</small>
+                </span>
+                <span className="chip cream">{Math.round(v.duration_s)}s</span>
+              </button>
+            ))}
+          </div>
         </>
       ) : null}
     </>
@@ -214,11 +262,15 @@ function SimResult({ id }: { id: string }) {
   if (q.error || !q.data) return <ErrorNote error={q.error} onRetry={() => q.refetch()} />;
   const sim = q.data;
   const top = (
-    <div className="row between" style={{ marginBottom: 12 }}>
-      <button className="pill" onClick={() => s.openSim(null)}>
-        <Icon name="back" size={16} /> New simulation
+    <div className="row between project-top">
+      <button className="chip-btn" onClick={() => s.openSim(null)}>
+        <Icon name="back" size={16} strokeWidth={2} /> New test
       </button>
-      {sim.project_title ? <span className="small muted">{sim.project_title}</span> : null}
+      {sim.project_title ? (
+        <span className="chip outline truncate">
+          <Icon name="film" size={13} strokeWidth={2} /> {sim.project_title}
+        </span>
+      ) : null}
     </div>
   );
   if (sim.status === 'failed') {
@@ -233,8 +285,8 @@ function SimResult({ id }: { id: string }) {
     return (
       <>
         {top}
-        <Loading text={progress} />
-        <p className="small muted" style={{ margin: '0 8px' }}>
+        <Watching text={progress} />
+        <p className="small muted" style={{ margin: '12px 8px' }}>
           A thousand simulated viewers take a little while. You can leave this screen; the result waits for you.
         </p>
       </>
@@ -244,31 +296,37 @@ function SimResult({ id }: { id: string }) {
 
   const r = sim.result;
   const crowd = r.audience;
+  const score = sim.engagement_score;
+  const prev = crowd?.previous_engagement_score;
   return (
     <>
       {top}
-      <p className="label-sim" role="note">
-        {SIM_LABEL}
-      </p>
-
-      <section className="card lav" aria-label="Engagement score">
-        <div className="row" style={{ gap: 16 }}>
-          <ScoreRing value={sim.engagement_score} size={116} label="Engagement score" sub="of 100" />
-          <div>
-            <h3 style={{ margin: 0 }}>Engagement score</h3>
-            <p className="light small" style={{ marginTop: 4 }}>
-              {sim.engagement_score === null || sim.engagement_score === undefined
-                ? 'Needs at least 5 of your posted reels with public counts to compare with.'
-                : `Beats ${sim.engagement_score}% of your last ${crowd?.past_reels_scored ?? 0} reels on likes, comments and shares.`}
-            </p>
-            {crowd?.previous_engagement_score !== null && crowd?.previous_engagement_score !== undefined ? (
-              <p className="small" style={{ marginTop: 6, fontWeight: 600 }}>
-                Previous take: {crowd.previous_engagement_score} → now {sim.engagement_score ?? '—'}
-              </p>
-            ) : null}
-          </div>
+      <section className={`score-hero blk-${scoreBlock(score === null || score === undefined ? null : score / 100)}`} aria-label="Engagement score">
+        <div className="row between">
+          <span className="eyebrow">Engagement score</span>
+          {prev !== null && prev !== undefined && score !== null && score !== undefined ? (
+            <span className="chip ink">
+              {score >= prev ? '▲' : '▼'} {Math.abs(score - prev)} from your last take
+            </span>
+          ) : null}
         </div>
+        <div className="score-big" role="img" aria-label={`Engagement score: ${score ?? 'unknown'}${score !== null && score !== undefined ? ' of 100' : ''}`}>
+          {score ?? '—'}
+          <small>/100</small>
+        </div>
+        <div className="score-track" aria-hidden="true">
+          <i style={{ width: `${score ?? 0}%` }} />
+          {prev !== null && prev !== undefined ? <b style={{ left: `${prev}%` }} title="Previous take" /> : null}
+        </div>
+        <p className="score-line">
+          {score === null || score === undefined
+            ? 'Needs at least 5 of your posted reels with public counts to compare with.'
+            : `Beats ${score}% of your last ${crowd?.past_reels_scored ?? 0} reels on likes, comments and shares.`}
+        </p>
       </section>
+      <p className="label-sim" role="note">
+        <Icon name="sparkle" size={12} /> {SIM_LABEL}
+      </p>
 
       {crowd ? (
         <>
@@ -278,82 +336,129 @@ function SimResult({ id }: { id: string }) {
       ) : null}
 
       {r.best_time ? (
-        <div className="card tint">
-          <div className="row">
-            <Icon name="clock" />
-            <h3 style={{ margin: 0, fontSize: 16 }}>Best time to post: {r.best_time.label}</h3>
-          </div>
-          <p className="small light" style={{ marginTop: 6 }}>
-            {r.best_time.fact}
-          </p>
+        <div className="best-time blk-lemon">
+          <span className="circle ink" aria-hidden="true">
+            <Icon name="clock" size={20} strokeWidth={2} />
+          </span>
+          <span className="pill-row-main">
+            <small>Best time to post</small>
+            <strong className="best-time-label">{r.best_time.label}</strong>
+            <small className="wrap-text">{r.best_time.fact}</small>
+          </span>
         </div>
       ) : null}
 
       {crowd ? <Explain ex={crowd.explain} /> : null}
+      {(sim.edits ?? []).length ? <Edits sim={sim} /> : null}
       {crowd?.personas?.length ? <PersonaGroups crowd={crowd} simId={id} /> : null}
 
       {crowd?.comments.length ? (
-        <>
-          <h3 className="section-title" style={{ fontSize: 18, marginTop: 20 }}>
-            Simulated comments
-          </h3>
-          <p className="label-sim">{SIM_LABEL}</p>
-          {crowd.comments.slice(0, 12).map((c) => (
-            <button key={c.agent_no} className="card tap" onClick={() => setAgent(c.agent_no)} aria-label={`Talk to Agent ${c.agent_no}`}>
-              <p className="small muted row" style={{ fontWeight: 600, gap: 6 }}>
-                {c.color ? <i className={`dot-${c.color}`} aria-hidden="true" /> : null}
-                Agent {c.agent_no} · {c.segment}
-              </p>
-              <p style={{ marginTop: 4 }}>{c.text}</p>
-              <div className="row small muted" style={{ marginTop: 6, gap: 12 }}>
-                <span className="row" style={{ gap: 4 }}>
-                  <Icon name="likes" size={14} /> {c.likes}
+        <section aria-label="Simulated comments">
+          <SectionHead title="Simulated comments" hint="tap one to talk" />
+          <div className="comments">
+            {crowd.comments.slice(0, 12).map((c) => (
+              <button key={c.agent_no} className="comment" onClick={() => setAgent(c.agent_no)} aria-label={`Talk to Agent ${c.agent_no}`}>
+                <span className={`agent-dot blk-${PERSONA_BLOCK[c.color ?? ''] ?? 'paper'}`} aria-hidden="true">
+                  {c.agent_no}
                 </span>
-                {(c.replies ?? []).length ? <span>{(c.replies ?? []).length} replies</span> : null}
-                <span style={{ marginLeft: 'auto' }}>Tap to talk</span>
-              </div>
-              {(c.replies ?? []).slice(0, 2).map((rp, i) => (
-                <p key={i} className="small light" style={{ marginTop: 6, paddingLeft: 12, borderLeft: '2px solid var(--line)' }}>
-                  Agent {rp.agent_no} · {rp.segment}: {rp.text}
-                </p>
-              ))}
-            </button>
-          ))}
-        </>
+                <span className="comment-body">
+                  <small>
+                    Agent {c.agent_no} · {c.segment}
+                  </small>
+                  <span className="comment-text">{c.text}</span>
+                  {(c.replies ?? []).slice(0, 2).map((rp, i) => (
+                    <span key={i} className="comment-reply">
+                      <b>Agent {rp.agent_no}</b> {rp.text}
+                    </span>
+                  ))}
+                </span>
+                <span className="comment-likes">
+                  <Icon name="likes" size={14} strokeWidth={2} />
+                  {c.likes}
+                </span>
+              </button>
+            ))}
+          </div>
+          <p className="label-sim">{SIM_LABEL}</p>
+        </section>
       ) : null}
 
       {crowd?.segments.length ? (
-        <div className="card">
-          <h3 style={{ fontSize: 16 }}>Your AI audience</h3>
-          <p className="small muted">
-            {crowd.agents} agents drawn from your {crowd.segments.length} follower personas, in proportion to each one’s share.
-          </p>
-          {crowd.segments.map((g) => (
-            <div key={g.key} style={{ marginTop: 10 }}>
-              <div className="row between small">
-                <strong>{g.label}</strong>
-                <span className="muted">{Math.round(g.share * 100)}%</span>
-              </div>
-              <div className="bar" style={{ marginTop: 4 }}>
-                <span style={{ width: `${Math.round(g.share * 100)}%` }} />
-              </div>
+        <section aria-label="Your AI audience">
+          <SectionHead title="Your AI audience" hint={`${crowd.agents} agents`} />
+          <div className="card paper">
+            <div className="split-bar" aria-hidden="true">
+              {crowd.segments.map((g, i) => (
+                <i key={g.key} className={`blk-${segBlock(crowd, g.label, i)}`} style={{ flex: g.share }} />
+              ))}
             </div>
-          ))}
-        </div>
+            <div className="seg-legend">
+              {crowd.segments.map((g, i) => (
+                <div key={g.key} className="seg">
+                  <i className={`blk-${segBlock(crowd, g.label, i)}`} aria-hidden="true" />
+                  <span className="pill-row-main">
+                    <strong>
+                      {g.label} <span className="muted">{Math.round(g.share * 100)}%</span>
+                    </strong>
+                    {g.description ? <small>{g.description}</small> : null}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="small muted" style={{ marginTop: 10 }}>
+              Drawn from your {crowd.segments.length} follower personas, in proportion to each one’s share.
+            </p>
+          </div>
+        </section>
       ) : null}
 
-      {(sim.edits ?? []).length ? <Edits sim={sim} /> : null}
-
-      <p className="small muted" style={{ margin: '8px 4px 16px' }}>
+      <p className="small muted" style={{ margin: '18px 4px 12px' }}>
         {r.accuracy}
       </p>
-      <button className="btn block lav" onClick={() => setRerun(true)}>
-        <Icon name="refresh" size={18} /> Re-run with a new take
+      <button className="btn block ink big" onClick={() => setRerun(true)}>
+        <Icon name="refresh" size={18} strokeWidth={2} /> Re-run with a new take
       </button>
 
       <AskThread messages={ask.messages} busy={ask.busy} />
       {agent !== null ? <AgentChat simId={id} agentNo={agent} onClose={() => setAgent(null)} /> : null}
     </>
+  );
+}
+
+/** A segment's block: its persona's colour when the names match, else the rotation. */
+function segBlock(crowd: S['SimAudienceResult'], label: string, i: number) {
+  const p = (crowd.personas ?? []).find((x) => x.short_name === label || x.name === label);
+  return p ? PERSONA_BLOCK[p.color] ?? blockAt(i) : blockAt(i);
+}
+
+/** While the audience watches: a field of 120 dots lighting up, and the current step. */
+function Watching({ text }: { text: string }) {
+  return (
+    <section className="watching" role="status" aria-label={text}>
+      <div className="dot-field" aria-hidden="true">
+        {Array.from({ length: 120 }, (_, i) => (
+          <i key={i} style={{ animationDelay: `${((i * 37) % 120) * 22}ms` }} />
+        ))}
+      </div>
+      <span className="eyebrow" style={{ color: 'var(--lime)' }}>
+        1,000 AI followers
+      </span>
+      <strong className="watching-text">{text}</strong>
+    </section>
+  );
+}
+
+/** A step running: three bouncing dots on a dark card. */
+function Working({ text }: { text: string }) {
+  return (
+    <div className="working" role="status">
+      <span className="loader light" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </span>
+      <span>{text}</span>
+    </div>
   );
 }
 
@@ -366,58 +471,89 @@ function PersonaGroups({ crowd, simId }: { crowd: S['SimAudienceResult']; simId:
   const [open, setOpen] = useState<string | null>(null);
   const g = (crowd.personas ?? []).find((x) => x.persona_id === open);
   return (
-    <section className="card" aria-label="How each follower group reacted">
-      <h3 style={{ fontSize: 16 }}>How each follower group reacted</h3>
-      {(crowd.personas ?? []).map((p) => (
-        <button key={p.persona_id} className="group-row" onClick={() => setOpen(p.persona_id)} aria-label={`${p.name}: ${p.takeaway} Open their take`}>
-          <PersonaAvatar seed={p.avatar_seed} color={p.color as PersonaColor} mood={p.mood as Mood} size={40} name={p.name} share={p.share} decorative />
-          <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-            <strong style={{ fontFamily: 'var(--display)', fontWeight: 500, fontSize: 17 }}>{p.name}</strong>
-            <p className="small" style={{ margin: '2px 0', fontWeight: 600 }}>
-              {pct(p.kept_watching)} kept watching · {pct(p.watched_to_end)} to the end
-            </p>
-            <p className="small muted" style={{ margin: '2px 0' }}>
-              Likes {pct(p.rates.likes)} · Comments {pct(p.rates.comments)} · Shares {pct(p.rates.shares)} · Saves {pct(p.rates.saves)} (simulated)
-            </p>
-            <p className="small" style={{ margin: 0 }}>
-              {p.takeaway}
-            </p>
-          </div>
-        </button>
-      ))}
+    <section aria-label="How each follower group reacted">
+      <SectionHead title="How each group reacted" />
+      <div className="stack" style={{ gap: 10 }}>
+        {(crowd.personas ?? []).map((p) => {
+          const kept = p.kept_watching ?? 0;
+          return (
+            <button key={p.persona_id} className={`group-card blk-${PERSONA_BLOCK[p.color] ?? 'paper'}`} onClick={() => setOpen(p.persona_id)} aria-label={`${p.name}: ${p.takeaway} Open their take`}>
+              <div className="row" style={{ gap: 12 }}>
+                <PersonaAvatar seed={p.avatar_seed} color={p.color as PersonaColor} mood={p.mood as Mood} size={48} name={p.name} share={p.share} decorative />
+                <span className="pill-row-main">
+                  <strong>{p.short_name}</strong>
+                  <small>{p.agents} agents</small>
+                </span>
+                <span className="group-kept">
+                  {pct(p.kept_watching)}
+                  <small>kept watching</small>
+                </span>
+              </div>
+              <div className="mini-bar on-block" aria-hidden="true">
+                <i style={{ width: `${Math.round(kept * 100)}%` }} />
+              </div>
+              <div className="row wrap group-rates">
+                <span>
+                  <Icon name="likes" size={13} strokeWidth={2} /> {pct(p.rates.likes)}
+                </span>
+                <span>
+                  <Icon name="comments" size={13} strokeWidth={2} /> {pct(p.rates.comments)}
+                </span>
+                <span>
+                  <Icon name="shares" size={13} strokeWidth={2} /> {pct(p.rates.shares)}
+                </span>
+                <span>
+                  <Icon name="bookmark" size={13} strokeWidth={2} /> {pct(p.rates.saves)}*
+                </span>
+                <span>{pct(p.watched_to_end)} to the end</span>
+              </div>
+              <p className="group-take">{p.takeaway}</p>
+            </button>
+          );
+        })}
+      </div>
       {(crowd.studio_compare ?? []).length ? (
-        <div style={{ marginTop: 10 }}>
+        <div className="stack" style={{ gap: 4, marginTop: 10 }}>
           {(crowd.studio_compare ?? []).map((l) => (
-            <p key={l} className="small light" style={{ margin: '4px 0' }}>
+            <p key={l} className="small light" style={{ margin: 0 }}>
               {l}
             </p>
           ))}
         </div>
       ) : null}
-      <p className="small muted" style={{ marginTop: 8 }}>
-        {crowd.persona_label}
+      <p className="small muted" style={{ margin: '10px 4px 0' }}>
+        * Saves are simulated. {crowd.persona_label}
       </p>
       {g ? (
         <Overlay labelledBy="sim-persona" onClose={() => setOpen(null)}>
-          <div className="row between">
-            <div className="row" style={{ gap: 10 }}>
-              <PersonaAvatar seed={g.avatar_seed} color={g.color as PersonaColor} mood={g.mood as Mood} size={64} name={g.name} share={g.share} />
-              <h2 id="sim-persona" style={{ margin: 0, fontSize: 20 }}>
-                {g.name}
-              </h2>
+          <div className={`sheet-hero blk-${PERSONA_BLOCK[g.color] ?? 'paper'}`}>
+            <div className="row between" style={{ alignItems: 'flex-start' }}>
+              <PersonaAvatar seed={g.avatar_seed} color={g.color as PersonaColor} mood={g.mood as Mood} size={72} name={g.name} share={g.share} />
+              <button className="circle white" onClick={() => setOpen(null)} aria-label="Close">
+                <Icon name="close" size={18} />
+              </button>
             </div>
-            <button className="circle sm" onClick={() => setOpen(null)} aria-label="Close">
-              <Icon name="close" size={18} />
-            </button>
+            <h2 id="sim-persona" className="block-title">
+              {g.name}
+            </h2>
+            <p style={{ margin: 0 }}>{g.takeaway}</p>
           </div>
-          <p style={{ marginTop: 12 }}>{g.takeaway}</p>
           {g.opinion ? (
             <>
-              <p className="pop-reaction" style={{ marginTop: 8 }}>
+              <p className="pop-reaction" style={{ marginTop: 4 }}>
                 {g.opinion.reaction_label}
               </p>
-              <p>“{g.opinion.opinion}”</p>
-              {g.opinion.win_them_over ? <p className="small light">What would win them over: {g.opinion.win_them_over}</p> : null}
+              <blockquote className="thought">“{g.opinion.opinion}”</blockquote>
+              {g.opinion.win_them_over ? (
+                <div className="note-card">
+                  <span className="circle sm white" aria-hidden="true">
+                    <Icon name="bolt" size={14} strokeWidth={2} />
+                  </span>
+                  <p>
+                    <b>What would win them over:</b> {g.opinion.win_them_over}
+                  </p>
+                </div>
+              ) : null}
             </>
           ) : null}
           <p className="label-sim" style={{ marginTop: 12 }}>
@@ -431,30 +567,28 @@ function PersonaGroups({ crowd, simId }: { crowd: S['SimAudienceResult']; simId:
   );
 }
 
+const METRIC_ICON = { views: 'views', likes: 'likes', comments: 'comments', shares: 'shares', saves: 'bookmark' } as const;
+const METRIC_BLOCK = { views: 'violet', likes: 'pink', comments: 'sky', shares: 'lime', saves: 'paper' } as const;
+
 function Predictions({ crowd }: { crowd: S['SimAudienceResult'] }) {
   return (
-    <section className="card" aria-label="Predicted ranges">
-      <h3 style={{ fontSize: 16 }}>Predicted in the first 7 days</h3>
-      {crowd.predictions.map((p) => (
-        <div key={p.metric} className="row between" style={{ padding: '8px 0', borderBottom: '1px solid var(--line)' }}>
-          <span>
-            {METRIC[p.metric]}
-            {p.simulated ? <span className="pill mist" style={{ height: 22, marginLeft: 8, fontSize: 11 }}>simulated</span> : null}
-          </span>
-          <span style={{ fontWeight: 600 }}>
-            {p.count === null || p.count === undefined ? (
-              <span className="muted" style={{ fontWeight: 400 }}>
-                unknown
+    <section aria-label="Predicted ranges">
+      <SectionHead title="First 7 days" hint="predicted range" />
+      <div className="metric-grid">
+        {crowd.predictions.map((p) => (
+          <div key={p.metric} className={`metric blk-${METRIC_BLOCK[p.metric]}${p.metric === 'views' ? ' wide' : ''}`}>
+            <div className="row between">
+              <span className="metric-name">
+                <Icon name={METRIC_ICON[p.metric]} size={15} strokeWidth={2} /> {METRIC[p.metric]}
               </span>
-            ) : (
-              `${fmt(p.count_low)}–${fmt(p.count_high)}`
-            )}
-          </span>
-        </div>
-      ))}
-      <p className="small muted" style={{ marginTop: 8 }}>
-        Ranges come from how the AI audience reacted, calibrated on your past reels. Saves have no public count to check
-        against, so they stay simulated.
+              {p.simulated ? <span className="chip white tiny">simulated</span> : null}
+            </div>
+            <b className="metric-range">{p.count === null || p.count === undefined ? 'unknown' : `${fmt(p.count_low)}–${fmt(p.count_high)}`}</b>
+          </div>
+        ))}
+      </div>
+      <p className="small muted" style={{ margin: '8px 4px 0' }}>
+        From how the AI audience reacted, calibrated on your past reels. Saves have no public count, so they stay simulated.
       </p>
     </section>
   );
@@ -469,45 +603,64 @@ function SkipCurve({ points }: { points: S['SkipPoint'][] }) {
     .map((p, i) => `${i ? 'L' : 'M'}${((p.t / max) * W).toFixed(1)},${(H - p.watching * H).toFixed(1)}`)
     .join(' ');
   const mid = points[Math.min(points.length - 1, 3)];
+  const end = Math.round(points[points.length - 1].watching * 100);
   return (
-    <section className="card" aria-label="Skip curve">
-      <h3 style={{ fontSize: 16 }}>Who keeps watching</h3>
-      <svg viewBox={`0 -6 ${W} ${H + 24}`} width="100%" role="img" aria-label={`Share of agents still watching each second; ${Math.round(points[points.length - 1].watching * 100)}% reach the end.`}>
-        <line x1={0} y1={H} x2={W} y2={H} stroke="var(--line)" />
-        <line x1={0} y1={0} x2={W} y2={0} stroke="var(--line)" strokeDasharray="4 4" />
-        <path d={`${d} L${W},${H} L0,${H} Z`} fill="var(--lilac)" opacity={0.6} />
-        <path d={d} fill="none" stroke="var(--violet)" strokeWidth={2.5} strokeLinejoin="round" />
-        <text x={0} y={H + 16} fontSize={11} fill="var(--plum)">0:00</text>
-        <text x={W} y={H + 16} fontSize={11} fill="var(--plum)" textAnchor="end">{mmss(max)}</text>
+    <section className="curve-card" aria-label="Skip curve">
+      <div className="row between">
+        <span className="eyebrow" style={{ color: 'var(--lime)' }}>
+          Who keeps watching
+        </span>
+        <span className="chip clear">{end}% to the end</span>
+      </div>
+      <div className="curve-big">
+        {Math.round(mid.watching * 100)}%<small> still watching at {mmss(mid.t)}</small>
+      </div>
+      <svg viewBox={`0 -6 ${W} ${H + 24}`} width="100%" role="img" aria-label={`Share of agents still watching each second; ${end}% reach the end.`}>
+        <line x1={0} y1={H} x2={W} y2={H} stroke="rgba(255,255,255,.2)" />
+        <line x1={0} y1={H / 2} x2={W} y2={H / 2} stroke="rgba(255,255,255,.12)" strokeDasharray="4 4" />
+        <path d={`${d} L${W},${H} L0,${H} Z`} fill="var(--lime)" opacity={0.18} />
+        <path d={d} fill="none" stroke="var(--lime)" strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />
+        <text x={0} y={H + 16} fontSize={11} fill="rgba(255,255,255,.6)">
+          0:00
+        </text>
+        <text x={W} y={H + 16} fontSize={11} fill="rgba(255,255,255,.6)" textAnchor="end">
+          {mmss(max)}
+        </text>
       </svg>
-      <p className="small light">
-        {Math.round(mid.watching * 100)}% still watching at {mmss(mid.t)}; {Math.round(points[points.length - 1].watching * 100)}% to the end.
-      </p>
     </section>
   );
 }
 
 function Explain({ ex }: { ex: S['AudienceExplain'] }) {
-  const block = (title: string, items: S['TimedText'][], tone: string) =>
+  const block = (title: string, items: S['TimedText'][], tone: string, icon: IconName) =>
     items.length ? (
-      <div className={`card ${tone}`}>
-        <h3 style={{ fontSize: 16 }}>{title}</h3>
+      <section className={`panel-block ${tone}`} aria-label={title}>
+        <h3 className="panel-title">
+          <span className="circle sm white" aria-hidden="true">
+            <Icon name={icon} size={15} strokeWidth={2.2} />
+          </span>
+          {title}
+        </h3>
         {items.map((it, i) => (
-          <p key={i} style={{ marginTop: 8 }}>
-            {it.at_s !== null && it.at_s !== undefined ? <span className="pill white" style={{ height: 24, marginRight: 8 }}>{mmss(it.at_s)}</span> : null}
-            {it.text}
-          </p>
+          <div key={i} className="pill-row static">
+            {it.at_s !== null && it.at_s !== undefined ? <span className="time-chip">{mmss(it.at_s)}</span> : null}
+            <span className="pill-row-main">
+              <strong className="wrap-text">{it.text}</strong>
+            </span>
+          </div>
         ))}
-      </div>
+      </section>
     ) : null;
   return (
     <>
-      {block('What’s working', ex.working ?? [], '')}
-      {block('What’s holding it back', ex.holding ?? [], 'pink')}
-      {block('What to change', ex.edits ?? [], 'gray')}
+      {block('What’s working', ex.working ?? [], 'lime', 'check')}
+      {block('What’s holding it back', ex.holding ?? [], 'coral', 'close')}
+      {block('What to change', ex.edits ?? [], 'sky', 'bolt')}
     </>
   );
 }
+
+const EFFORT = { edit_only: 'Edit only', reshoot: 'Reshoot', caption: 'Caption only' } as Record<string, string>;
 
 function Edits({ sim }: { sim: S['Simulation'] }) {
   const s = useApp();
@@ -520,17 +673,39 @@ function Edits({ sim }: { sim: S['Simulation'] }) {
     },
   });
   return (
-    <section className="card">
-      <h3 style={{ fontSize: 16 }}>Edits Curo can make for you</h3>
-      {(sim.edits ?? []).slice(0, 3).map((e) => (
-        <div key={e.id} style={{ marginTop: 12 }}>
-          <p style={{ fontWeight: 600 }}>{e.title}</p>
-          <p className="small light">{e.description}</p>
-          <button className="btn small ghost" style={{ marginTop: 8 }} disabled={e.applied || apply.isPending} onClick={() => apply.mutate(e.id)}>
-            {e.applied ? 'Applied' : sim.project_id ? 'Apply to my draft' : 'Mark as done'}
-          </button>
-        </div>
-      ))}
+    <section aria-label="Edits Curo can make for you">
+      <SectionHead title="Edits Curo can make" />
+      <div className="stack" style={{ gap: 10 }}>
+        {(sim.edits ?? []).slice(0, 3).map((e) => {
+          return (
+            <div key={e.id} className="edit-card">
+              <div className="row between">
+                <span className="chip outline">{EFFORT[e.effort] ?? e.effort}</span>
+              </div>
+              <h3 className="edit-title">{e.title}</h3>
+              <p className="small light" style={{ margin: 0 }}>
+                {e.description}
+              </p>
+              {e.frame_label ? (
+                <p className="small muted" style={{ margin: '6px 0 0' }}>
+                  <Icon name="grid" size={12} strokeWidth={2} /> {e.frame_label}
+                </p>
+              ) : null}
+              <button className={`btn small ${e.applied ? 'ghost' : 'ink'}`} style={{ marginTop: 12 }} disabled={e.applied || apply.isPending} onClick={() => apply.mutate(e.id)}>
+                {e.applied ? (
+                  <>
+                    <Icon name="check" size={14} strokeWidth={3} /> Applied
+                  </>
+                ) : sim.project_id ? (
+                  'Apply to my draft'
+                ) : (
+                  'Mark as done'
+                )}
+              </button>
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 }

@@ -1,13 +1,16 @@
 'use client';
-/** One opportunity area: the score and its parts, the evidence, what's trending, and Start. */
+/** One opportunity area (v3): a big score on a colour block, what the score is made of as one
+ *  stacked bar and four tiles, how it fits you, what's trending, and Start. */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { ErrorNote, Loading } from '@/components/Chrome';
-import { Icon } from '@/components/Icon';
-import { ScoreRing } from '@/components/ScoreRing';
+import { Chip, ErrorNote, Loading } from '@/components/Chrome';
+import { Icon, type IconName } from '@/components/Icon';
 import { api, type S } from '@/lib/api';
 import { useOpportunity } from '@/lib/hooks';
 import { useApp } from '@/state/app';
+
+const PART_BLOCK: Record<string, string> = { F: 'lemon', D: 'pink', T: 'lime', O: 'sky' };
+const FIT_ICON: Record<string, IconName> = { 'Your content': 'film', Timing: 'clock', Audience: 'users', 'Room left': 'trend' };
 
 export function OpportunityView({ id }: { id: string }) {
   const q = useOpportunity(id);
@@ -32,81 +35,93 @@ export function OpportunityView({ id }: { id: string }) {
   if (q.isLoading) return <Loading />;
   if (q.error || !q.data) return <ErrorNote error={q.error} onRetry={() => q.refetch()} />;
   const o = q.data;
+  const total = o.parts.reduce((a, p) => a + p.share, 0) || 1;
   return (
     <>
-      <div className="row" style={{ gap: 16, marginBottom: 16 }}>
-        <ScoreRing value={o.score_shown} max={10} size={104} label="Opportunity score" sub="of 10" />
-        <div>
-          <span className="pill lav">{o.tag}</span>
-          <h2 style={{ margin: '8px 0 0', fontSize: 24, letterSpacing: '-0.01em' }}>{o.name}</h2>
+      <section className="opp-hero blk-violet">
+        <div className="row between">
+          <Chip>{o.tag}</Chip>
           {o.window_ends_on ? (
-            <p className="small muted" style={{ margin: '4px 0 0' }}>
-              Window until {new Date(o.window_ends_on).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-            </p>
+            <Chip>
+              <Icon name="clock" size={14} strokeWidth={2} /> until {new Date(o.window_ends_on).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+            </Chip>
           ) : null}
         </div>
-      </div>
-      <p className="light" style={{ fontSize: 16, lineHeight: 1.5, margin: '0 4px 18px' }}>
-        {o.description}
-      </p>
+        <div className="opp-score" role="img" aria-label={`Opportunity score: ${o.score_shown} of 10`}>
+          {o.score_shown}
+          <small>/10</small>
+        </div>
+        <h1 className="block-title" style={{ fontSize: 32 }}>
+          {o.name}
+        </h1>
+        <p className="opp-desc">{o.description}</p>
+      </section>
 
-      <button className="btn block" onClick={() => start.mutate()} disabled={start.isPending}>
+      <button className="btn block ink big" onClick={() => start.mutate()} disabled={start.isPending}>
         <Icon name="sparkle" size={18} /> {start.isPending ? 'Starting…' : 'Start in Studio'}
       </button>
 
-      <h3 className="section-title" style={{ fontSize: 18, marginTop: 24 }}>
-        Why it scores {o.score_shown}
-      </h3>
-      <div className="card">
+      <h2 className="section-label">Why it scores {o.score_shown}</h2>
+      <div className="split-bar" aria-hidden="true">
         {o.parts.map((p) => (
-          <div key={p.key} style={{ marginBottom: 14 }}>
-            <div className="row between small">
-              <span style={{ fontWeight: 600 }}>{p.name}</span>
-              <span className="muted">{Math.round(p.share * 100)}% of the score</span>
+          <i key={p.key} className={`blk-${PART_BLOCK[p.key] ?? 'paper'}`} style={{ flex: p.share / total }} />
+        ))}
+      </div>
+      <div className="part-grid">
+        {o.parts.map((p) => (
+          <div key={p.key} className={`part-tile blk-${PART_BLOCK[p.key] ?? 'paper'}`}>
+            <div className="row between">
+              <span className="part-name">{p.name}</span>
+              <span className="part-share">{Math.round(p.share * 100)}%</span>
             </div>
-            <div className="bar" style={{ margin: '6px 0' }}>
-              <span style={{ width: `${Math.round(p.value * 100)}%` }} />
+            <div className="mini-bar" role="meter" aria-label={`${p.name}: ${Math.round(p.value * 100)} of 100`} aria-valuenow={Math.round(p.value * 100)} aria-valuemin={0} aria-valuemax={100}>
+              <i style={{ width: `${Math.round(p.value * 100)}%` }} />
             </div>
-            {p.facts.slice(0, 2).map((f) => (
-              <p key={f} className="small light">
-                {f}
-              </p>
-            ))}
+            {p.facts[0] ? <p className="part-fact">{p.facts[0]}</p> : null}
           </div>
         ))}
       </div>
 
       {o.fit.length ? (
-        <div className="card tint">
-          <h3 style={{ fontSize: 16 }}>How it fits you</h3>
-          {(o.fit as { k: string; t: string }[]).map((f) => (
-            <p key={f.k} style={{ marginTop: 6 }}>
-              <strong>{f.k}:</strong> <span className="light">{f.t}</span>
-            </p>
-          ))}
-        </div>
+        <>
+          <h2 className="section-label">How it fits you</h2>
+          <div className="panel-block paper">
+            {(o.fit as { k: string; t: string }[]).map((f) => (
+              <div key={f.k} className="pill-row static">
+                <span className="circle sm white" aria-hidden="true">
+                  <Icon name={FIT_ICON[f.k] ?? 'check'} size={16} strokeWidth={2} />
+                </span>
+                <span className="pill-row-main">
+                  <small>{f.k}</small>
+                  <strong className="wrap-text">{f.t}</strong>
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
       ) : null}
 
       {(o.trending ?? []).length ? (
         <>
-          <h3 className="section-title" style={{ fontSize: 18, marginTop: 20 }}>
-            What’s trending in your niche
-          </h3>
-          {(o.trending ?? []).map((t) => (
-            <div key={t.name} className="card">
-              <div className="row between">
-                <h3 style={{ fontSize: 16, margin: 0 }}>{t.name}</h3>
-                <span className="pill mist">{t.saturation === 'unknown' ? 'new' : t.saturation}</span>
+          <h2 className="section-label">Trending in your niche</h2>
+          <div className="stack" style={{ gap: 8 }}>
+            {(o.trending ?? []).map((t) => (
+              <div key={t.name} className="trend-row">
+                <span className={`heat heat-${t.saturation}`} aria-hidden="true">
+                  <Icon name="trend" size={16} strokeWidth={2.2} />
+                </span>
+                <span className="pill-row-main">
+                  <strong>{t.name}</strong>
+                  <small>{t.why_rising}</small>
+                </span>
+                <span className="chip outline">{t.saturation === 'unknown' ? 'new' : t.saturation}</span>
               </div>
-              <p className="light small" style={{ marginTop: 6 }}>
-                {t.why_rising}
-              </p>
-            </div>
-          ))}
+            ))}
+          </div>
         </>
       ) : null}
 
-      <button className="btn block ghost" style={{ marginTop: 12 }} onClick={() => dismiss.mutate()} disabled={dismiss.isPending}>
+      <button className="btn block ghost" style={{ marginTop: 20 }} onClick={() => dismiss.mutate()} disabled={dismiss.isPending}>
         Not for me
       </button>
     </>

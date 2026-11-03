@@ -15,12 +15,14 @@ import { PersonaAvatar } from './PersonaAvatar';
 import { apiText, type S } from '@/lib/api';
 import type { Mood, PersonaColor } from '@/lib/avatar';
 
-// The slide's stored background name → a purple scene (v2.3). Dark scenes carry white text.
-const SCENES: Record<string, Scene> = { lavender: 'lilac', pink: 'mist', ink: 'deep', gray: 'violet', white: 'mist' };
-type Scene = 'deep' | 'violet' | 'lilac' | 'mist';
-// A persona's own slide takes its colour.
-const PERSONA_SCENES: Record<string, Scene> = { blue: 'violet', lavender: 'lilac', pink: 'mist', ink: 'deep' };
-const PALETTE = ['#FFFFFF', '#D9CCFB', '#9B7BF5', '#6D3BEB', '#CDBCFA'];
+// The slide's stored background name → a colour-block scene (v3). Dark scenes carry white text;
+// the scene names are kept from v2.3: deep = ink, violet = violet, lilac = lemon, mist = sky,
+// rose = pink.
+const SCENES: Record<string, Scene> = { lavender: 'lilac', pink: 'rose', ink: 'deep', gray: 'violet', white: 'mist' };
+type Scene = 'deep' | 'violet' | 'lilac' | 'mist' | 'rose';
+// A persona's own slide takes its colour (lib/palette.ts PERSONA_BLOCK).
+const PERSONA_SCENES: Record<string, Scene> = { blue: 'mist', lavender: 'violet', pink: 'rose', ink: 'deep' };
+const PALETTE = ['#FFFFFF', '#FFD449', '#CDEA6A', '#FFB5E3', '#A6D5FF'];
 
 function sceneOf(slide: S['RecapSlide']): Scene {
   const id = slide.slide_id;
@@ -128,7 +130,7 @@ function FloatIn({ p, index, reduced }: { p: PersonaFact; index: number; reduced
 
 /** Stars and rings scattered around a slide; they move with the slide number. */
 function Stickers({ index, dark }: { index: number; dark: boolean }) {
-  const fill = dark ? '#FFFFFF' : '#6D3BEB';
+  const fill = dark ? '#CDEA6A' : '#141414';
   const spots = [
     { left: `${8 + (index * 13) % 22}%`, top: `${13 + (index * 7) % 8}%`, size: 26 },
     { right: `${6 + (index * 11) % 18}%`, top: `${20 + (index * 5) % 10}%`, size: 18 },
@@ -301,11 +303,11 @@ function Body({
           <span className="big" style={{ fontSize: 52 }}>
             {recap.creator_level ?? 'A creator'}
           </span>
-          <span className="big" style={{ fontSize: 40, fontStyle: 'italic', color: '#D9CCFB', animationDelay: reduced ? '0s' : '280ms' }}>
+          <span className="big" style={{ fontSize: 40, color: '#CDEA6A', animationDelay: reduced ? '0s' : '280ms' }}>
             {recap.archetype}
           </span>
           {recap.level_modifier ? (
-            <span className="pill" style={{ alignSelf: 'flex-start', background: '#FFFFFF', color: '#4C1FB8' }}>
+            <span className="pill" style={{ alignSelf: 'flex-start', background: '#FFFFFF', color: '#141414' }}>
               {recap.level_modifier}
             </span>
           ) : null}
@@ -596,7 +598,7 @@ export function StoryPlayer({
   if (!mounted || !slide) return null;
   const scene = sceneOf(slide);
   const dark = scene === 'deep' || scene === 'violet';
-  const accent = dark ? '#D9CCFB' : '#6D3BEB';
+  const accent = dark ? '#CDEA6A' : '#141414';
   const cheer = CHEERS[slide.slide_id];
   const friend = crew.length ? crew[i % crew.length] : null;
   const f = slide.facts as Record<string, any>;
